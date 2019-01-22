@@ -1,0 +1,24 @@
+{
+  "id": "40d1d077-550e-4b97-aa59-27f8e8e91f67",
+  "name": "Leaflet Maps",
+  "publisher": "Mark Brummel",
+  "brief": "",
+  "description": "",
+  "version": "1.0.20181217.1",
+  "privacyStatement": "",
+  "EULA": "",
+  "help": "",
+  "url": "",
+  "logo": "",
+  "capabilities": [],
+  "dependencies": [],
+  "screenshots": [],
+  "platform": "11.0.0.0",
+  "application": "11.0.0.0",
+  "idRange": {
+    "from": 1,
+    "to": 6188529
+  },
+  "runtime": "2.0",
+  "showMyCode": true
+}
