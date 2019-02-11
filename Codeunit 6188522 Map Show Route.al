@@ -57,7 +57,7 @@ codeunit 6188522 "Map Show Route"
 
                 /*** CIRCLE MARKER EXAMPLE ***/
                 // DEFAULT VALUES ARE DETERMINED BY DEFAULT SETTINGS
-                marker.Add('type', 1);                            // REQUIRED. Type 0 - Icon Marker, Type 1 - Circle Marker.
+                marker.Add('type', "Marker Type");                            // REQUIRED. Type 0 - Icon Marker, Type 1 - Circle Marker.
                 markerSettings.Add('fillColor', 'red');           // Optional. Circle marker fill color.
                 markerSettings.Add('fillOpacity', 1);             // Optional. Circle marker fill opacity. 1 - non transparent, 0 - transparent
                 markerSettings.Add('radius', 10);                 // Optional. Circle marker radius.

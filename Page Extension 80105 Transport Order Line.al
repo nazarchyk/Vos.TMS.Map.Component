@@ -27,7 +27,8 @@ pageextension 80105 "Transport Order Ln. Card (Map)" extends "Transport Order Li
             MapRoute."Marker Text" := Addr.Description + ' ' + Addr.Street + ' ' + Addr."Post Code" + ' ' + Addr.City; 
             MapRoute.Insert;
         until Shpmnt.Next = 0;
-        Addr.get("To Address No.");
+        if not Addr.get("To Address No.") then
+            exit;
         MapRoute."Route No." := 1;
         MapRoute."Stop No." += 1;
         MapRoute.Latitude := Addr.Latitude;

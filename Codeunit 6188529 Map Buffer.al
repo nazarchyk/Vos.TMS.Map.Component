@@ -27,6 +27,13 @@ codeunit 6188529 "Map Buffer"
         MustRefresh := true;
     end;
 
+    procedure SetDataOneByOne(var Rec: Record "Map Route");
+    begin
+        MapRoute := Rec;
+        if MapRoute.IsValid then
+            MapRoute.Insert;
+        MustRefresh := true;
+    end;
     
 
 }

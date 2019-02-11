@@ -10,10 +10,24 @@ table 6188521 "Map Route"
         field(7; Longitude; Decimal) { }
         field(8; Latitude; Decimal) { }
         field(10; "Marker Text"; Text[250]) { }
+        field(12; "Marker Type"; Option) { OptionMembers = Icon, Circle; }
     }
 
     keys
     { key(PK; "Route No.", "Stop No.") { Clustered = true; } }
+    procedure IsValid(): Boolean
+    begin
+        if Longitude < -6 then
+            exit(false);
+        if Longitude > 25 then
+            exit(false);
+        if Latitude < 38 then
+            exit(false);
+        if Latitude > 70 then
+            exit(false);
+        exit(true);
+    end;
+
     procedure SetColor(Value: text)
     begin
         case Value of

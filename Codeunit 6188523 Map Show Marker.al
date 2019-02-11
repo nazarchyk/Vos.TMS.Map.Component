@@ -22,7 +22,7 @@ codeunit 6188523 "Map Show Marker"
 
             // FindSet;
             // repeat
-            marker.Add('type', 0);                  // Type 0 - Icon Marker, Type 1 - Circle Marker.
+            marker.Add('type', "Marker Type");                  // Type 0 - Icon Marker, Type 1 - Circle Marker.
 
             coordinates.Add('latitude', Latitude);
             coordinates.Add('longitude', Longitude);
@@ -30,7 +30,7 @@ codeunit 6188523 "Map Show Marker"
 
             if "Marker Text" <> '' then begin
                 popup.Add('text', "Marker Text");
-                popup.Add('autoClose', false);      // If true, popup will be automatically closed when added. If false, map will keep popup opened.
+                popup.Add('autoClose', true);      // If true, popup will be automatically closed when added. If false, map will keep popup opened.
                 popup.Add('closeOnClick', false);   // If true, popup will be closed on map click.
                 marker.Add('popup', popup);
             end;
