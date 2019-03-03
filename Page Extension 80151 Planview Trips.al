@@ -12,6 +12,7 @@ pageextension 80151 "Planview Trips (Map)" extends "Planview Trips"
             action(ShowOnMap)
             {
                 Image = Map;
+                Visible=false;
                 trigger OnAction();
                 begin
                     AddToMap;

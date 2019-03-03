@@ -4,9 +4,7 @@ pageextension 80107 "Trip Card (Map)" extends "Trip Card"
     {
         addfirst(FactBoxes)
         {
-            part(Map; "Map Component Factbox")
-            {
-            }
+            part(Map; "Map Component Factbox") { Visible = false; }
         }
     }
     trigger OnAfterGetCurrRecord();

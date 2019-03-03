@@ -5,9 +5,7 @@ pageextension 80100 "Activity List (Map)" extends "Transport Activity List"
         // Add changes to page layout here
         addfirst(FactBoxes)
         {
-            part(Map; "Map Component Factbox")
-            {
-            }
+            part(Map; "Map Component Factbox") { Visible = false; }
 
         }
     }
@@ -16,7 +14,7 @@ pageextension 80100 "Activity List (Map)" extends "Transport Activity List"
     {
         // Add changes to page actions here
     }
-        trigger OnAfterGetCurrRecord();
+    trigger OnAfterGetCurrRecord();
     var
         MapRoute: Record "Map Route" temporary;
     begin
@@ -25,7 +23,8 @@ pageextension 80100 "Activity List (Map)" extends "Transport Activity List"
         CurrPage.Map.Page.ClearMap;
         CurrPage.Map.Page.ShowRoute;
     end;
-        procedure GetRouteForActivities(TripNo: code[20]; var MapRoute: Record "Map Route")
+
+    procedure GetRouteForActivities(TripNo: code[20]; var MapRoute: Record "Map Route")
     var
         TrPlanAct: Record "Transport Planned Activity";
         Address: Record Address;
@@ -39,7 +38,7 @@ pageextension 80100 "Activity List (Map)" extends "Transport Activity List"
         TrPlanAct.SetFilter("Address No.", '<>%1', '');
         TrPlanAct.SetRange("Trip No.", TripNo);
         if TrPlanAct.FindSet then repeat
-            Address.get(TrPlanAct."Address No.");
+        Address.get(TrPlanAct."Address No.");
             MapRoute.init;
             MapRoute."Route No." := 1;
             MapRoute."Stop No." += 1;

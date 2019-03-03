@@ -5,10 +5,7 @@ pageextension 80104 "Act. Report (Map)" extends "Transics Activity Report"
         // Add changes to page layout here
         addfirst(FactBoxes)
         {
-            part(Map; "Map Component Factbox")
-            {
-            }
-
+            part(Map; "Map Component Factbox"){ Visible = false; }
         }
     }
 

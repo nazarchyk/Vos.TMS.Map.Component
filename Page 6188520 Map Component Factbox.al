@@ -3,7 +3,7 @@ page 6188520 "Map Component Factbox"
     PageType = CardPart;
     SourceTable = "Map Route";
     SourceTableTemporary = true;
-
+    
     layout
     {
         area(Content)

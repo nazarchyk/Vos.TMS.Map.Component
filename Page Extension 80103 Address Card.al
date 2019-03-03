@@ -4,7 +4,7 @@ pageextension 80103 "Address Card (Map)" extends "Address Card"
     {
         addlast(FactBoxes)
         {
-            part(Map; "Map Component Factbox")            {            }
+            part(Map; "Map Component Factbox") { Visible = false; }
         }
     }
     trigger OnAfterGetCurrRecord();
@@ -14,7 +14,7 @@ pageextension 80103 "Address Card (Map)" extends "Address Card"
         MapRoute."Route No." := 0;
         MapRoute.Latitude := Latitude;
         MapRoute.Longitude := Longitude;
-        MapRoute."Marker Text" := Description + ' ' + Street + ' ' + "Post Code" + ' ' + City; 
+        MapRoute."Marker Text" := Description + ' ' + Street + ' ' + "Post Code" + ' ' + City;
         MapRoute.Insert;
         CurrPage.Map.Page.ClearMap;
         CurrPage.Map.Page.setData(MapRoute);

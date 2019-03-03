@@ -12,6 +12,7 @@ pageextension 80150 "Planview Shipment (Map)" extends "Planview Shipments"
             action(ShowOnMap)
             {
                 Image = Map;
+                Visible = false;
                 trigger OnAction();
                 begin
                     AddToMap;
