@@ -11,6 +11,14 @@ table 6188521 "Map Route"
         field(8; Latitude; Decimal) { }
         field(10; "Marker Text"; Text[250]) { }
         field(12; "Marker Type"; Option) { OptionMembers = Icon, Circle; }
+        field(15; "Marker Fill Color"; Text[100]) { InitValue = 'red'; }
+        field(18; "Marker Fill Opacity"; Integer) { InitValue = 1; }
+        field(20; "Marker Radius"; Integer) { InitValue = 10; }
+        field(22; "Marker Stroke Color"; Text[100]) { InitValue = 'black'; }
+        field(25; "Marker Stroke Opacity"; Integer) { InitValue = 1; }
+        field(28; "Marker Stroke With (Pixels)"; Integer) { InitValue = 3; }
+
+
     }
 
     keys
