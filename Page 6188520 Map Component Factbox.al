@@ -136,7 +136,8 @@ page 6188520 "Map Component Factbox"
 
     procedure ClearMap();
     begin
-        CurrPage.Map.ClearMap();
+        if IsReady then
+            CurrPage.Map.ClearMap();
     end;
 
     local procedure SetSettings();
