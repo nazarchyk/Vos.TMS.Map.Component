@@ -5,7 +5,7 @@ controladdin Map
 
     Scripts =
         'scripts/map.js',
-        'https://test-navnxt-map.azurewebsites.net/dist/meta-ui-map-playground.js';
+        'https://test-navnxt-map.azurewebsites.net/dist/meta-ui-map.js';
 
     StartupScript = 'scripts/start.js';
     StyleSheets =
