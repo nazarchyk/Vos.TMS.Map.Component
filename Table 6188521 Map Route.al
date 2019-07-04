@@ -17,8 +17,6 @@ table 6188521 "Map Route"
         field(22; "Marker Stroke Color"; Text[100]) { InitValue = 'black'; }
         field(25; "Marker Stroke Opacity"; Integer) { InitValue = 1; }
         field(28; "Marker Stroke With (Pixels)"; Integer) { InitValue = 3; }
-
-
     }
 
     keys
