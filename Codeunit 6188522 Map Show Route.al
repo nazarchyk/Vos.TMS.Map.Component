@@ -12,6 +12,8 @@ codeunit 6188522 "Map Show Route"
         decorator: JsonObject;
         decoratorAttributes: JsonObject;
         selectionSettings: JsonObject;
+        decorator: JsonObject;
+        decoratorAttributes: JsonObject;
     begin
         if not IsReady then
             exit;
@@ -107,6 +109,31 @@ codeunit 6188522 "Map Show Route"
                 // selectionSettings.Add('strokeWidthPx', 5);           // OPTIONAL.
                 // selectionSettings.Add('dashPattern', '');            // OPTIONAL.
                 // route.Add('selectionSettings', selectionSettings);
+
+                /*** DECORATOR SETTINGS ***/
+                decorator.Add('value', ' > ');  // Value to be displayed on the route. Can be any unicode value, like >, ⮞, ⯈, ⭆, etc. 
+                                                //!!IMPORTANT!! If you want to display an arrow, use any rightwards one.
+                                                //!!IMPORTANT!! If you want more space between the arrows, just add more spaces to the value
+
+                decorator.Add('repeat', true);  // Specifies if the value should be repeated along the route
+
+                decorator.Add('center', false); // Centers the value according to the route's bounding box
+
+                decorator.Add('below', false);  // Show value below the path
+
+                decorator.Add('offset', 10);    // Set an offset to position value relative to the route
+							                    //!!IMPORTANT!! If you want to center the value, offset must be calculated using the next formula: offset = font-size / 3. 
+                                                // So if your font-size is 30, offset should be 10. 
+
+                decorator.Add('orientation', 0);// Value rotation to a specified angle
+                
+                // SVG attributes. Checkout https://developer.mozilla.org/en-US/docs/Web/SVG/Attribute
+                decoratorAttributes.Add('font-size', 30);   // determines font-size
+                decoratorAttributes.Add('fill', 'blue');    // determines font fill color
+                
+                decorator.Add('attributes', decoratorAttributes);
+
+                route.Add('decorator', decorator);
             end;
         end;
 
