@@ -4,7 +4,7 @@ pageextension 80105 "Transport Order Ln. Card (Map)" extends "Transport Order Li
     {
         addfirst(FactBoxes)
         {
-            part(Map; "Map Component Factbox") { Visible = false; }
+            part(Map; "Map Component Factbox") { }
         }
     }
     trigger OnAfterGetCurrRecord();
@@ -22,6 +22,7 @@ pageextension 80105 "Transport Order Ln. Card (Map)" extends "Transport Order Li
             MapRoute."Stop No." += 1;
             MapRoute.Latitude := Addr.Latitude;
             MapRoute.Longitude := Addr.Longitude;
+            MapRoute."Pop Up":= 'Popup';
             MapRoute."Marker Text" := Addr.Description + ' ' + Addr.Street + ' ' + Addr."Post Code" + ' ' + Addr.City;
             MapRoute.Insert;
             until Shpmnt.Next = 0;

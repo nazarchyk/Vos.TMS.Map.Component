@@ -25,22 +25,22 @@ page 6188520 "Map Component Factbox"
 
                 trigger OnRouteSelected(eventObject: JsonObject);
                 begin
-
+                    Message(format(eventObject));
                 end;
 
                 trigger OnMarkerClicked(eventObject: JsonObject);
                 begin
-
+                    Message(format(eventObject));
                 end;
 
                 trigger OnMarkersSelected(eventObject: JsonObject);
                 begin
-
+                    Message(format(eventObject));
                 end;
 
                 trigger OnRouteVisibilityToggled(eventObject: JsonObject)
                 begin
-
+                    Message(format(eventObject));
                 end;
             }
         }

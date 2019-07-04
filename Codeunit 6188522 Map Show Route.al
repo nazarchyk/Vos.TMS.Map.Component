@@ -12,8 +12,6 @@ codeunit 6188522 "Map Show Route"
         decorator: JsonObject;
         decoratorAttributes: JsonObject;
         selectionSettings: JsonObject;
-        decorator: JsonObject;
-        decoratorAttributes: JsonObject;
     begin
         if not IsReady then
             exit;
@@ -86,20 +84,6 @@ codeunit 6188522 "Map Show Route"
                     buttonSettings.Add('label', Name);
 
                 route.Add('buttonSettings', buttonSettings);
-
-                decorator.Add('value', ' > ');
-                decorator.Add('repeat', 'true');
-                decorator.Add('center', 'false');
-                decorator.Add('below', 'false');
-                decorator.Add('offset', '10');
-                decorator.Add('orientation', '0');
-
-                decoratorAttributes.Add('font-size', '30');
-                decoratorAttributes.Add('fill', 'blue');
-
-                decorator.Add('attributes', decoratorAttributes);
-
-                route.Add('decorator', decorator);
 
                 /*** ROUTE SELECTION SETTINGS ***/
                 // DEFAULT VALUES ARE DETERMINED BY DEFAULT SETTINGS

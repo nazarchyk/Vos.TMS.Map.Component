@@ -9,6 +9,7 @@ table 6188521 "Map Route"
         field(4; Name; Text[250]) { }
         field(7; Longitude; Decimal) { }
         field(8; Latitude; Decimal) { }
+        field(9; "Pop Up"; Text[250]) { }
         field(10; "Marker Text"; Text[250]) { }
         field(12; "Marker Type"; Option) { OptionMembers = Icon, Circle; }
         field(15; "Marker Fill Color"; Text[100]) { InitValue = 'red'; }
