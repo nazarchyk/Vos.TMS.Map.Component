@@ -128,10 +128,18 @@ page 6188520 "Map Component Factbox"
 
     procedure ShowRoute();
     var
+        MapShowMarker: Codeunit "Map Show Marker";
         ShowRoute: Codeunit "Map Show Route";
     begin
-        if IsReady then
+        //Message(format(ShowRoute.ShowRoute(Rec, IsReady)));
+        if IsReady then begin
+            //Message(format(MapShowMarker.ShowMarker(Rec, IsReady)));
+
             CurrPage.Map.ShowRoute(ShowRoute.ShowRoute(Rec, IsReady));
+            if findset then repeat
+                CurrPage.Map.ShowIconMarker(MapShowMarker.ShowMarker(Rec, IsReady));
+            until next = 0;
+        end;
     end;
 
     procedure ClearMap();

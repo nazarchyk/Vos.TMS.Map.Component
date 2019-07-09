@@ -12,6 +12,7 @@ codeunit 6188522 "Map Show Route"
         decorator: JsonObject;
         decoratorAttributes: JsonObject;
         selectionSettings: JsonObject;
+        popup: JsonObject;
     begin
         if not IsReady then
             exit;
@@ -35,7 +36,7 @@ codeunit 6188522 "Map Show Route"
                 FindSet;
                 repeat
                     coordinate.Add('latitude', Latitude);
-                coordinate.Add('longitude', Longitude);
+                    coordinate.Add('longitude', Longitude);
 
                 // Each coordinate can have marker: Icon marker or Circle marker.
                 // If marker is not provided, it won't be displayed
@@ -63,8 +64,15 @@ codeunit 6188522 "Map Show Route"
                 markerSettings.Add('strokeOpacity', "Marker Stroke Opacity");           // Optional. Circle marker stroke opacity. 1 - non transparent, 0 - transparent.
                 markerSettings.Add('strokeWidthPx', "Marker Stroke With (Pixels)");           // Optional. Circle marker stroke width in pixels.
                 marker.Add('settings', markerSettings);
+                if "Marker Text" <> '' then begin
+                    Clear(popup);
+                    popup.Add('text', "Marker Text");
+                    popup.Add('autoClose', true);      // If true, popup will be automatically closed when added. If false, map will keep popup opened.
+                    popup.Add('closeOnClick', false);   // If true, popup will be closed on map click.
+                    marker.Add('popup', popup);
+                end;
 
-                coordinate.Add('marker', marker);
+               // coordinate.Add('marker', marker);
 
                 coordinates.Add(coordinate);
                 Clear(coordinate);
@@ -106,15 +114,15 @@ codeunit 6188522 "Map Show Route"
                 decorator.Add('below', false);  // Show value below the path
 
                 decorator.Add('offset', 10);    // Set an offset to position value relative to the route
-							                    //!!IMPORTANT!! If you want to center the value, offset must be calculated using the next formula: offset = font-size / 3. 
+                                                //!!IMPORTANT!! If you want to center the value, offset must be calculated using the next formula: offset = font-size / 3. 
                                                 // So if your font-size is 30, offset should be 10. 
 
                 decorator.Add('orientation', 0);// Value rotation to a specified angle
-                
+
                 // SVG attributes. Checkout https://developer.mozilla.org/en-US/docs/Web/SVG/Attribute
                 decoratorAttributes.Add('font-size', 30);   // determines font-size
                 decoratorAttributes.Add('fill', 'blue');    // determines font fill color
-                
+
                 decorator.Add('attributes', decoratorAttributes);
 
                 route.Add('decorator', decorator);

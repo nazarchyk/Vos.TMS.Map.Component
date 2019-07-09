@@ -10,19 +10,20 @@ codeunit 6188523 "Map Show Marker"
         coordinates: JsonObject;
         popup: JsonObject;
         settings: JsonObject;
+        iconAnchor: JsonArray;
     begin
         if not IsReady then
             exit;
+        iconAnchor.Add(12);
+        iconAnchor.Add(41);
         with MapRoute do
         begin
 
-            SetRange("Route No.", 0);
+            //SetRange("Route No.", 1);
             if IsEmpty then
                 exit;
 
-            // FindSet;
-            // repeat
-            marker.Add('type', "Marker Type");                  // Type 0 - Icon Marker, Type 1 - Circle Marker.
+            marker.Add('type', 1);//"Marker Type");                  // Type 0 - Icon Marker, Type 1 - Circle Marker.
 
             coordinates.Add('latitude', Latitude);
             coordinates.Add('longitude', Longitude);
@@ -35,16 +36,16 @@ codeunit 6188523 "Map Show Marker"
                 marker.Add('popup', popup);
             end;
 
+
             settings.Add('iconUrl', '');            // Optional. Icon URL, if you want custom marker.
             settings.Add('shadowUrl', '');          // Optional. Shadow URL, if you want custom marker.
-            settings.Add('iconAnchor', '');         // Optional. Icon anchor. Array of two numbers [X, Y].
+            settings.Add('iconAnchor', iconAnchor); // Optional. Icon anchor. Array of two numbers [X, Y].
             settings.Add('popupAnchor', '');        // Optional. Popup anchor. Array of two numbers [X, Y].
             settings.Add('iconSize', '');           // Optional. Icon size. Array of two numbers [X, Y].
             settings.Add('shadowSize', '');         // Optional. Shadow size. Array of two numbers [X, Y].
             settings.Add('shadowAnchor', '');       // Optional. Shadow anchor. Array of two numbers [X, Y].
 
             marker.Add('settings', settings);
-            //until next = 0;
 
             /*** CIRCLE MARKER EXAMPLE ***/
             //To add circle marker, use the next settings

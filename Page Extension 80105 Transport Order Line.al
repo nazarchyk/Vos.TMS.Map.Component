@@ -18,6 +18,7 @@ pageextension 80105 "Transport Order Ln. Card (Map)" extends "Transport Order Li
         Shpmnt.SetRange("Irr. No.", "Active Irregularity No.");
         if Shpmnt.FindSet then repeat
             Addr.get(Shpmnt."From Address No.");
+            MapRoute."Marker Type" := MapRoute."Marker Type"::Circle;
             MapRoute."Route No." := 1;
             MapRoute."Stop No." += 1;
             MapRoute.Latitude := Addr.Latitude;
