@@ -3,7 +3,7 @@ codeunit 6188522 "Map Show Route"
 
     procedure GetRouteJson(var Rte: Record "Map Route") route: JsonObject;
     var
-        RouteDetails: Record "Map Route Detail";
+        RouteDetails: Record "Map Route Detail" temporary;
         MapBuffer: Codeunit "Map Buffer";
         coordinate: JsonObject;
         coordinates: JsonArray;
@@ -36,7 +36,7 @@ codeunit 6188522 "Map Show Route"
 
             // SVG attributes. Checkout https://developer.mozilla.org/en-US/docs/Web/SVG/Attribute
             decoratorAttributes.Add('font-size', 30);   // determines font-size
-            decoratorAttributes.Add('fill', 'blue');    // determines font fill color
+            decoratorAttributes.Add('fill', Rte.Color);    // determines font fill color
 
             decorator.Add('attributes', decoratorAttributes);
 

@@ -37,11 +37,12 @@ codeunit 6188529 "Map Buffer"
     procedure SetRouteDetails(var Details: Record "Map Route Detail");
     begin
         RouteDetail.Copy(Details, true);
-        Message(Format(RouteDetail.Count));
-        RouteDetail.FindSet;
+//        Message(Format(RouteDetail.Count));
+  //      RouteDetail.FindSet;
         if RouteDetail.FindSet then repeat
             if not Route.Get(RouteDetail."Route No.") then begin
                 Route."No." := RouteDetail."Route No.";
+                Route.Color := RouteDetail.Color;
                 Route.Name := RouteDetail.Name;
                 Route.Type := RouteDetail.Type;
                 Route.Insert;

@@ -48,12 +48,15 @@ pageextension 80107 "Trip Card (Map)" extends "Trip Card"
         TrPlanAct.SetFilter("Address No.", '<>%1', '');
         TrPlanAct.SetRange("Trip No.", TripNo);
         TrPlanAct.SetRange("Shipment Type", TrPlanAct."Shipment Type"::Export);
+        TrPlanAct.SetFilter(Timetype, '<>%1', TrPlanAct.Timetype::Rest);
         if TrPlanAct.FindSet then repeat
         Address.get(TrPlanAct."Address No.");
             RouteDetails.init;
             RouteDetails."Route No." := 2;
             RouteDetails."Stop No." += 1;
             RouteDetails."Marker Type" := RouteDetails."Marker Type"::Circle;
+            RouteDetails."Pop Up" := TrPlanAct."Address Description";
+            RouteDetails.Name := 'Export';
             RouteDetails.Color := 'Blue';
             RouteDetails.Longitude := Address.Longitude;
             RouteDetails.Latitude := Address.Latitude;
@@ -65,6 +68,7 @@ pageextension 80107 "Trip Card (Map)" extends "Trip Card"
         TrPlanAct.SetFilter("Address No.", '<>%1', '');
         TrPlanAct.SetRange("Trip No.", TripNo);
         TrPlanAct.SetRange("Shipment Type", TrPlanAct."Shipment Type"::Import);
+        TrPlanAct.SetFilter(Timetype, '<>%1', TrPlanAct.Timetype::Rest);
         if TrPlanAct.FindSet then begin
             FirstImportStop := TrPlanAct."Stop No.";
             repeat
@@ -72,6 +76,8 @@ pageextension 80107 "Trip Card (Map)" extends "Trip Card"
             RouteDetails.init;
             RouteDetails."Route No." := 3;
             RouteDetails."Stop No." += 1;
+            RouteDetails."Pop Up" := TrPlanAct."Address Description";
+            RouteDetails.Name := 'Import';
             RouteDetails."Marker Type" := RouteDetails."Marker Type"::Circle;
             RouteDetails.Color := 'Green';
             RouteDetails.Longitude := Address.Longitude;
@@ -85,12 +91,15 @@ pageextension 80107 "Trip Card (Map)" extends "Trip Card"
         TrPlanAct.SetRange("Trip No.", TripNo);
         TrPlanAct.SetRange("Shipment Type");
         TrPlanAct.SetRange("Stop No.", LastExportStop, FirstImportStop);
+        TrPlanAct.SetFilter(Timetype, '<>%1', TrPlanAct.Timetype::Rest);
         if TrPlanAct.FindSet then begin
             FirstImportStop := TrPlanAct."Stop No.";
             repeat
             Address.get(TrPlanAct."Address No.");
             RouteDetails.init;
             RouteDetails."Route No." := 4;
+            RouteDetails."Pop Up" := TrPlanAct."Address Description";
+            RouteDetails.Name := 'Empty';
             RouteDetails."Stop No." += 1;
             RouteDetails."Marker Type" := RouteDetails."Marker Type"::Circle;
             RouteDetails.Color := 'Orange';
