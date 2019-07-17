@@ -1,23 +1,62 @@
-table 6188521 "Map Route"
+table 6188522 "Map Route Detail"
 {
 
     fields
     {
-        field(1; "No."; Integer) { }
+        field(1; "Route No."; Integer) { }
+        field(2; "Stop No."; Integer) { }
         field(3; Color; Text[7]) { }
         field(4; Name; Text[250]) { }
         field(5; Type; Option) { OptionMembers = Markers, Route; }
-
+        field(7; Longitude; Decimal) { }
+        field(8; Latitude; Decimal) { }
+        field(9; "Pop Up"; Text[250]) { }
+        field(10; "Marker Text"; Text[250]) { }
+        field(12; "Marker Type"; Option) { OptionMembers = Icon, Circle; }
+        field(13; Icon; Text[250]) { }
+        field(15; "Marker Fill Color"; Text[100]) { InitValue = 'red'; }
+        field(18; "Marker Fill Opacity"; Integer) { InitValue = 1; }
+        field(20; "Marker Radius"; Integer) { InitValue = 10; }
+        field(22; "Marker Stroke Color"; Text[100]) { InitValue = 'black'; }
+        field(25; "Marker Stroke Opacity"; Integer) { InitValue = 1; }
+        field(28; "Marker Stroke With (Pixels)"; Integer) { InitValue = 3; }
     }
 
     keys
-    { key(PK; "No.") { Clustered = true; } }
-    procedure ShowRoute(): JsonObject
-    var
-        MapShowMarker: codeunit "Map Show Route";
+    { key(PK; "Route No.", "Stop No.") { Clustered = true; } }
+    procedure IsValid(): Boolean
     begin
-        exit(MapShowMarker.GetRouteJson(Rec));
+        if Longitude < -6 then
+            exit(false);
+        if Longitude > 25 then
+            exit(false);
+        if Latitude < 38 then
+            exit(false);
+        if Latitude > 70 then
+            exit(false);
+        exit(true);
     end;
+    procedure GetRoutes(var Route: Record "Map Route");
+    var
+        MapBuffer: Codeunit "Map Buffer";
+    begin
+        MapBuffer.GetRoutes(Route);
+    end;
+
+    procedure ToBuffer()
+    var
+        MapBuffer: Codeunit "Map Buffer";
+    begin
+        MapBuffer.SetRouteDetails(Rec);
+    end;
+
+    procedure ShowMarker(IsReady: Boolean): JsonObject
+    var
+        MapShowMarker: codeunit "Map Show Marker";
+    begin
+        exit(MapShowMarker.GetMarkerJson(Rec, IsReady));
+    end;
+
 
     procedure SetColor(Value: text)
     begin

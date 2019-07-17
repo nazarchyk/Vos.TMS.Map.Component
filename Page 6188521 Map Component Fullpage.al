@@ -1,7 +1,7 @@
 page 6188521 "Map Component Full Page"
 {
     PageType = Card;
-    SourceTable = "Map Route";
+    SourceTable = "Map Route Detail";
     SourceTableTemporary = true;
     UsageCategory = Documents;
 
@@ -21,8 +21,8 @@ page 6188521 "Map Component Full Page"
                 trigger ControlReady();
                 begin
                     IsReady := true;
-                    ShowRoute;
-                    ShowMarkers;
+                    ShowRouteOnMap;
+                    ShowMarkerOnMap;
                 end;
 
                 trigger OnRouteSelected(eventObject: JsonObject);
@@ -49,6 +49,13 @@ page 6188521 "Map Component Full Page"
                 end;
             }
         }
+        area(FactBoxes)
+        {
+                   
+            part(MapDetails;"Map Route Factbox") {}
+            part(MapBox; "Map Component Factbox") {  }
+        
+        }
     }
 
     actions
@@ -72,6 +79,7 @@ page 6188521 "Map Component Full Page"
                 begin
                     MapEquip.ShowMyTrucks;
                     GetDataFromBuffer;
+                    Currpage.MapDetails.Page.UpdateFactbox;
                 end;
             }
             action(Route)
@@ -79,7 +87,7 @@ page 6188521 "Map Component Full Page"
                 Image = "Grid";
                 trigger OnAction();
                 begin
-                    ShowRoute;
+                    ShowRouteOnMap;
                 end;
             }
             action(Select)
@@ -134,22 +142,27 @@ page 6188521 "Map Component Full Page"
         Rec.Copy(MapRoute, true);
     end;
 
-    procedure ShowMarkers();
-    var
-        MapShowMarker: Codeunit "Map Show Marker";
+    procedure ShowMarkerOnMap();
     begin
         if IsReady then
             if findset then repeat
-                CurrPage.Map.ShowIconMarker(MapShowMarker.ShowMarker(Rec, IsReady));
+                if "Marker Type" = "Marker Type"::Icon then
+                    CurrPage.Map.ShowIconMarker(ShowMarker(IsReady))
+                else
+                    CurrPage.Map.ShowCircleMarker(ShowMarker(IsReady));
                 until next = 0;
     end;
 
-    procedure ShowRoute();
+    procedure ShowRouteOnMap();
     var
-        ShowRoute: Codeunit "Map Show Route";
+        Route: Record "Map Route" temporary;
     begin
-        if IsReady then
-            CurrPage.Map.ShowRoute(ShowRoute.ShowRoute(Rec, IsReady));
+        if not IsReady then
+            exit;
+        GetRoutes(Route);
+        if Route.FindSet then repeat
+            CurrPage.Map.ShowRoute(Route.ShowRoute);
+        until Route.Next = 0;
     end;
 
     procedure ClearMap();
@@ -197,9 +210,9 @@ page 6188521 "Map Component Full Page"
         MapBuffer: Codeunit "Map Buffer";
     begin
         ClearMap;
-        MapBuffer.GetData(Rec);
-        ShowMarkers;
-        ShowRoute;
+        MapBuffer.GetRouteDetails(Rec);
+        ShowMarkerOnMap;
+        ShowRouteOnMap;
     end;
 
     var

@@ -1,7 +1,8 @@
 controladdin Map
 {
     Images = 'images/marker-icon.png',
-        'images/marker-shadow.png';
+        'images/marker-shadow.png',
+        'images/red-truck.png';
 
     Scripts =
         'scripts/map.js',

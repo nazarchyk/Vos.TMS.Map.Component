@@ -4,12 +4,13 @@ pageextension 80105 "Transport Order Ln. Card (Map)" extends "Transport Order Li
     {
         addfirst(FactBoxes)
         {
-            part(Map; "Map Component Factbox") { Visible = false; }
+            part(Map; "Map Component Factbox") { }
         }
     }
     trigger OnAfterGetCurrRecord();
     var
-        MapRoute: Record "Map Route" temporary;
+        Route: Record "Map Route" temporary;
+        RouteDetails: Record "Map Route Detail" temporary;
         Shpmnt: Record Shipment;
         Addr: Record Address;
     begin
@@ -18,23 +19,26 @@ pageextension 80105 "Transport Order Ln. Card (Map)" extends "Transport Order Li
         Shpmnt.SetRange("Irr. No.", "Active Irregularity No.");
         if Shpmnt.FindSet then repeat
             Addr.get(Shpmnt."From Address No.");
-            MapRoute."Route No." := 1;
-            MapRoute."Stop No." += 1;
-            MapRoute.Latitude := Addr.Latitude;
-            MapRoute.Longitude := Addr.Longitude;
-            MapRoute."Marker Text" := Addr.Description + ' ' + Addr.Street + ' ' + Addr."Post Code" + ' ' + Addr.City;
-            MapRoute.Insert;
+            RouteDetails."Marker Type" := RouteDetails."Marker Type"::Circle;
+            RouteDetails."Route No." := 1;
+            RouteDetails."Stop No." += 1;
+            RouteDetails.Latitude := Addr.Latitude;
+            RouteDetails.Longitude := Addr.Longitude;
+            RouteDetails."Pop Up" := 'Popup';
+            RouteDetails."Marker Text" := Addr.Description + ' ' + Addr.Street + ' ' + Addr."Post Code" + ' ' + Addr.City;
+            RouteDetails.Insert;
             until Shpmnt.Next = 0;
         if not Addr.get("To Address No.") then
             exit;
-        MapRoute."Route No." := 1;
-        MapRoute."Stop No." += 1;
-        MapRoute.Latitude := Addr.Latitude;
-        MapRoute.Longitude := Addr.Longitude;
-        MapRoute."Marker Text" := Addr.Description + ' ' + Addr.Street + ' ' + Addr."Post Code" + ' ' + Addr.City;
-        MapRoute.Insert;
+        RouteDetails."Route No." := 1;
+        RouteDetails."Stop No." += 1;
+        RouteDetails.Latitude := Addr.Latitude;
+        RouteDetails.Longitude := Addr.Longitude;
+        RouteDetails."Marker Text" := Addr.Description + ' ' + Addr.Street + ' ' + Addr."Post Code" + ' ' + Addr.City;
+        RouteDetails.Insert;
         CurrPage.Map.Page.ClearMap;
-        CurrPage.Map.Page.setData(MapRoute);
+        RouteDetails.ToBuffer;
+        CurrPage.Map.Page.setData;
 
     end;
 }

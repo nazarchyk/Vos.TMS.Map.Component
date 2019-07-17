@@ -16,36 +16,37 @@ pageextension 80100 "Activity List (Map)" extends "Transport Activity List"
     }
     trigger OnAfterGetCurrRecord();
     var
-        MapRoute: Record "Map Route" temporary;
+        RouteDetails: Record "Map Route Detail" temporary;
     begin
-        GetRouteForActivities("Trip No.", MapRoute);
-        CurrPage.Map.Page.SetData(MapRoute);
+        GetRouteForActivities("Trip No.", RouteDetails);
+        RouteDetails.ToBuffer;
+        CurrPage.Map.Page.SetData;
         CurrPage.Map.Page.ClearMap;
-        CurrPage.Map.Page.ShowRoute;
+        CurrPage.Map.Page.ShowRouteOnMap;
     end;
 
-    procedure GetRouteForActivities(TripNo: code[20]; var MapRoute: Record "Map Route")
+    procedure GetRouteForActivities(TripNo: code[20]; var RouteDetails: Record "Map Route Detail")
     var
         TrPlanAct: Record "Transport Planned Activity";
         Address: Record Address;
         Trip: Record Trip;
         i: Integer;
     begin
-        MapRoute.DeleteAll;
+        RouteDetails.DeleteAll;
 
-        MapRoute."Stop No." := 0;
+        RouteDetails."Stop No." := 0;
         TrPlanAct.SetCurrentKey("Trip No.", "Stop No.");
         TrPlanAct.SetFilter("Address No.", '<>%1', '');
         TrPlanAct.SetRange("Trip No.", TripNo);
         if TrPlanAct.FindSet then repeat
         Address.get(TrPlanAct."Address No.");
-            MapRoute.init;
-            MapRoute."Route No." := 1;
-            MapRoute."Stop No." += 1;
-            MapRoute.Color := 'Blue';
-            MapRoute.Longitude := Address.Longitude;
-            MapRoute.Latitude := Address.Latitude;
-            MapRoute.Insert;
+            RouteDetails.init;
+            RouteDetails."Route No." := 1;
+            RouteDetails."Stop No." += 1;
+            RouteDetails.Color := 'Blue';
+            RouteDetails.Longitude := Address.Longitude;
+            RouteDetails.Latitude := Address.Latitude;
+            RouteDetails.Insert;
             until TrPlanAct.Next = 0;
     end;
 

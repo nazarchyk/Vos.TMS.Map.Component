@@ -9,14 +9,15 @@ pageextension 80103 "Address Card (Map)" extends "Address Card"
     }
     trigger OnAfterGetCurrRecord();
     var
-        MapRoute: Record "Map Route" temporary;
+        RouteDetails: Record "Map Route Detail" temporary;
     begin
-        MapRoute."Route No." := 0;
-        MapRoute.Latitude := Latitude;
-        MapRoute.Longitude := Longitude;
-        MapRoute."Marker Text" := Description + ' ' + Street + ' ' + "Post Code" + ' ' + City;
-        MapRoute.Insert;
+        RouteDetails."Route No." := 0;
+        RouteDetails.Latitude := Latitude;
+        RouteDetails.Longitude := Longitude;
+        RouteDetails."Marker Text" := Description + ' ' + Street + ' ' + "Post Code" + ' ' + City;
+        RouteDetails.Insert;
         CurrPage.Map.Page.ClearMap;
-        CurrPage.Map.Page.setData(MapRoute);
+        RouteDetails.ToBuffer;
+        CurrPage.Map.Page.setData();
     end;
 }

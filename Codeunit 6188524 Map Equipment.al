@@ -40,19 +40,20 @@ codeunit 6188524 "Map Equipment"
     end;
     local procedure AddToMap(Equip: Record Equipment; var i: Integer)
     var
-        MapRoute: Record "Map Route" temporary;
+        RouteDetails: Record "Map Route Detail" temporary;
         MapBuffer: Codeunit "Map Buffer";
     begin
 
-        MapRoute.init;
-        MapRoute."Route No." := 0;
-        MapRoute."Stop No." := i;
-        MapRoute.Color := 'Red';
-        MapRoute.Longitude := Equip."Last Longitude";
-        MapRoute.Latitude := Equip."Last Latitude";
-        MapRoute."Marker Type" := MapRoute."Marker Type"::Circle;
-        MapRoute."Marker Text" := Equip.Description;
-        MapBuffer.SetDataOneByOne(MapRoute);
+        RouteDetails.init;
+        RouteDetails."Route No." := 0;
+        RouteDetails."Stop No." := i;
+        RouteDetails.Color := 'Red';
+        RouteDetails.Longitude := Equip."Last Longitude";
+        RouteDetails.Latitude := Equip."Last Latitude";
+        RouteDetails."Marker Type" := RouteDetails."Marker Type"::Icon;
+        RouteDetails.Icon := 'images/red-truck.png';
+        RouteDetails."Marker Text" := Equip.Description;
+        MapBuffer.SetDataOneByOne(RouteDetails);
     end;
 
     var

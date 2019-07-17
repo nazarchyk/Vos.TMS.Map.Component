@@ -5,7 +5,7 @@ pageextension 80104 "Act. Report (Map)" extends "Transics Activity Report"
         // Add changes to page layout here
         addfirst(FactBoxes)
         {
-            part(Map; "Map Component Factbox"){ Visible = false; }
+            part(Map; "Map Component Factbox") { Visible = false; }
         }
     }
 
@@ -15,45 +15,46 @@ pageextension 80104 "Act. Report (Map)" extends "Transics Activity Report"
     }
     trigger OnAfterGetCurrRecord();
     var
-        MapRoute: Record "Map Route" temporary;
+        RouteDetails: Record "Map Route Detail" temporary;
     begin
-        GetRouteForActivityReport("Trip No.", MapRoute);
-        CurrPage.Map.Page.SetData(MapRoute);
+        GetRouteForActivityReport("Trip No.", RouteDetails);
+        RouteDetails.ToBuffer;
+        CurrPage.Map.Page.SetData;
         CurrPage.Map.Page.ClearMap;
     end;
 
-    procedure GetRouteForActivityReport(TripNo: code[20]; var MapRoute: Record "Map Route")
+    procedure GetRouteForActivityReport(TripNo: code[20]; var RouteDetails: Record "Map Route Detail")
     var
         ActReport: Record "Transics Activity Report";
         Trip: Record Trip;
         xTruckNo: Code[20];
         i: Integer;
     begin
-        MapRoute.DeleteAll;
+        RouteDetails.DeleteAll;
         ActReport.SetCurrentKey("Trip No.", BeginDate);
         ActReport.SetRange("Trip No.", TripNo);
         ActReport.SetFilter(Latitude, '<>0');
         ActReport.SetFilter(Longitude, '<>0');
         if ActReport.FindSet then repeat
-        MapRoute.init;
+        RouteDetails.init;
             if ActReport.VehicleID <> xTruckNo then begin
-                MapRoute."Route No." += 1;
+                RouteDetails."Route No." += 1;
                 xTruckNo := ActReport.VehicleID;
             end;
-            MapRoute."Stop No." += 1;
-            case MapRoute."Route No." of
+            RouteDetails."Stop No." += 1;
+            case RouteDetails."Route No." of
 1 :
-                MapRoute.Color := 'Red';
+                RouteDetails.Color := 'Red';
 2 :
-                MapRoute.Color := 'Blue';
+                RouteDetails.Color := 'Blue';
 3 :
-                MapRoute.Color := 'Green';
+                RouteDetails.Color := 'Green';
 4 :
-                MapRoute.Color := 'Black';
+                RouteDetails.Color := 'Black';
             end;
-            MapRoute.Longitude := ActReport.Longitude;
-            MapRoute.Latitude := ActReport.Latitude;
-            MapRoute.Insert;
+            RouteDetails.Longitude := ActReport.Longitude;
+            RouteDetails.Latitude := ActReport.Latitude;
+            RouteDetails.Insert;
             until ActReport.Next = 0;
     end;
 }

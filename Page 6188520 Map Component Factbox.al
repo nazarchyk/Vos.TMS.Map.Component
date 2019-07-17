@@ -1,7 +1,7 @@
 page 6188520 "Map Component Factbox"
 {
     PageType = CardPart;
-    SourceTable = "Map Route";
+    SourceTable = "Map Route Detail";
     SourceTableTemporary = true;
     
     layout
@@ -19,28 +19,28 @@ page 6188520 "Map Component Factbox"
                 trigger ControlReady();
                 begin
                     IsReady := true;
-                    ShowRoute;
-                    ShowMarker;
+                    ShowRouteOnMap;
+                    ShowMarkerOnMap;
                 end;
 
                 trigger OnRouteSelected(eventObject: JsonObject);
                 begin
-
+                    Message(format(eventObject));
                 end;
 
                 trigger OnMarkerClicked(eventObject: JsonObject);
                 begin
-
+                    Message(format(eventObject));
                 end;
 
                 trigger OnMarkersSelected(eventObject: JsonObject);
                 begin
-
+                    Message(format(eventObject));
                 end;
 
                 trigger OnRouteVisibilityToggled(eventObject: JsonObject)
                 begin
-
+                    Message(format(eventObject));
                 end;
             }
         }
@@ -55,7 +55,7 @@ page 6188520 "Map Component Factbox"
                 Image = Position;
                 trigger OnAction();
                 begin
-                    ShowMarker;
+                    ShowMarkerOnMap;
                 end;
             }
             action(Route)
@@ -63,7 +63,7 @@ page 6188520 "Map Component Factbox"
                 Image = "Grid";
                 trigger OnAction();
                 begin
-                    ShowRoute;
+                    ShowRouteOnMap;
                 end;
             }
             action(Select)
@@ -111,27 +111,38 @@ page 6188520 "Map Component Factbox"
             }
         }
     }
-    procedure SetData(var MapRoute: Record "Map Route")
+    procedure SetData()
+    var
+        RouteDetails: Record "Map Route Detail" temporary;
+        MapBuffer: Codeunit "Map Buffer";
     begin
-        Reset;
-        DeleteAll;
-        Rec.Copy(MapRoute, true);
+        MapBuffer.GetRouteDetails(RouteDetails);
+        Rec.Copy(RouteDetails, true);
     end;
 
-    procedure ShowMarker();
-    var
-        MapShowMarker: Codeunit "Map Show Marker";
+    procedure ShowMarkerOnMap();
+        
     begin
         if IsReady then
-            CurrPage.Map.ShowIconMarker(MapShowMarker.ShowMarker(Rec, IsReady));
+            CurrPage.Map.ShowIconMarker(ShowMarker(IsReady));
     end;
 
-    procedure ShowRoute();
+    procedure ShowRouteOnMap();
     var
-        ShowRoute: Codeunit "Map Show Route";
+        Route: Record "Map Route" temporary;
     begin
-        if IsReady then
-            CurrPage.Map.ShowRoute(ShowRoute.ShowRoute(Rec, IsReady));
+        if not IsReady then
+            exit;
+        GetRoutes(Route);
+        if Route.FindSet then repeat
+            CurrPage.Map.ShowRoute(Route.ShowRoute);
+        until Route.Next = 0;
+        if findset then repeat
+            if "Marker Type" = "Marker Type"::Icon then
+                CurrPage.Map.ShowIconMarker(ShowMarker(IsReady))
+            else
+                CurrPage.Map.ShowCircleMarker(ShowMarker(IsReady));
+        until next = 0;
     end;
 
     procedure ClearMap();
