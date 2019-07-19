@@ -19,22 +19,22 @@ window.addEventListener("meta-ui-map-on-settings-set", function (event) {
  */
 window.addEventListener("meta-ui-map-marker-cliked", function (event) {
     console.log(event);
-    Microsoft.Dynamics.NAV.InvokeExtensibilityMethod("OnMarkerClicked", [event]);
+    Microsoft.Dynamics.NAV.InvokeExtensibilityMethod("OnMarkerClicked", [event.detail]);
 });
 
 window.addEventListener("meta-ui-map-route-selected", function (event) {
     console.log(event);
-    Microsoft.Dynamics.NAV.InvokeExtensibilityMethod("OnRouteSelected", [event]);
+    Microsoft.Dynamics.NAV.InvokeExtensibilityMethod("OnRouteSelected", [event.detail]);
 });
 
 window.addEventListener("meta-ui-map-selected-markers", function (event) {
     console.log(event);
-    Microsoft.Dynamics.NAV.InvokeExtensibilityMethod("OnMarkersSelected", [event]);
+    Microsoft.Dynamics.NAV.InvokeExtensibilityMethod("OnMarkersSelected", [event.detail]);
 });
 
 window.addEventListener("meta-ui-map-route-visibility-toggled", function (event) {
     console.log(event);
-    Microsoft.Dynamics.NAV.InvokeExtensibilityMethod("OnRouteVisibilityToggled", [event]);
+    Microsoft.Dynamics.NAV.InvokeExtensibilityMethod("OnRouteVisibilityToggled", [event.detail]);
 });
 
 var body = document.getElementById("controlAddIn");

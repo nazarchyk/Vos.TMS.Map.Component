@@ -36,7 +36,7 @@ page 6188521 "Map Component Full Page"
                     Message(format(eventObject));
                 end;
 
-                trigger OnMarkersSelected(eventObject: JsonObject);
+                trigger OnMarkersSelected(eventObject: JsonArray);
                 begin
                     Message(format(eventObject));
 
