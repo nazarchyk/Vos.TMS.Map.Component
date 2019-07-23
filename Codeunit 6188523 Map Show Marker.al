@@ -23,7 +23,8 @@ codeunit 6188523 "Map Show Marker"
                 exit;
 
             marker.Add('type', 1);//"Marker Type");                  // Type 0 - Icon Marker, Type 1 - Circle Marker.
-
+            marker.Add(id, Id);
+            marker.Add(source, Source);
             coordinates.Add('latitude', Latitude);
             coordinates.Add('longitude', Longitude);
             marker.Add('coordinates', coordinates);

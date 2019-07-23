@@ -37,9 +37,10 @@ page 6188521 "Map Component Full Page"
                 end;
 
                 trigger OnMarkersSelected(eventObject: JsonArray);
+                var
+                    GetSelectedMarker: Codeunit "Map Get Selected Marker";
                 begin
-                    Message(format(eventObject));
-
+                    GetSelectedMarker.GetMarkers(eventObject);
                 end;
 
                 trigger OnRouteVisibilityToggled(eventObject: JsonObject)
@@ -51,10 +52,10 @@ page 6188521 "Map Component Full Page"
         }
         area(FactBoxes)
         {
-                   
-            part(MapDetails;"Map Route Factbox") {}
-            part(MapBox; "Map Component Factbox") {  }
-        
+            part(MapRoute; "Map Route Factbox") { }
+            part(MapDetails; "Map Route Detail Factbox") { }
+            part(MapBox; "Map Component Factbox") { Visible = false; }
+
         }
     }
 
@@ -160,9 +161,10 @@ page 6188521 "Map Component Full Page"
         if not IsReady then
             exit;
         GetRoutes(Route);
+        Route.SetRange("No.", 1, 99);
         if Route.FindSet then repeat
             CurrPage.Map.ShowRoute(Route.ShowRoute);
-        until Route.Next = 0;
+            until Route.Next = 0;
     end;
 
     procedure ClearMap();

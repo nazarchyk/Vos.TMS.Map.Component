@@ -20,6 +20,8 @@ table 6188522 "Map Route Detail"
         field(22; "Marker Stroke Color"; Text[100]) { InitValue = 'black'; }
         field(25; "Marker Stroke Opacity"; Integer) { InitValue = 1; }
         field(28; "Marker Stroke With (Pixels)"; Integer) { InitValue = 3; }
+        field(30; Id; Guid) { }
+        field(31; Source; Text[30]) { }
     }
 
     keys
@@ -36,6 +38,7 @@ table 6188522 "Map Route Detail"
             exit(false);
         exit(true);
     end;
+
     procedure GetRoutes(var Route: Record "Map Route");
     var
         MapBuffer: Codeunit "Map Buffer";

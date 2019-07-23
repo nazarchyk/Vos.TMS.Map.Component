@@ -1,7 +1,7 @@
-page 6188522 "Map Route Factbox"
+page 6188523 "Map Route Detail Factbox"
 {
     PageType = ListPart;
-    SourceTable = "Map Route";
+    SourceTable = "Map Route Detail";
     SourceTableTemporary = true;
 
     layout
