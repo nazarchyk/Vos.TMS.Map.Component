@@ -22,6 +22,7 @@ table 6188522 "Map Route Detail"
         field(28; "Marker Stroke With (Pixels)"; Integer) { InitValue = 3; }
         field(30; Id; Guid) { }
         field(31; Source; Text[30]) { }
+        field(32; Selected; Boolean) {}
     }
 
     keys
