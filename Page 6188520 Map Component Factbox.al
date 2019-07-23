@@ -33,7 +33,7 @@ page 6188520 "Map Component Factbox"
                     Message(format(eventObject));
                 end;
 
-                trigger OnMarkersSelected(eventObject: JsonObject);
+                trigger OnMarkersSelected(eventObject: JsonArray);
                 begin
                     Message(format(eventObject));
                 end;

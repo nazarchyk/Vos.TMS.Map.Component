@@ -48,7 +48,7 @@ function ShowCircleMarker(marker) {
 
 function ShowCircleMarkerArray(markers) {
 	var event = document.createEvent('CustomEvent');
-	event.initCustomEvent('meta-ui-map-add-circle-marker-aray', true, true, markers);
+	event.initCustomEvent('meta-ui-map-add-circle-marker-array', true, true, markers);
 	window.dispatchEvent(event);
 }
 

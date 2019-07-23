@@ -10,7 +10,7 @@ controladdin Map
 
     StartupScript = 'scripts/start.js';
     StyleSheets =
-        'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.4.0/leaflet.css';
+        'https://test-navnxt-map.azurewebsites.net/dist/meta-ui-map/styles.css';
     RequestedHeight = 600;
     RequestedWidth = 800;
 
@@ -25,7 +25,7 @@ controladdin Map
     event ControlReady();
     event OnMarkerClicked(eventObject: JsonObject);
     event OnRouteSelected(eventObject: JsonObject);
-    event OnMarkersSelected(eventObject: JsonObject);
+    event OnMarkersSelected(eventObject: JsonArray);
     event OnRouteVisibilityToggled(eventObject: JsonObject);
 
     procedure SetSettings(settings: JsonObject);
