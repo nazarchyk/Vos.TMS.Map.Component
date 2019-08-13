@@ -35,7 +35,7 @@ pageextension 80150 "Planview Shipment (Map)" extends "Planview Shipments"
             RouteDetails."Route No." := 0;
             RouteDetails.Name := "Route No.";
             RouteDetails."Stop No." += 1;
-            RouteDetails.Id := Id;
+            RouteDetails.Id := Shpmnt.Id;
             RouteDetails.Source := TableName;
             if Shpmnt."Lane Type" = Shpmnt."Lane Type"::Collection then begin
                 Addr.get(Shpmnt."From Address No.");

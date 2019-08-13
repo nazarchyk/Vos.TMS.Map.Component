@@ -12,15 +12,16 @@ page 6188523 "Map Route Detail Factbox"
             {
                 field("Route No."; "Route No.") { }
                 field("Stop No."; "Stop No.") { }
-                field(Color; Color) { }
-                field(Name; Name) { }
-                field(Type; Type) { }
-                field(Latitude; Latitude) { }
-                field(Longitude; Longitude) { }
+                field(Id; Id) { }
+                field(Source; Source) { Visible = false; }
+                field(Selected; Selected) { }
+                field(Type; Type) { Visible = false; }
+                field(Latitude; Latitude) { Visible = false; }
+                field(Longitude; Longitude) { Visible = false; }
                 field("Pop Up"; "Pop Up") { }
                 field("Marker Text"; "Marker Text") { }
-                field("Marker Type"; "Marker Type") { }
-                field(Icon; Icon) { }
+                field("Marker Type"; "Marker Type") { Visible = false; }
+                field(Icon; Icon) { Visible = false; }
                 field("Marker Fill Color"; "Marker Fill Color") { }
                 field("Marker Radius"; "Marker Radius") { }
 
@@ -47,7 +48,7 @@ page 6188523 "Map Route Detail Factbox"
                 Caption = 'Route as Json (Debug)';
                 trigger OnAction();
                 begin
-                //    Message(Format(ShowRoute(true)));
+                    //    Message(Format(ShowRoute(true)));
                 end;
             }
             action(MarkerAsJson)
