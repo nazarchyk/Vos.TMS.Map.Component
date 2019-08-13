@@ -77,7 +77,8 @@ codeunit 6188526 "Map Show Trip"
         TrPlanAct.SetFilter("Address No.", '<>%1', '');
         TrPlanAct.SetRange("Trip No.", Trip."No.");
         TrPlanAct.SetRange("Shipment Type", TrPlanAct."Shipment Type"::Export);
-        TrPlanAct.SetFilter(Timetype, '<>%1', TrPlanAct.Timetype::Rest);
+        TrPlanAct.SetFilter(Timetype, '%1|%2', TrPlanAct.Timetype::Unload, TrPlanAct.Timetype::Miscellaneous);
+        TrPlanAct.SetFilter("Crossing Activity Type", '%1|%2', TrPlanAct."Crossing Activity Type"::Arrival, TrPlanAct."Crossing Activity Type"::" ");
         if TrPlanAct.FindSet then repeat
             CreateRouteDetailsFromTrPlanAct(TrPlanAct, RouteDetails, 'Blue', 2);
             LastExportStop := TrPlanAct."Stop No.";
@@ -87,7 +88,8 @@ codeunit 6188526 "Map Show Trip"
         TrPlanAct.SetFilter("Address No.", '<>%1', '');
         TrPlanAct.SetRange("Trip No.", Trip."No.");
         TrPlanAct.SetRange("Shipment Type", TrPlanAct."Shipment Type"::Import);
-        TrPlanAct.SetFilter(Timetype, '<>%1', TrPlanAct.Timetype::Rest);
+        TrPlanAct.SetFilter(Timetype, '%1|%2', TrPlanAct.Timetype::Load, TrPlanAct.Timetype::Miscellaneous);
+        TrPlanAct.SetFilter("Crossing Activity Type", '%1|%2', TrPlanAct."Crossing Activity Type"::Departure, TrPlanAct."Crossing Activity Type"::" ");
         if TrPlanAct.FindSet then begin
             FirstImportStop := TrPlanAct."Stop No.";
             repeat
@@ -124,17 +126,33 @@ codeunit 6188526 "Map Show Trip"
     local procedure CreateRouteDetailsFromTrPlanAct(TrPlanAct: Record "Transport Planned Activity"; var RouteDetails: Record "Map Route Detail"; Color: Text; RouteNo: Integer)
     var
         Address: Record Address;
+        Shpmnt: Record Shipment;
     begin
         Address.get(TrPlanAct."Address No.");
+        Shpmnt.SetCurrentKey("Trip No.");
+        Shpmnt.SetRange("Trip No.", TrPlanAct."Trip No.");
+        if TrPlanAct.IsLoad then
+            Shpmnt.SetRange("Load Stop No.", TrPlanAct."Stop No.")
+        else
+            Shpmnt.SetRange("Unload Stop No.", TrPlanAct."Stop No.");
+        if not Shpmnt.FindFirst then
+            Shpmnt.Init;
         RouteDetails.init;
         RouteDetails."Route No." := RouteNo;
         RouteDetails."Pop Up" := TrPlanAct."Address Description";
         RouteDetails.Name := TrPlanAct."Address Description";
         RouteDetails."Stop No." += 1;
         RouteDetails."Marker Type" := RouteDetails."Marker Type"::Circle;
+        if TrPlanAct.IsLoad then
+            RouteDetails."Marker Fill Color" := 'green'
+        else if TrPlanAct.IsUnload then
+            RouteDetails."Marker Fill Color" := 'red'
+        else
+            RouteDetails."Marker Fill Color" := 'blue';
         RouteDetails.Color := Color;
         RouteDetails.Longitude := Address.Longitude;
         RouteDetails.Latitude := Address.Latitude;
+        RouteDetails.Id := Shpmnt.Id;
         RouteDetails.Insert;
     end;
 
