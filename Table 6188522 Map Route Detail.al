@@ -61,7 +61,6 @@ table 6188522 "Map Route Detail"
         exit(MapShowMarker.GetMarkerJson(Rec, IsReady));
     end;
 
-
     procedure SetColor(Value: text)
     begin
         case Value of

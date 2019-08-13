@@ -18,8 +18,6 @@ page 6188522 "Map Route Factbox"
         }
     }
 
-
-
     trigger OnOpenPage();
     begin
         UpdateFactbox
