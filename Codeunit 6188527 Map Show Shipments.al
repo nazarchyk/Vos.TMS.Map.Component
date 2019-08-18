@@ -29,16 +29,7 @@ codeunit 6188527 "Map Show Shipments"
             RouteDetails.Latitude := Addr.Latitude;
             RouteDetails.Longitude := Addr.Longitude;
             RouteDetails."Marker Type" := RouteDetails."Marker Type"::Circle;
-            //Error(Format("Payable Weight (Order)"));
-            if Shpmnt."Payable Weight (Order)" >= 25000 then
-                RouteDetails."Marker Radius" := 25
-            else if Shpmnt."Payable Weight (Order)" >= 10000 then 
-                RouteDetails."Marker Radius" := 20
-            else if Shpmnt."Payable Weight (Order)" >= 5000 then
-                 RouteDetails."Marker Radius" := 15
-            else
-                RouteDetails."Marker Radius" := 10;
-//MapRoute."Marker Radius" := round("Payable Weight (Order)", 1);
+            RouteDetails.SetMarkerRadiusBasedOnLoadingMeters(Shpmnt."Loading Meters");
             RouteDetails."Marker Text" := 'LM: ' + format(Shpmnt."Loading Meters") + ' ' + Addr.Description + ' ' + Addr.Street + ' ' + Addr."Post Code" + ' ' + Addr.City; 
             RouteDetails.Insert;
         until Shpmnt.Next = 0;

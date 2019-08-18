@@ -39,6 +39,18 @@ table 6188522 "Map Route Detail"
             exit(false);
         exit(true);
     end;
+    procedure SetMarkerRadiusBasedOnLoadingMeters(Value: Decimal)
+    begin
+        "Marker Radius" := Round(Value, 1, '>');
+            // if Shpmnt."Payable Weight (Order)" >= 25000 then
+            //     RouteDetails."Marker Radius" := 25
+            // else if Shpmnt."Payable Weight (Order)" >= 10000 then 
+            //     RouteDetails."Marker Radius" := 20
+            // else if Shpmnt."Payable Weight (Order)" >= 5000 then
+            //      RouteDetails."Marker Radius" := 15
+            // else
+            //     RouteDetails."Marker Radius" := 10;
+    end;
 
     procedure GetRoutes(var Route: Record "Map Route");
     var

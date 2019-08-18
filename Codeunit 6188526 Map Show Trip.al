@@ -8,7 +8,33 @@ codeunit 6188526 "Map Show Trip"
         GetActualTripFromBoardComputer(Rec, RouteDetails);
         GetInternationalRoute(Rec, RouteDetails);
         GetRoundTripRoute(Rec, RouteDetails);
+        GetPredictionResults(RouteDetails);
         RouteDetails.ToBuffer;
+    end;
+
+    local procedure GetPredictionResults(var RouteDetails: Record "Map Route Detail");
+    var
+        PredictionBufferMgt: Codeunit "Prediction Buffer Mgt.";
+        PredictionBuffer : Record "Prediction Buffer" temporary;
+    begin
+        RouteDetails.SetRange("Route No.", 0);
+        if RouteDetails.FindLast then;
+        RouteDetails.Reset;
+
+        PredictionBufferMgt.GetBuffer(PredictionBuffer);
+        if PredictionBuffer.FindSet then repeat
+            RouteDetails.init;
+            RouteDetails."Route No." := 0;
+            RouteDetails."Stop No." += 1;
+            RouteDetails.Id := PredictionBuffer."Shipment Id";
+            RouteDetails."Marker Text" := PredictionBuffer.Description + ' Empty KMS: ' + format(PredictionBuffer."Empty KMS") + ' Proceed:' + format(PredictionBuffer."Proceed per KM");
+            RouteDetails."Marker Type" := RouteDetails."Marker Type"::Circle;
+            RouteDetails.SetMarkerRadiusBasedOnLoadingMeters(PredictionBuffer."Loading Meters");
+            RouteDetails."Marker Fill Color" := 'green';
+            RouteDetails.Longitude := PredictionBuffer.Longitude;
+            RouteDetails.Latitude := PredictionBuffer.Latitude;
+            RouteDetails.Insert;
+        until PredictionBuffer.Next = 0;
     end;
 
     local procedure GetActualTripFromBoardComputer(Trip: Record Trip; var RouteDetails: Record "Map Route Detail");

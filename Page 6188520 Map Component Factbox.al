@@ -3,7 +3,7 @@ page 6188520 "Map Component Factbox"
     PageType = CardPart;
     SourceTable = "Map Route Detail";
     SourceTableTemporary = true;
-    
+
     layout
     {
         area(Content)
@@ -29,13 +29,17 @@ page 6188520 "Map Component Factbox"
                 end;
 
                 trigger OnMarkerClicked(eventObject: JsonObject);
+                var
+                    GetSelectedMarker: Codeunit "Map Get Selected Marker";
                 begin
-                    Message(format(eventObject));
+                    GetSelectedMarker.GetMarker(eventObject);
                 end;
 
                 trigger OnMarkersSelected(eventObject: JsonArray);
+                var
+                    GetSelectedMarker: Codeunit "Map Get Selected Marker";
                 begin
-                    Message(format(eventObject));
+                    GetSelectedMarker.GetMarkers(eventObject);
                 end;
 
                 trigger OnRouteVisibilityToggled(eventObject: JsonObject)
@@ -121,10 +125,14 @@ page 6188520 "Map Component Factbox"
     end;
 
     procedure ShowMarkerOnMap();
-        
     begin
         if IsReady then
-            CurrPage.Map.ShowIconMarker(ShowMarker(IsReady));
+            if findset then repeat
+                if "Marker Type" = "Marker Type"::Icon then
+                    CurrPage.Map.ShowIconMarker(ShowMarker(IsReady))
+                else
+                    CurrPage.Map.ShowCircleMarker(ShowMarker(IsReady));
+                until next = 0;
     end;
 
     procedure ShowRouteOnMap();
@@ -134,15 +142,22 @@ page 6188520 "Map Component Factbox"
         if not IsReady then
             exit;
         GetRoutes(Route);
+        Route.SetRange("No.", 1, 99);
         if Route.FindSet then repeat
             CurrPage.Map.ShowRoute(Route.ShowRoute);
-        until Route.Next = 0;
-        if findset then repeat
-            if "Marker Type" = "Marker Type"::Icon then
-                CurrPage.Map.ShowIconMarker(ShowMarker(IsReady))
-            else
-                CurrPage.Map.ShowCircleMarker(ShowMarker(IsReady));
-        until next = 0;
+            until Route.Next = 0;
+        // if not IsReady then
+        //     exit;
+        // GetRoutes(Route);
+        // if Route.FindSet then repeat
+        //     CurrPage.Map.ShowRoute(Route.ShowRoute);
+        // until Route.Next = 0;
+        // if findset then repeat
+        //     if "Marker Type" = "Marker Type"::Icon then
+        //         CurrPage.Map.ShowIconMarker(ShowMarker(IsReady))
+        //     else
+        //         CurrPage.Map.ShowCircleMarker(ShowMarker(IsReady));
+        // until next = 0;
     end;
 
     procedure ClearMap();
