@@ -106,7 +106,7 @@ codeunit 6188526 "Map Show Trip"
         TrPlanAct.SetFilter("Address No.", '<>%1', '');
         TrPlanAct.SetRange("Trip No.", Trip."No.");
         TrPlanAct.SetRange("Shipment Type", TrPlanAct."Shipment Type"::Distribution);
-        TrPlanAct.SetFilter(Timetype, '%1|%2', TrPlanAct.Timetype::Unload, TrPlanAct.Timetype::Load);
+        TrPlanAct.SetFilter(Timetype, '%1|%2|%3', TrPlanAct.Timetype::"Uncouple Trailer", TrPlanAct.Timetype::Unload, TrPlanAct.Timetype::Load);
         if TrPlanAct.FindSet then begin
             FirstDistributionStop := TrPlanAct."Stop No.";;
             repeat
