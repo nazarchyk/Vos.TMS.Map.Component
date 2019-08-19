@@ -7,6 +7,7 @@ codeunit 6188526 "Map Show Trip"
     begin
         GetActualTripFromBoardComputer(Rec, RouteDetails);
         GetInternationalRoute(Rec, RouteDetails);
+        GetTakenOverTripRoute(Rec, RouteDetails);
         GetRoundTripRoute(Rec, RouteDetails);
         GetPredictionResults(RouteDetails);
         RouteDetails.ToBuffer;
@@ -15,7 +16,7 @@ codeunit 6188526 "Map Show Trip"
     local procedure GetPredictionResults(var RouteDetails: Record "Map Route Detail");
     var
         PredictionBufferMgt: Codeunit "Prediction Buffer Mgt.";
-        PredictionBuffer : Record "Prediction Buffer" temporary;
+        PredictionBuffer: Record "Prediction Buffer" temporary;
     begin
         RouteDetails.SetRange("Route No.", 0);
         if RouteDetails.FindLast then;
@@ -34,7 +35,7 @@ codeunit 6188526 "Map Show Trip"
             RouteDetails.Longitude := PredictionBuffer.Longitude;
             RouteDetails.Latitude := PredictionBuffer.Latitude;
             RouteDetails.Insert;
-        until PredictionBuffer.Next = 0;
+            until PredictionBuffer.Next = 0;
     end;
 
     local procedure GetActualTripFromBoardComputer(Trip: Record Trip; var RouteDetails: Record "Map Route Detail");
@@ -69,9 +70,76 @@ codeunit 6188526 "Map Show Trip"
         TrPlanAct.SetFilter(Timetype, '<>%1', TrPlanAct.Timetype::Rest);
         if TrPlanAct.FindSet then repeat
             CreateRouteDetailsFromTrPlanAct(TrPlanAct, RouteDetails, 'Blue', 2);
-        until TrPlanAct.Next = 0;
+            until TrPlanAct.Next = 0;
 
         if Equip.get(Trip."First Truck No.", Equip.Type::Truck) then begin
+            RouteDetails.init;
+            RouteDetails."Route No." := 0;
+            RouteDetails."Marker Type" := RouteDetails."Marker Type"::Icon;
+            RouteDetails."Stop No." := 1;
+            RouteDetails.Longitude := Equip."Last Longitude";
+            RouteDetails.Latitude := Equip."Last Latitude";
+            RouteDetails.Insert;
+        end;
+    end;
+
+    local procedure GetTakenOverTripRoute(Trip: Record Trip; var RouteDetails: Record "Map Route Detail")
+    var
+        TrPlanAct: Record "Transport Planned Activity";
+        TruckNo: Code[20];
+        DriverNo: Code[20];
+        TrailerNo: Code[20];
+        LZVTrailerNo: Code[20];
+        CoDriverNo: Code[20];
+        Equip: Record Equipment;
+        FirstDistributionStop: Integer;
+        LastImportStop: Integer;
+    begin
+        if Trip."Trip Type" <> Trip."Trip Type"::International then
+            exit;
+
+        if trip."Collection Status" < trip."Collection Status"::Assigned then
+            exit;
+
+        RouteDetails."Stop No." := 0;
+        TrPlanAct.SetCurrentKey("Trip No.", "Stop No.");
+        TrPlanAct.SetFilter("Address No.", '<>%1', '');
+        TrPlanAct.SetRange("Trip No.", Trip."No.");
+        TrPlanAct.SetRange("Shipment Type", TrPlanAct."Shipment Type"::Distribution);
+        TrPlanAct.SetFilter(Timetype, '%1|%2', TrPlanAct.Timetype::Unload, TrPlanAct.Timetype::Load);
+        if TrPlanAct.FindSet then begin
+            FirstDistributionStop := TrPlanAct."Stop No.";;
+            repeat
+                CreateRouteDetailsFromTrPlanAct(TrPlanAct, RouteDetails, 'Blue', 2);
+            until TrPlanAct.Next = 0;
+        end;
+
+        TrPlanAct.SetCurrentKey("Trip No.", "Stop No.");
+        TrPlanAct.SetFilter("Address No.", '<>%1', '');
+        TrPlanAct.SetRange("Trip No.", Trip."No.");
+        TrPlanAct.SetRange("Shipment Type", TrPlanAct."Shipment Type"::Import);
+        TrPlanAct.SetFilter(Timetype, '%1|%2', TrPlanAct.Timetype::UnLoad, TrPlanAct.Timetype::Miscellaneous);
+        TrPlanAct.SetFilter("Crossing Activity Type", '%1|%2', TrPlanAct."Crossing Activity Type"::Arrival, TrPlanAct."Crossing Activity Type"::" ");
+        if TrPlanAct.FindSet then begin
+            repeat
+                CreateRouteDetailsFromTrPlanAct(TrPlanAct, RouteDetails, 'Green', 3);
+                LastImportStop := TrPlanAct."Stop No.";
+            until TrPlanAct.Next = 0;
+        end;
+
+        TrPlanAct.SetCurrentKey("Trip No.", "Stop No.");
+        TrPlanAct.SetFilter("Address No.", '<>%1', '');
+        TrPlanAct.SetRange("Trip No.", Trip."No.");
+        TrPlanAct.SetRange("Shipment Type");
+        TrPlanAct.SetRange("Stop No.", LastImportStop, FirstDistributionStop);
+        TrPlanAct.SetFilter(Timetype, '<>%1', TrPlanAct.Timetype::Rest);
+        if TrPlanAct.FindSet then repeat
+            CreateRouteDetailsFromTrPlanAct(TrPlanAct, RouteDetails, 'Orange', 4);
+        until TrPlanAct.Next = 0;
+
+        Trip.FindCurrentEquipImpExpCol(TruckNo, DriverNo, TrailerNo, LZVTrailerNo, CoDriverNo);
+
+        if Equip.get(TruckNo, Equip.Type::Truck) then begin
             RouteDetails.init;
             RouteDetails."Route No." := 0;
             RouteDetails."Marker Type" := RouteDetails."Marker Type"::Icon;
@@ -98,6 +166,9 @@ codeunit 6188526 "Map Show Trip"
         if Trip."Trip Type" <> Trip."Trip Type"::International then
             exit;
 
+        if trip."Collection Status" >= trip."Collection Status"::Assigned then
+            exit;
+
         RouteDetails."Stop No." := 0;
         TrPlanAct.SetCurrentKey("Trip No.", "Stop No.");
         TrPlanAct.SetFilter("Address No.", '<>%1', '');
@@ -108,7 +179,7 @@ codeunit 6188526 "Map Show Trip"
         if TrPlanAct.FindSet then repeat
             CreateRouteDetailsFromTrPlanAct(TrPlanAct, RouteDetails, 'Blue', 2);
             LastExportStop := TrPlanAct."Stop No.";
-        until TrPlanAct.Next = 0;
+            until TrPlanAct.Next = 0;
 
         TrPlanAct.SetCurrentKey("Trip No.", "Stop No.");
         TrPlanAct.SetFilter("Address No.", '<>%1', '');
@@ -172,9 +243,9 @@ codeunit 6188526 "Map Show Trip"
         if TrPlanAct.IsLoad then
             RouteDetails."Marker Fill Color" := 'green'
         else if TrPlanAct.IsUnload then
-            RouteDetails."Marker Fill Color" := 'red'
-        else
-            RouteDetails."Marker Fill Color" := 'blue';
+                RouteDetails."Marker Fill Color" := 'red'
+            else
+                RouteDetails."Marker Fill Color" := 'blue';
         RouteDetails.Color := Color;
         RouteDetails.Longitude := Address.Longitude;
         RouteDetails.Latitude := Address.Latitude;
