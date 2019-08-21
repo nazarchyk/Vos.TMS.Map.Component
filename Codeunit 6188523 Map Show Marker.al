@@ -17,11 +17,7 @@ codeunit 6188523 "Map Show Marker"
         iconAnchor.Add(41);
         with RouteDetails do
         begin
-
-            //SetRange("Route No.", 1);
-            if IsEmpty then
-                exit;
-
+            TestField(Id);
             marker.Add('type', 1);//"Marker Type");                  // Type 0 - Icon Marker, Type 1 - Circle Marker.
             marker.Add('id', Id);
             marker.Add(source, Source);
@@ -36,21 +32,20 @@ codeunit 6188523 "Map Show Marker"
                 marker.Add('popup', popup);
             end;
 
-
             settings.Add('iconUrl', Icon);            // Optional. Icon URL, if you want custom marker.
             settings.Add('shadowUrl', '');          // Optional. Shadow URL, if you want custom marker.
             settings.Add('iconAnchor', iconAnchor); // Optional. Icon anchor. Array of two numbers [X, Y].
             settings.Add('popupAnchor', '');        // Optional. Popup anchor. Array of two numbers [X, Y].
             settings.Add('iconSize', '');           // Optional. Icon size. Array of two numbers [X, Y].
             settings.Add('shadowSize', '');         // Optional. Shadow size. Array of two numbers [X, Y].
-            settings.Add('shadowAnchor', '');       // Optional. Shadow anchor. Array of two numbers [X, Y].
+            settings.Add('shadowAnchor', '');                              // Optional. Shadow anchor. Array of two numbers [X, Y].
 
-            settings.Add('fillColor', "Marker Fill Color");           // Optional. Circle marker fill color.
-            // settings.Add('fillOpacity', 1);             // Optional. Circle marker fill opacity. 1 - non transparent, 0 - transparent
-            settings.Add('radius', "Marker Radius");                 // Optional. Circle marker radius.
-            // settings.Add('strokeColor', 'black');       // Optional. Circle marker stroke color.
-            // settings.Add('strokeOpacity', 1);           // Optional. Circle marker stroke opacity. 1 - non transparent, 0 - transparent.
-            // settings.Add('strokeWidthPx', 3);           // Optional. Circle marker stroke width in pixels.
+            settings.Add('fillColor', "Marker Fill Color");                // Optional. Circle marker fill color.
+            settings.Add('fillOpacity', "Marker Fill Opacity");            // Optional. Circle marker fill opacity. 1 - non transparent, 0 - transparent
+            settings.Add('radius', "Marker Radius");                       // Optional. Circle marker radius.
+            settings.Add('strokeColor', "Marker Stroke Color");            // Optional. Circle marker stroke color.
+            settings.Add('strokeOpacity', "Marker Stroke Opacity");        // Optional. Circle marker stroke opacity. 1 - non transparent, 0 - transparent.
+            settings.Add('strokeWidthPx', "Marker Stroke With (Pixels)");  // Optional. Circle marker stroke width in pixels.
             marker.Add('settings', settings);
         end;
 

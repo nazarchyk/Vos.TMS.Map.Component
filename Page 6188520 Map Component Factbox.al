@@ -54,6 +54,25 @@ page 6188520 "Map Component Factbox"
     {
         area(Processing)
         {
+            action(Update)
+            {
+                Image = UpdateShipment;
+                trigger OnAction();
+                begin
+                    GetDataFromBuffer;
+                end;
+            }
+            action(MyTrucks)
+            {
+                Image = Travel;
+                trigger OnAction();
+                var
+                    MapEquip: Codeunit "Map Equipment";
+                begin
+                    MapEquip.ShowMyTrucks;
+                    GetDataFromBuffer;
+                end;
+            }
             action(Marker)
             {
                 Image = Position;
@@ -146,18 +165,6 @@ page 6188520 "Map Component Factbox"
         if Route.FindSet then repeat
             CurrPage.Map.ShowRoute(Route.ShowRoute);
             until Route.Next = 0;
-        // if not IsReady then
-        //     exit;
-        // GetRoutes(Route);
-        // if Route.FindSet then repeat
-        //     CurrPage.Map.ShowRoute(Route.ShowRoute);
-        // until Route.Next = 0;
-        // if findset then repeat
-        //     if "Marker Type" = "Marker Type"::Icon then
-        //         CurrPage.Map.ShowIconMarker(ShowMarker(IsReady))
-        //     else
-        //         CurrPage.Map.ShowCircleMarker(ShowMarker(IsReady));
-        // until next = 0;
     end;
 
     procedure ClearMap();
@@ -199,6 +206,15 @@ page 6188520 "Map Component Factbox"
         if not IsReady then
             exit;
         CurrPage.Map.DisableHeatmap();
+    end;
+    procedure GetDataFromBuffer();
+    var
+        MapBuffer: Codeunit "Map Buffer";
+    begin
+        ClearMap;
+        MapBuffer.GetRouteDetails(Rec);
+        ShowMarkerOnMap;
+        ShowRouteOnMap;
     end;
 
     var

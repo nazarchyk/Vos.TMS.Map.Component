@@ -32,8 +32,10 @@ page 6188521 "Map Component Full Page"
                 end;
 
                 trigger OnMarkerClicked(eventObject: JsonObject);
+                var
+                    GetSelectedMarker: Codeunit "Map Get Selected Marker";
                 begin
-                    //Message(format(eventObject));
+                    GetSelectedMarker.GetMarker(eventObject);
                 end;
 
                 trigger OnMarkersSelected(eventObject: JsonArray);

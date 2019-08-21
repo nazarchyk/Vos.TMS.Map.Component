@@ -16,6 +16,8 @@ codeunit 6188529 "Map Buffer"
 
     procedure GetRouteDetails(var Rec: Record "Map Route Detail");
     begin
+        if RouteDetail.Count > 100 then
+            exit;
         Rec.Copy(RouteDetail, true);
 
     end;
@@ -37,8 +39,8 @@ codeunit 6188529 "Map Buffer"
     procedure SetRouteDetails(var Details: Record "Map Route Detail");
     begin
         RouteDetail.Copy(Details, true);
-//        Message(Format(RouteDetail.Count));
-  //      RouteDetail.FindSet;
+        //        Message(Format(RouteDetail.Count));
+        //      RouteDetail.FindSet;
         if RouteDetail.FindSet then repeat
             if not Route.Get(RouteDetail."Route No.") then begin
                 Route."No." := RouteDetail."Route No.";
@@ -48,7 +50,7 @@ codeunit 6188529 "Map Buffer"
                 Route.Insert;
             end;
 
-        until RouteDetail.next = 0;
+            until RouteDetail.next = 0;
         MustRefresh := true;
     end;
 
