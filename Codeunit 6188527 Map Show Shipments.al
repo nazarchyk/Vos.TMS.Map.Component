@@ -4,37 +4,69 @@ codeunit 6188527 "Map Show Shipments"
     trigger OnRun();
     var
         Shpmnt: Record Shipment;
-     //   Route : Record "Map Route" temporary;
-        RouteDetails: Record "Map Route Detail" temporary;
+        //   Route : Record "Map Route" temporary;
+        RouteDetail: Record "Map Route Detail" temporary;
         MapBuffer: Codeunit "Map Buffer";
         Addr: Record Address;
     begin
-        RouteDetails.DeleteAll;
+        RouteDetail.DeleteAll;
         Shpmnt.CopyFilters(Rec);
         Shpmnt.SetAutoCalcFields("Loading Meters");
         if Shpmnt.FindSet then repeat
-            RouteDetails."Route No." := 0;
-            RouteDetails.Name := "Route No.";
-            RouteDetails."Stop No." += 1;
-            RouteDetails.Id := Shpmnt.Id;
-            RouteDetails.Source := TableName;
+            RouteDetail."Route No." := 0;
+            RouteDetail.Name := "Route No.";
+            RouteDetail."Stop No." += 1;
+            RouteDetail.Id := Shpmnt.Id;
+            RouteDetail.Source := TableName;
             if Shpmnt."Lane Type" = Shpmnt."Lane Type"::Collection then begin
                 Addr.get(Shpmnt."From Address No.");
                 //error(format(Addr));
-                RouteDetails."Marker Fill Color" := 'red';
+                RouteDetail."Marker Fill Color" := 'red';
             end else if Shpmnt."Lane Type" = Shpmnt."Lane Type"::Delivery then begin
-                Addr.get(Shpmnt."To Address No.");
-                RouteDetails."Marker Fill Color" := 'blue';
-            end;
-            RouteDetails.Latitude := Addr.Latitude;
-            RouteDetails.Longitude := Addr.Longitude;
-            RouteDetails."Marker Type" := RouteDetails."Marker Type"::Circle;
-            RouteDetails.SetMarkerRadiusBasedOnLoadingMeters(Shpmnt."Loading Meters");
-            RouteDetails.SetMarkerStrokeBasedOnSelected;
-            RouteDetails."Marker Text" := 'LM: ' + format(Shpmnt."Loading Meters") + ' ' + Addr.Description + ' ' + Addr.Street + ' ' + Addr."Post Code" + ' ' + Addr.City; 
-            RouteDetails.Insert;
-        until Shpmnt.Next = 0;
-        
-        MapBuffer.SetRouteDetails(RouteDetails);
+                    Addr.get(Shpmnt."To Address No.");
+                    RouteDetail."Marker Fill Color" := 'blue';
+                end;
+            RouteDetail.Latitude := Addr.Latitude;
+            RouteDetail.Longitude := Addr.Longitude;
+            RouteDetail."Marker Type" := RouteDetail."Marker Type"::Circle;
+            RouteDetail.SetMarkerRadiusBasedOnLoadingMeters(Shpmnt."Loading Meters");
+            RouteDetail.SetMarkerStrokeBasedOnSelected;
+            RouteDetail."Marker Text" := 'LM: ' + format(Shpmnt."Loading Meters") + ' ' + Addr.Description + ' ' + Addr.Street + ' ' + Addr."Post Code" + ' ' + Addr.City;
+            RouteDetail.Insert;
+            until Shpmnt.Next = 0;
+
+        MapBuffer.SetRouteDetails(RouteDetail);
+    end;
+
+    procedure SelectShipments()
+    var
+        RouteDetail: Record "Map Route Detail" temporary;
+        MapBuffer: Codeunit "Map Buffer";
+    begin
+        MapBuffer.GetRouteDetails(RouteDetail);
+        RouteDetail.SetRange(Selected, RouteDetail.Selected::Clicked);
+        RouteDetail.FindSet;
+        repeat
+            RouteDetail.SelectShipment;
+        RouteDetail.Modify;
+        until RouteDetail.Next = 0;
+        MapBuffer.SetRouteDetails(RouteDetail);
+
+    end;
+
+    procedure DeSelectShipments()
+    var
+        RouteDetail: Record "Map Route Detail" temporary;
+        MapBuffer: Codeunit "Map Buffer";
+    begin
+        MapBuffer.GetRouteDetails(RouteDetail);
+        RouteDetail.SetRange(Selected, RouteDetail.Selected::Selected);
+        RouteDetail.FindSet;
+        repeat
+        RouteDetail.SelectShipment;
+        RouteDetail.Modify;
+        until RouteDetail.Next = 0;
+        MapBuffer.SetRouteDetails(RouteDetail);
+
     end;
 }

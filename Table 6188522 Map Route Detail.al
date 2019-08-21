@@ -109,25 +109,29 @@ table 6188522 "Map Route Detail"
         Shpmnt: Record Shipment;
     begin
         Shpmnt.SetCurrentKey(Id);
-        Shpmnt.SetRange(Id, Id);        
+        Shpmnt.SetRange(Id, Id);
         if Shpmnt.FindFirst then
             Shpmnt.SelectIt(false);
         if Shpmnt."Plan-ID" = UserId then
-          Selected := Selected::Selected;
+            Selected := Selected::Selected
+        else
+            Selected := Selected::" ";
         // exit(Selected = Selected::Selected);
     end;
-    
+
     procedure CreateTrip()
     begin
 
     end;
+
     procedure CreatePrediction()
     begin
 
     end;
+
     procedure AddToSelectedTrip()
     begin
-        
+
     end;
 
     procedure SetColor(Value: text)

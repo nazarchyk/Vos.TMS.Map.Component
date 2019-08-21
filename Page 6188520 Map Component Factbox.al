@@ -28,7 +28,7 @@ page 6188520 "Map Component Factbox"
                     Message(format(eventObject));
                 end;
 
-                trigger OnMarkerClicked(eventObject: JsonObject);
+                trigger OnMarkerClicked(eventObject: JsonObject); // Single Marker
                 var
                     GetSelectedMarker: Codeunit "Map Get Selected Marker";
                 begin
@@ -37,11 +37,13 @@ page 6188520 "Map Component Factbox"
                     GetDataFromBuffer;
                 end;
 
-                trigger OnMarkersSelected(eventObject: JsonArray);
+                trigger OnMarkersSelected(eventObject: JsonArray); // Lasso
                 var
                     GetSelectedMarker: Codeunit "Map Get Selected Marker";
                 begin
                     GetSelectedMarker.GetMarkers(eventObject);
+                    ClearMap;
+                    GetDataFromBuffer;
                 end;
 
                 trigger OnRouteVisibilityToggled(eventObject: JsonObject)
@@ -91,12 +93,35 @@ page 6188520 "Map Component Factbox"
                     ShowRouteOnMap;
                 end;
             }
-            action(Select)
+            action(Lasso)
             {
                 Image = Map;
+                Caption = 'Lasso';
                 trigger OnAction();
                 begin
                     EnableLasso;
+                end;
+            }
+            action(SelectForPlanning)
+            {
+                Image = SelectEntries;
+                Caption = 'Select';
+                trigger OnAction();
+                var
+                    ShowShipment: Codeunit "Map Show Shipments";
+                begin
+                    ShowShipment.SelectShipments;
+                end;
+            }
+            action(UnSelectForPlanning)
+            {
+                Image = UnApply;
+                Caption = 'Unselect';
+                trigger OnAction();
+                var
+                    ShowShipment: Codeunit "Map Show Shipments";
+                begin
+                    ShowShipment.DeSelectShipments;
                 end;
             }
             action(Clear)
@@ -209,6 +234,7 @@ page 6188520 "Map Component Factbox"
             exit;
         CurrPage.Map.DisableHeatmap();
     end;
+
     procedure GetDataFromBuffer();
     var
         MapBuffer: Codeunit "Map Buffer";
