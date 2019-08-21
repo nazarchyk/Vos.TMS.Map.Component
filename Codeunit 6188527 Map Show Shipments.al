@@ -30,6 +30,7 @@ codeunit 6188527 "Map Show Shipments"
             RouteDetails.Longitude := Addr.Longitude;
             RouteDetails."Marker Type" := RouteDetails."Marker Type"::Circle;
             RouteDetails.SetMarkerRadiusBasedOnLoadingMeters(Shpmnt."Loading Meters");
+            RouteDetails.SetMarkerStrokeBasedOnSelected;
             RouteDetails."Marker Text" := 'LM: ' + format(Shpmnt."Loading Meters") + ' ' + Addr.Description + ' ' + Addr.Street + ' ' + Addr."Post Code" + ' ' + Addr.City; 
             RouteDetails.Insert;
         until Shpmnt.Next = 0;

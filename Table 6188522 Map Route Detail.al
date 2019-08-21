@@ -22,7 +22,7 @@ table 6188522 "Map Route Detail"
         field(28; "Marker Stroke With (Pixels)"; Integer) { InitValue = 3; }
         field(30; Id; Guid) { }
         field(31; Source; Text[30]) { }
-        field(32; Selected; Boolean) {}
+        field(32; Selected; Option) { OptionMembers = " ", Clicked, Selected; }
     }
 
     keys
@@ -39,17 +39,36 @@ table 6188522 "Map Route Detail"
             exit(false);
         exit(true);
     end;
+
+    procedure SetMarkerStrokeBasedOnSelected();
+    begin
+        "Marker Stroke With (Pixels)" := 6;
+        case Selected of
+            Selected::" " :
+                "Marker Stroke Color" := 'black';
+        Selected::Clicked :
+                "Marker Stroke Color" := 'red';
+        Selected::Selected :
+                "Marker Stroke Color" := 'green';
+        end;
+        // if Selected then begin
+        //     "Marker Stroke Color" := 'red';
+        // end else begin
+        //     "Marker Stroke With (Pixels)" := 3;
+        // end;
+    end;
+
     procedure SetMarkerRadiusBasedOnLoadingMeters(Value: Decimal)
     begin
         "Marker Radius" := Round(Value, 1, '>');
-            // if Shpmnt."Payable Weight (Order)" >= 25000 then
-            //     RouteDetails."Marker Radius" := 25
-            // else if Shpmnt."Payable Weight (Order)" >= 10000 then 
-            //     RouteDetails."Marker Radius" := 20
-            // else if Shpmnt."Payable Weight (Order)" >= 5000 then
-            //      RouteDetails."Marker Radius" := 15
-            // else
-            //     RouteDetails."Marker Radius" := 10;
+        // if Shpmnt."Payable Weight (Order)" >= 25000 then
+        //     RouteDetails."Marker Radius" := 25
+        // else if Shpmnt."Payable Weight (Order)" >= 10000 then 
+        //     RouteDetails."Marker Radius" := 20
+        // else if Shpmnt."Payable Weight (Order)" >= 5000 then
+        //      RouteDetails."Marker Radius" := 15
+        // else
+        //     RouteDetails."Marker Radius" := 10;
     end;
 
     procedure GetRoutes(var Route: Record "Map Route");
@@ -71,6 +90,44 @@ table 6188522 "Map Route Detail"
         MapShowMarker: codeunit "Map Show Marker";
     begin
         exit(MapShowMarker.GetMarkerJson(Rec, IsReady));
+    end;
+
+    procedure CheckShipmentIsSelected(): Boolean
+    var
+        Shpmnt: Record Shipment;
+    begin
+        Shpmnt.SetCurrentKey(Id);
+        Shpmnt.SetRange(Id, Id);
+        if Shpmnt.FindFirst then
+            if Shpmnt."Plan-ID" = UserId then
+                Selected := Selected::Selected;
+        exit(Selected = Selected::Selected);
+    end;
+
+    procedure SelectShipment()
+    var
+        Shpmnt: Record Shipment;
+    begin
+        Shpmnt.SetCurrentKey(Id);
+        Shpmnt.SetRange(Id, Id);        
+        if Shpmnt.FindFirst then
+            Shpmnt.SelectIt(false);
+        if Shpmnt."Plan-ID" = UserId then
+          Selected := Selected::Selected;
+        // exit(Selected = Selected::Selected);
+    end;
+    
+    procedure CreateTrip()
+    begin
+
+    end;
+    procedure CreatePrediction()
+    begin
+
+    end;
+    procedure AddToSelectedTrip()
+    begin
+        
     end;
 
     procedure SetColor(Value: text)

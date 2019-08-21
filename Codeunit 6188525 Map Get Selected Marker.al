@@ -20,7 +20,7 @@ codeunit 6188525 "Map Get Selected Marker"
             Evaluate(Id, JsonVal.AsText);
             RouteDetail.SetRange(id, Id);
             RouteDetail.FindFirst;
-            RouteDetail.Selected := true;
+            RouteDetail.Selected := RouteDetail.Selected::Clicked;
             RouteDetail.Modify;
             MapBuffer.SetRouteDetails(RouteDetail);
         end;
@@ -38,18 +38,26 @@ codeunit 6188525 "Map Get Selected Marker"
         Id: guid;
     begin
         MapBuffer.GetRouteDetails(RouteDetail);
-        JsonTkn := Marker.AsToken;
         //    Message('Selected : ' + Format(JsonObj));
-        JsonObj.Get('id', JsonTkn);
+        Marker.Get('id', JsonTkn);
         JsonVal := JsonTkn.AsValue;
         Evaluate(Id, JsonVal.AsText);
         RouteDetail.SetRange(id, Id);
         RouteDetail.FindFirst;
-        RouteDetail.Selected := true;
+        case RouteDetail.Selected of
+            RouteDetail.Selected::Clicked:
+                RouteDetail.Selected := RouteDetail.Selected::" ";
+            RouteDetail.Selected::" ":
+                RouteDetail.Selected := RouteDetail.Selected::Clicked;
+            RouteDetail.Selected::Selected:
+                Message('To Do');
+        end;
+        RouteDetail.SetMarkerStrokeBasedOnSelected;
         RouteDetail.Modify;
+        RouteDetail.Reset;
         MapBuffer.SetRouteDetails(RouteDetail);
-        if Confirm('Show Prediction?') then
-            PredictionBuffer.Show(Id);
+//        if Confirm('Show Prediction?') then
+        PredictionBuffer.Show(Id);
     end;
 
 

@@ -33,6 +33,8 @@ page 6188520 "Map Component Factbox"
                     GetSelectedMarker: Codeunit "Map Get Selected Marker";
                 begin
                     GetSelectedMarker.GetMarker(eventObject);
+                    ClearMap;
+                    GetDataFromBuffer;
                 end;
 
                 trigger OnMarkersSelected(eventObject: JsonArray);
