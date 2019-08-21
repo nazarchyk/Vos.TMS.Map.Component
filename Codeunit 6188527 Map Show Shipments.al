@@ -13,6 +13,7 @@ codeunit 6188527 "Map Show Shipments"
         Shpmnt.CopyFilters(Rec);
         Shpmnt.SetAutoCalcFields("Loading Meters");
         if Shpmnt.FindSet then repeat
+            RouteDetail.Init;
             RouteDetail."Route No." := 0;
             RouteDetail.Name := "Route No.";
             RouteDetail."Stop No." += 1;
@@ -29,6 +30,8 @@ codeunit 6188527 "Map Show Shipments"
             RouteDetail.Latitude := Addr.Latitude;
             RouteDetail.Longitude := Addr.Longitude;
             RouteDetail."Marker Type" := RouteDetail."Marker Type"::Circle;
+            if Shpmnt."Plan-ID" = UserId then
+                RouteDetail.Selected := RouteDetail.Selected::Selected;
             RouteDetail.SetMarkerRadiusBasedOnLoadingMeters(Shpmnt."Loading Meters");
             RouteDetail.SetMarkerStrokeBasedOnSelected;
             RouteDetail."Marker Text" := 'LM: ' + format(Shpmnt."Loading Meters") + ' ' + Addr.Description + ' ' + Addr.Street + ' ' + Addr."Post Code" + ' ' + Addr.City;
@@ -50,6 +53,7 @@ codeunit 6188527 "Map Show Shipments"
             RouteDetail.SelectShipment;
         RouteDetail.Modify;
         until RouteDetail.Next = 0;
+        RouteDetail.Reset;
         MapBuffer.SetRouteDetails(RouteDetail);
 
     end;
@@ -66,6 +70,7 @@ codeunit 6188527 "Map Show Shipments"
         RouteDetail.SelectShipment;
         RouteDetail.Modify;
         until RouteDetail.Next = 0;
+        RouteDetail.Reset;
         MapBuffer.SetRouteDetails(RouteDetail);
 
     end;

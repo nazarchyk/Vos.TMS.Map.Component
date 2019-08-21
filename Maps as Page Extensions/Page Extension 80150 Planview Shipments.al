@@ -4,7 +4,7 @@ pageextension 80150 "Planview Shipment (Map)" extends "Planview Shipments"
     {
         addbefore(TableShip)
         {
-            part(Map; "Map Component Factbox") { }
+            part(Map; "Map Component Factbox") { UpdatePropagation=Both;}
             part(MapDetails; "Map Route Factbox") { Visible = false; }
         }
     }
@@ -29,6 +29,12 @@ pageextension 80150 "Planview Shipment (Map)" extends "Planview Shipments"
             UpdateMap;
     end;
 
+    trigger OnOpenPage();
+    var
+        MapBuffer: Codeunit "Map Buffer";
+    begin
+        MapBuffer.ClearAll;
+    end;
     procedure UpdateMap();
     var
         ShowShipments: Codeunit "Map Show Shipments";

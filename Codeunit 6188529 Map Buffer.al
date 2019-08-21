@@ -16,7 +16,7 @@ codeunit 6188529 "Map Buffer"
 
     procedure GetRouteDetails(var Rec: Record "Map Route Detail");
     begin
-        if RouteDetail.Count > 100 then
+        if RouteDetail.Count > 250 then
             exit;
         Rec.Copy(RouteDetail, true);
 

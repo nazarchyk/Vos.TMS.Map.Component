@@ -33,8 +33,8 @@ page 6188520 "Map Component Factbox"
                     GetSelectedMarker: Codeunit "Map Get Selected Marker";
                 begin
                     GetSelectedMarker.GetMarker(eventObject);
-                    ClearMap;
                     GetDataFromBuffer;
+                    CurrPage.Update(false);
                 end;
 
                 trigger OnMarkersSelected(eventObject: JsonArray); // Lasso
@@ -42,7 +42,6 @@ page 6188520 "Map Component Factbox"
                     GetSelectedMarker: Codeunit "Map Get Selected Marker";
                 begin
                     GetSelectedMarker.GetMarkers(eventObject);
-                    ClearMap;
                     GetDataFromBuffer;
                 end;
 
@@ -77,6 +76,17 @@ page 6188520 "Map Component Factbox"
                     GetDataFromBuffer;
                 end;
             }
+            action(OtherTrucks)
+            {
+                Image = InsertTravelFee;
+                trigger OnAction();
+                var
+                    MapEquip: Codeunit "Map Equipment";
+                begin
+                    MapEquip.ShowTrucksFromPlanningCode;
+                    GetDataFromBuffer;
+                end;
+            }
             action(Marker)
             {
                 Image = Position;
@@ -100,6 +110,8 @@ page 6188520 "Map Component Factbox"
                 trigger OnAction();
                 begin
                     EnableLasso;
+                    GetDataFromBuffer;
+                    CurrPage.Update(false);
                 end;
             }
             action(SelectForPlanning)
@@ -111,6 +123,8 @@ page 6188520 "Map Component Factbox"
                     ShowShipment: Codeunit "Map Show Shipments";
                 begin
                     ShowShipment.SelectShipments;
+                    GetDataFromBuffer;
+                    CurrPage.Update(false);
                 end;
             }
             action(UnSelectForPlanning)
@@ -122,6 +136,8 @@ page 6188520 "Map Component Factbox"
                     ShowShipment: Codeunit "Map Show Shipments";
                 begin
                     ShowShipment.DeSelectShipments;
+                    GetDataFromBuffer;
+                    CurrPage.Update(false);
                 end;
             }
             action(Clear)
