@@ -51,6 +51,7 @@ codeunit 6188526 "Map Show Trip"
             RouteDetails.Color := 'Red';
             RouteDetails.Longitude := Consultation.Longitude;
             RouteDetails.Latitude := Consultation.Latitude;
+            RouteDetails.Id := CreateGuid; //* To Do, unkown...
             RouteDetails.Insert;
             until Consultation.Next = 0;
     end;
@@ -211,6 +212,7 @@ codeunit 6188526 "Map Show Trip"
 
         if Equip.get(TruckNo, Equip.Type::Truck) then begin
             RouteDetails.init;
+            RouteDetails.Id := Equip.Id;
             RouteDetails."Route No." := 0;
             RouteDetails."Marker Type" := RouteDetails."Marker Type"::Icon;
             RouteDetails."Stop No." := 1;
