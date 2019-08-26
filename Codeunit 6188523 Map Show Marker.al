@@ -17,7 +17,7 @@ codeunit 6188523 "Map Show Marker"
         iconAnchor.Add(41);
         with RouteDetails do
         begin
-            TestField(Id);
+            //TestField(Id);
             marker.Add('type', 1);//"Marker Type");                  // Type 0 - Icon Marker, Type 1 - Circle Marker.
             marker.Add('id', Id);
             marker.Add(source, Source);
