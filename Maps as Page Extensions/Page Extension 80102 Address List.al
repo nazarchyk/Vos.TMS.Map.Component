@@ -16,10 +16,8 @@ pageextension 80102 "Address List (Map)" extends "Address List"
         RouteDetails.Longitude := Longitude;
         RouteDetails."Marker Text" := Description + ' ' + Street + ' ' + "Post Code" + ' ' + City;
         RouteDetails.Insert;
-        CurrPage.Map.Page.ClearMap;
         RouteDetails.ToBuffer;
-        CurrPage.Map.Page.setData;
-
-        CurrPage.Map.Page.ShowMarkerOnMap;
+        CurrPage.Map.Page.GetDataFromBuffer;
+        CurrPage.Map.Page.Update;
     end;
 }

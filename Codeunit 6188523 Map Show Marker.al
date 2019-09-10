@@ -4,15 +4,13 @@ codeunit 6188523 "Map Show Marker"
     begin
     end;
 
-    procedure GetMarkerJson(var RouteDetails: Record "Map Route Detail"; IsReady: Boolean) marker: JsonObject;
+    procedure GetMarkerJson(RouteDetails: Record "Map Route Detail") marker: JsonObject;
     var
         coordinates: JsonObject;
         popup: JsonObject;
         settings: JsonObject;
         iconAnchor: JsonArray;
     begin
-        if not IsReady then
-            exit;
         iconAnchor.Add(12);
         iconAnchor.Add(41);
         with RouteDetails do

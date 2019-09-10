@@ -172,7 +172,7 @@ table 6188522 "Map Route Detail"
     var
         MapShowMarker: codeunit "Map Show Marker";
     begin
-        exit(MapShowMarker.GetMarkerJson(Rec, IsReady));
+        exit(MapShowMarker.GetMarkerJson(Rec));
     end;
 
     procedure CheckShipmentIsSelected(): Boolean

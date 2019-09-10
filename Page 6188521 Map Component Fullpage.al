@@ -1,8 +1,8 @@
 page 6188521 "Map Component Full Page"
 {
     PageType = Card;
-    SourceTable = "Map Route Detail";
-    SourceTableTemporary = true;
+    // SourceTable = "Map Route Detail";
+    // SourceTableTemporary = true;
     UsageCategory = Documents;
 
     layout
@@ -31,24 +31,26 @@ page 6188521 "Map Component Full Page"
 
                 end;
 
-                trigger OnMarkerClicked(eventObject: JsonObject);
+                trigger OnMarkerClicked(eventObject: JsonObject); // Single Marker
                 var
                     GetSelectedMarker: Codeunit "Map Get Selected Marker";
                 begin
                     GetSelectedMarker.GetMarker(eventObject);
+                    GetDataFromBuffer;
+                    //CurrPage.Update(false);
                 end;
 
-                trigger OnMarkersSelected(eventObject: JsonArray);
+                trigger OnMarkersSelected(eventObject: JsonArray); // Lasso
                 var
                     GetSelectedMarker: Codeunit "Map Get Selected Marker";
                 begin
                     GetSelectedMarker.GetMarkers(eventObject);
+                    GetDataFromBuffer;
                 end;
 
                 trigger OnRouteVisibilityToggled(eventObject: JsonObject)
                 begin
                     Message(format(eventObject));
-
                 end;
             }
         }
@@ -93,12 +95,15 @@ page 6188521 "Map Component Full Page"
                     ShowRouteOnMap;
                 end;
             }
-            action(Select)
+            action(Lasso)
             {
                 Image = Map;
+                Caption = 'Lasso';
                 trigger OnAction();
                 begin
                     EnableLasso;
+                    GetDataFromBuffer;
+                    CurrPage.Update(false);
                 end;
             }
             action(Clear)
@@ -138,38 +143,37 @@ page 6188521 "Map Component Full Page"
             }
         }
     }
-    procedure SetData(var MapRoute: Record "Map Route")
+
+    local procedure ShowMarkerOnMap();
+    var
+        RouteDetail: Record "Map Route Detail" temporary;
+        MapBuffer: Codeunit "Map Buffer";
     begin
-        Reset;
-        DeleteAll;
-        Rec.Copy(MapRoute, true);
+        MapBuffer.GetRouteDetails(RouteDetail);
+        RouteDetail.SetRange(Type, RouteDetail.Type::Markers);
+        if RouteDetail.findset then repeat
+            if RouteDetail."Marker Type" = RouteDetail."Marker Type"::Icon then
+                CurrPage.Map.ShowIconMarker(RouteDetail.ShowMarker(IsReady))
+            else
+                CurrPage.Map.ShowCircleMarker(RouteDetail.ShowMarker(IsReady));
+        until RouteDetail.next = 0;
     end;
 
-    procedure ShowMarkerOnMap();
-    begin
-        if IsReady then
-            if findset then repeat
-                if "Marker Type" = "Marker Type"::Icon then
-                    CurrPage.Map.ShowIconMarker(ShowMarker(IsReady))
-                else
-                    CurrPage.Map.ShowCircleMarker(ShowMarker(IsReady));
-                until next = 0;
-    end;
-
-    procedure ShowRouteOnMap();
+    local procedure ShowRouteOnMap();
     var
         Route: Record "Map Route" temporary;
+        MapBuffer: Codeunit "Map Buffer";
     begin
         if not IsReady then
             exit;
-        GetRoutes(Route);
+        MapBuffer.GetRoutes(Route);
         Route.SetRange("No.", 1, 99);
         if Route.FindSet then repeat
             CurrPage.Map.ShowRoute(Route.ShowRoute);
-            until Route.Next = 0;
+        until Route.Next = 0;
     end;
 
-    procedure ClearMap();
+    local procedure ClearMap();
     begin
         CurrPage.Map.ClearMap();
     end;
@@ -210,11 +214,10 @@ page 6188521 "Map Component Full Page"
     end;
 
     local procedure GetDataFromBuffer();
-    var
-        MapBuffer: Codeunit "Map Buffer";
     begin
         ClearMap;
-        MapBuffer.GetRouteDetails(Rec);
+        if not IsReady then
+            exit;
         ShowMarkerOnMap;
         ShowRouteOnMap;
     end;

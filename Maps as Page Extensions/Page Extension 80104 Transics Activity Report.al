@@ -19,8 +19,8 @@ pageextension 80104 "Act. Report (Map)" extends "Transics Activity Report"
     begin
         GetRouteForActivityReport("Trip No.", RouteDetails);
         RouteDetails.ToBuffer;
-        CurrPage.Map.Page.SetData;
-        CurrPage.Map.Page.ClearMap;
+        CurrPage.Map.Page.GetDataFromBuffer;
+        CurrPage.Map.Page.Update;
     end;
 
     procedure GetRouteForActivityReport(TripNo: code[20]; var RouteDetails: Record "Map Route Detail")

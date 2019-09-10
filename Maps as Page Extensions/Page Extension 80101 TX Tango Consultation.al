@@ -14,9 +14,8 @@ pageextension 80101 "Consultation (Map)" extends "TX Tango Consultation"
     begin
         GetRouteForConsultation("Trip No.", RouteDetails);
         RouteDetails.ToBuffer;
-        CurrPage.Map.Page.SetData;
-        CurrPage.Map.Page.ClearMap;
-        CurrPage.Map.Page.ShowRouteOnMap;
+        CurrPage.Map.Page.GetDataFromBuffer;
+        CurrPage.Map.Page.Update;
     end;
 
     procedure GetRouteForConsultation(TripNo: code[20]; var RouteDetails: Record "Map Route Detail")

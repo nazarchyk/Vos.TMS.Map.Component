@@ -36,9 +36,8 @@ pageextension 80105 "Transport Order Ln. Card (Map)" extends "Transport Order Li
         RouteDetails.Longitude := Addr.Longitude;
         RouteDetails."Marker Text" := Addr.Description + ' ' + Addr.Street + ' ' + Addr."Post Code" + ' ' + Addr.City;
         RouteDetails.Insert;
-        CurrPage.Map.Page.ClearMap;
         RouteDetails.ToBuffer;
-        CurrPage.Map.Page.setData;
+        CurrPage.Map.Page.GetDataFromBuffer;
         CurrPage.Map.Page.Update;
     end;
 }

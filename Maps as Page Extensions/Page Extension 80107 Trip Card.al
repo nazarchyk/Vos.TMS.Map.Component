@@ -23,7 +23,8 @@ pageextension 80107 "Trip Card (Map)" extends "Trip Card"
                 begin
                     FindImportShipments;
                     ShowTrip.Run(Rec);
-                    CurrPage.Map.Page.SetData();
+                    CurrPage.Map.Page.GetDataFromBuffer;
+                    CurrPage.Map.Page.Update;
                 end;
             }
         }
@@ -33,6 +34,7 @@ pageextension 80107 "Trip Card (Map)" extends "Trip Card"
         ShowTrip: Codeunit "Map Show Trip";
     begin
         ShowTrip.Run(Rec);
-        CurrPage.Map.Page.SetData();
+        CurrPage.Map.Page.GetDataFromBuffer;
+        CurrPage.Map.Page.Update;
     end;
 }

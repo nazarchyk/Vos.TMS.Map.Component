@@ -20,9 +20,8 @@ pageextension 80100 "Activity List (Map)" extends "Transport Activity List"
     begin
         GetRouteForActivities("Trip No.", RouteDetails);
         RouteDetails.ToBuffer;
-        CurrPage.Map.Page.SetData;
-        CurrPage.Map.Page.ClearMap;
-        CurrPage.Map.Page.ShowRouteOnMap;
+        CurrPage.Map.Page.GetDataFromBuffer;
+        CurrPage.Map.Page.Update;
     end;
 
     procedure GetRouteForActivities(TripNo: code[20]; var RouteDetails: Record "Map Route Detail")

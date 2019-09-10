@@ -1,8 +1,8 @@
 page 6188520 "Map Component Factbox"
 {
     PageType = CardPart;
-    SourceTable = "Map Route Detail";
-    SourceTableTemporary = true;
+    // SourceTable = "Map Route Detail";
+    // SourceTableTemporary = true;
 
     layout
     {
@@ -11,6 +11,7 @@ page 6188520 "Map Component Factbox"
             usercontrol(Map; Map)
             {
                 ApplicationArea = All;
+
                 trigger OnMapInit();
                 begin
                     SetSettings;
@@ -26,6 +27,7 @@ page 6188520 "Map Component Factbox"
                 trigger OnRouteSelected(eventObject: JsonObject);
                 begin
                     Message(format(eventObject));
+
                 end;
 
                 trigger OnMarkerClicked(eventObject: JsonObject); // Single Marker
@@ -177,43 +179,39 @@ page 6188520 "Map Component Factbox"
             }
         }
     }
-    procedure SetData()
+
+    local procedure ShowMarkerOnMap();
     var
-        RouteDetails: Record "Map Route Detail" temporary;
+        RouteDetail: Record "Map Route Detail" temporary;
         MapBuffer: Codeunit "Map Buffer";
     begin
-        MapBuffer.GetRouteDetails(RouteDetails);
-        Rec.Copy(RouteDetails, true);
+        MapBuffer.GetRouteDetails(RouteDetail);
+        RouteDetail.SetRange(Type, RouteDetail.Type::Markers);
+        if RouteDetail.findset then repeat
+            if RouteDetail."Marker Type" = RouteDetail."Marker Type"::Icon then
+                CurrPage.Map.ShowIconMarker(RouteDetail.ShowMarker(IsReady))
+            else
+                CurrPage.Map.ShowCircleMarker(RouteDetail.ShowMarker(IsReady));
+        until RouteDetail.next = 0;
     end;
 
-    procedure ShowMarkerOnMap();
-    begin
-        if IsReady then
-            if findset then repeat
-                if "Marker Type" = "Marker Type"::Icon then
-                    CurrPage.Map.ShowIconMarker(ShowMarker(IsReady))
-                else
-                    CurrPage.Map.ShowCircleMarker(ShowMarker(IsReady));
-                until next = 0;
-    end;
-
-    procedure ShowRouteOnMap();
+    local procedure ShowRouteOnMap();
     var
         Route: Record "Map Route" temporary;
+        MapBuffer: Codeunit "Map Buffer";
     begin
         if not IsReady then
             exit;
-        GetRoutes(Route);
+        MapBuffer.GetRoutes(Route);
         Route.SetRange("No.", 1, 99);
         if Route.FindSet then repeat
             CurrPage.Map.ShowRoute(Route.ShowRoute);
-            until Route.Next = 0;
+        until Route.Next = 0;
     end;
 
-    procedure ClearMap();
+    local procedure ClearMap();
     begin
-        if IsReady then
-            CurrPage.Map.ClearMap();
+        CurrPage.Map.ClearMap();
     end;
 
     local procedure SetSettings();
@@ -256,7 +254,8 @@ page 6188520 "Map Component Factbox"
         MapBuffer: Codeunit "Map Buffer";
     begin
         ClearMap;
-        MapBuffer.GetRouteDetails(Rec);
+        if not IsReady then
+            exit;
         ShowMarkerOnMap;
         ShowRouteOnMap;
     end;
