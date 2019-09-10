@@ -34,7 +34,7 @@ page 6188520 "Map Component Factbox"
                 begin
                     GetSelectedMarker.GetMarker(eventObject);
                     GetDataFromBuffer;
-                    CurrPage.Update(false);
+                    //CurrPage.Update(false);
                 end;
 
                 trigger OnMarkersSelected(eventObject: JsonArray); // Lasso

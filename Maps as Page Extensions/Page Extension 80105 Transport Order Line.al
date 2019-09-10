@@ -39,6 +39,6 @@ pageextension 80105 "Transport Order Ln. Card (Map)" extends "Transport Order Li
         CurrPage.Map.Page.ClearMap;
         RouteDetails.ToBuffer;
         CurrPage.Map.Page.setData;
-
+        CurrPage.Map.Page.Update;
     end;
 }

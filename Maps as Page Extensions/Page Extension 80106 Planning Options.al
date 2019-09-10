@@ -5,7 +5,7 @@ pageextension 80106 "Planning Options (Map)" extends "Planning Options"
     {
         addlast(Content)
         {
-            part(Map; "Map Component Factbox") { Visible = false; }
+            part(Map; "Map Component Factbox") { Visible = true; }
         }
     }
     trigger OnAfterGetCurrRecord();
@@ -38,5 +38,6 @@ pageextension 80106 "Planning Options (Map)" extends "Planning Options"
         RouteDetails.ToBuffer;
 
         CurrPage.Map.Page.setData;
+        CurrPage.Map.Page.Update;
     end;
 }
