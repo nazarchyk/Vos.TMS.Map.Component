@@ -21,11 +21,10 @@ codeunit 6188527 "Map Show Shipments"
             RouteDetail.Source := TableName;
             if Shpmnt."Lane Type" = Shpmnt."Lane Type"::Collection then begin
                 Addr.get(Shpmnt."From Address No.");
-                //error(format(Addr));
-                RouteDetail."Marker Fill Color" := 'red';
+                RouteDetail."Marker Fill Color" := Shpmnt.GetColor;
             end else if Shpmnt."Lane Type" = Shpmnt."Lane Type"::Delivery then begin
                     Addr.get(Shpmnt."To Address No.");
-                    RouteDetail."Marker Fill Color" := 'blue';
+                    RouteDetail."Marker Fill Color" := Shpmnt.GetColor;
                 end;
             RouteDetail.Latitude := Addr.Latitude;
             RouteDetail.Longitude := Addr.Longitude;

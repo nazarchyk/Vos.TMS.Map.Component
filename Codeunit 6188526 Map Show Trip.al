@@ -242,12 +242,7 @@ codeunit 6188526 "Map Show Trip"
         RouteDetails.Name := TrPlanAct."Address Description";
         RouteDetails."Stop No." += 1;
         RouteDetails."Marker Type" := RouteDetails."Marker Type"::Circle;
-        if TrPlanAct.IsLoad then
-            RouteDetails."Marker Fill Color" := 'green'
-        else if TrPlanAct.IsUnload then
-                RouteDetails."Marker Fill Color" := 'red'
-            else
-                RouteDetails."Marker Fill Color" := 'blue';
+        RouteDetails."Marker Fill Color" := TrPlanAct.GetTimeLineColor;
         RouteDetails.Color := Color;
         RouteDetails.Longitude := Address.Longitude;
         RouteDetails.Latitude := Address.Latitude;
