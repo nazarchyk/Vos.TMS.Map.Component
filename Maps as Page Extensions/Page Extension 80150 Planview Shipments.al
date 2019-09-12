@@ -5,7 +5,6 @@ pageextension 80150 "Planview Shipment (Map)" extends "Planview Shipments"
         addbefore(TableShip)
         {
             part(Map; "Map Component Factbox") { Visible = MapVisible; UpdatePropagation = Both; }
-            part(MapDetails; "Map Route Factbox") { Visible = false; }
         }
     }
 
@@ -25,6 +24,8 @@ pageextension 80150 "Planview Shipment (Map)" extends "Planview Shipments"
     }
     trigger OnAfterGetCurrRecord();
     begin
+        GetShpmntBuffer(ShpmntBuffer);
+        AddSelectedShpmntsToMap;
         if FiltersChanged then
             UpdateMap;
     end;
@@ -37,7 +38,29 @@ pageextension 80150 "Planview Shipment (Map)" extends "Planview Shipments"
         MapVisible := true;
     end;
 
-    procedure UpdateMap();
+    local procedure AddSelectedShpmntsToMap()
+    var
+        MapBuffer: Codeunit "Map Buffer";
+        RouteDetail: Record "Map Route Detail" temporary;
+    begin
+        MapBuffer.GetRouteDetails(RouteDetail);
+        if ShpmntBuffer.FindSet then repeat
+            RouteDetail.SetRange(Id, ShpmntBuffer.Id);
+            if RouteDetail.FindFirst then begin
+                if ShpmntBuffer."Plan-ID" = '' then
+                    RouteDetail.Selected := RouteDetail.Selected::Clicked
+                else
+                    RouteDetail.Selected := RouteDetail.Selected::Selected;
+                RouteDetail.SetMarkerStrokeBasedOnSelected;
+                RouteDetail.Modify;
+            end;
+        until ShpmntBuffer.Next = 0;
+        RouteDetail.Reset;
+        MapBuffer.SetRouteDetails(RouteDetail);
+        CurrPage.Map.Page.GetDataFromBuffer;
+    end;
+
+    local procedure UpdateMap();
     var
         ShowShipments: Codeunit "Map Show Shipments";
     begin
@@ -45,7 +68,7 @@ pageextension 80150 "Planview Shipment (Map)" extends "Planview Shipments"
         CurrPage.Map.Page.GetDataFromBuffer;
     end;
 
-    procedure FiltersChanged(): Boolean
+    local procedure FiltersChanged(): Boolean
     begin
         if GetFilters = xFilters then
             exit(false);
@@ -54,6 +77,7 @@ pageextension 80150 "Planview Shipment (Map)" extends "Planview Shipments"
     end;
 
     var
+        ShpmntBuffer: Record Shipment temporary;
         xFilters: Text;
         MapVisible: Boolean;
 

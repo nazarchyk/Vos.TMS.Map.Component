@@ -52,7 +52,7 @@ codeunit 6188528 "Map Show Order"
             Shpmnt."Lane Type"::"Temporary Delivery":
                 RouteDetail.Color := 'grey';
         end;
-        RouteDetail.Name := Shpmnt."Route No.";
+        RouteDetail.Name := Format(Shpmnt."Lane Type");
         RouteDetail."Stop No." := 1;
         RouteDetail.Id := Shpmnt.Id;
         RouteDetail.Source := Shpmnt.TableName;
@@ -82,7 +82,6 @@ codeunit 6188528 "Map Show Order"
             RouteDetail."Stop No." := 1;
         RouteDetail.Init;
         RouteDetail."Route No." := 0;
-        RouteDetail.Name := Shpmnt."Route No.";
         RouteDetail.Id := Shpmnt.Id;
         RouteDetail.Source := Shpmnt.TableName;
         RouteDetail."Marker Fill Color" := Shpmnt.GetColor;

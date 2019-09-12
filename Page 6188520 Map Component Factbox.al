@@ -1,8 +1,6 @@
 page 6188520 "Map Component Factbox"
 {
     PageType = CardPart;
-    // SourceTable = "Map Route Detail";
-    // SourceTableTemporary = true;
 
     layout
     {
@@ -148,6 +146,24 @@ page 6188520 "Map Component Factbox"
                 trigger OnAction();
                 begin
                     ClearMap;
+                end;
+            }
+            action("Toggle Selected Only")
+            {
+                Image = SelectItemSubstitution;
+                trigger OnAction();
+                var
+                    MapBuffer: Codeunit "Map Buffer";
+                    RouteDetail: Record "Map Route Detail" temporary;
+                begin
+                    MapBuffer.GetRouteDetails(RouteDetail);
+                    if RouteDetail.GetFilter(Selected) = '' then
+                        RouteDetail.SetRange(Selected, RouteDetail.Selected::Clicked, RouteDetail.Selected::Selected)
+                    else
+                        RouteDetail.SetRange(Selected);
+                    MapBuffer.SetRouteDetails(RouteDetail);
+                    GetDataFromBuffer;
+                        
                 end;
             }
 

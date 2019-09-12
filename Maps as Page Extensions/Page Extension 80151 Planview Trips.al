@@ -2,7 +2,10 @@ pageextension 80151 "Planview Trips (Map)" extends "Planview Trips"
 {
     layout
     {
-        // Add changes to page layout here
+        addlast(Content)
+        {
+            part(Map; "Map Component Factbox") { Visible = MapVisible; UpdatePropagation = Both; }
+        }
     }
 
     actions
@@ -12,65 +15,53 @@ pageextension 80151 "Planview Trips (Map)" extends "Planview Trips"
             action(ShowOnMap)
             {
                 Image = Map;
-                Visible = false;
                 trigger OnAction();
                 begin
-                    AddToMap;
+                    MapVisible := not MapVisible;
                 end;
             }
         }
     }
+    
+    trigger OnAfterGetCurrRecord();
+    begin
+        //GetShpmntBuffer(ShpmntBuffer);
+        //AddSelectedShpmntsToMap;
+        if FiltersChanged then;
+            UpdateMap;
+    end;
 
-    local procedure AddToMap();
+    trigger OnOpenPage();
+    var
+        MapBuffer: Codeunit "Map Buffer";
+    begin
+        MapBuffer.ClearAll;
+        MapVisible := true;
+    end;
+
+    local procedure UpdateMap();
     var
         Trip: Record Trip;
-        i: Integer;
+        MapShowTrip: Codeunit "Map Show Trip";
     begin
         Trip.CopyFilters(Rec);
         if Trip.FindSet then repeat
-            GetRouteForTrip(Trip, i);
+            MapShowTrip.Run(Trip);
         until Trip.Next = 0;      
     end;
 
-    local procedure GetRouteForTrip(Trip: Record Trip; var n: Integer)
-    var
-        RouteDetails: Record "Map Route Detail" temporary;
-        Consultation: Record "TX Tango Consultation";
-        TrPlanAct: Record "Transport Planned Activity";
-        Address: Record Address;
-        MapBuffer: Codeunit "Map Buffer";
-        i: Integer;
-    begin
-        n += 1;
-        // Consultation.SetCurrentKey("Trip No.", "Arrival Date");
-        // Consultation.SetRange("Trip No.", Trip."No.");
-        // if Consultation.FindSet then repeat
-        //     MapRoute.init;
-        //     MapRoute."Route No." := n;
-        //     MapRoute."Stop No." += 1;
-        //     MapRoute.Color := 'Red';
-        //     MapRoute.Longitude := Consultation.Longitude;
-        //     MapRoute.Latitude := Consultation.Latitude;
-        //     MapRoute.Insert;
-        //     until Consultation.Next = 0;
 
-        RouteDetails."Stop No." := 0;
-        TrPlanAct.SetCurrentKey("Trip No.", "Stop No.");
-        TrPlanAct.SetFilter("Address No.", '<>%1', '');
-        TrPlanAct.SetRange("Trip No.", Trip."No.");
-        if TrPlanAct.FindSet then repeat
-            Address.get(TrPlanAct."Address No.");
-            RouteDetails.init;
-            RouteDetails.Name := trip."No.";
-            RouteDetails."Route No." := n;
-            RouteDetails."Stop No." += 1;
-            RouteDetails.Color := 'Blue';
-            RouteDetails.Longitude := Address.Longitude;
-            RouteDetails.Latitude := Address.Latitude;
-            RouteDetails.Insert;
-        until TrPlanAct.Next = 0;
-        MapBuffer.SetRouteDetails(RouteDetails);
+    local procedure FiltersChanged(): Boolean
+    begin
+        if GetFilters = xFilters then
+            exit(false);
+        xFilters := GetFilters;
+        exit(true);
     end;
 
+    var
+        TripBuffer: Record Trip temporary;
+        xFilters: Text;
+        MapVisible: Boolean;
 
 }

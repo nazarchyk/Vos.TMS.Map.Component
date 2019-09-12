@@ -161,6 +161,13 @@ table 6188522 "Map Route Detail"
         MapBuffer.GetRoutes(Route);
     end;
 
+    procedure FromBuffer()
+    var
+        MapBuffer: Codeunit "Map Buffer";
+    begin
+        MapBuffer.GetRouteDetails(Rec);
+    end;
+
     procedure ToBuffer()
     var
         MapBuffer: Codeunit "Map Buffer";
