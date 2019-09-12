@@ -70,6 +70,17 @@ page 6188520 "Map Component Factbox"
                 Image = Card;
                 RunObject = page "Map Routes";
             }
+            action(Prediction)
+            {
+                Image = MapAccounts;
+                trigger OnAction();
+                var
+                    MapShowPrediction: Codeunit "Map Show Prediction";
+                begin
+                    MapShowPrediction.GetPredictionResults;
+                    GetDataFromBuffer;
+                end;
+            }
             action(MyTrucks)
             {
                 Image = Travel;
