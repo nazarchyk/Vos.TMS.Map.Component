@@ -7,6 +7,7 @@ table 6188521 "Map Route"
         field(3; Color; Text[7]) { }
         field(4; Name; Text[250]) { }
         field(5; Type; Option) { OptionMembers = Markers, Route; }
+        field(6; Hide; Boolean) {}
 
     }
 

@@ -65,6 +65,11 @@ page 6188520 "Map Component Factbox"
                     GetDataFromBuffer;
                 end;
             }
+            action(Details)
+            {
+                Image = Card;
+                RunObject = page "Map Routes";
+            }
             action(MyTrucks)
             {
                 Image = Travel;
