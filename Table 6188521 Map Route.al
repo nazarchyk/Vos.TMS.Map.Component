@@ -17,6 +17,8 @@ table 6188521 "Map Route"
     var
         MapShowMarker: codeunit "Map Show Route";
     begin
+        if Hide then
+            exit;
         exit(MapShowMarker.GetRouteJson(Rec));
     end;
 

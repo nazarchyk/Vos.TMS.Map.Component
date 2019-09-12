@@ -1,4 +1,4 @@
-pageextension 80150 "Planview Shipment (Map)" extends "Planview Shipments"
+pageextension 6188528 "Planview Shipment (Map)" extends "Planview Shipments"
 {
     layout
     {

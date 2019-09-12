@@ -1,4 +1,4 @@
-pageextension 80101 "Consultation (Map)" extends "TX Tango Consultation"
+pageextension 6188521 "Consultation (Map)" extends "TX Tango Consultation"
 {
     layout
     {

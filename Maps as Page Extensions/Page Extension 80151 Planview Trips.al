@@ -1,4 +1,4 @@
-pageextension 80151 "Planview Trips (Map)" extends "Planview Trips"
+pageextension 6188529 "Planview Trips (Map)" extends "Planview Trips"
 {
     layout
     {
@@ -42,8 +42,14 @@ pageextension 80151 "Planview Trips (Map)" extends "Planview Trips"
     local procedure UpdateMap();
     var
         Trip: Record Trip;
+        RouteDetail: Record "Map Route Detail" temporary;
         MapShowTrip: Codeunit "Map Show Trip";
+        MapBuffer: Codeunit "Map Buffer";
     begin
+        MapBuffer.GetRouteDetails(RouteDetail);
+        RouteDetail.SetRange(Type, RouteDetail.Type::Route);
+        RouteDetail.DeleteAll;
+        MapBuffer.SetRouteDetails(RouteDetail);
         MapShowTrip.SetMultiple;
         Trip.CopyFilters(Rec);
         if Trip.FindSet then repeat

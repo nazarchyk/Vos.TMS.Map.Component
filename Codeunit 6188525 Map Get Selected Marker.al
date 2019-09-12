@@ -11,7 +11,6 @@ codeunit 6188525 "Map Get Selected Marker"
             Marker := JsonTkn.AsObject;
             GetMarker(Marker);
         end;
-
     end;
 
     procedure GetMarker(Marker: JsonObject);

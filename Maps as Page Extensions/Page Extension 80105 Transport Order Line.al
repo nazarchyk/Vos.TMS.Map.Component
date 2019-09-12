@@ -1,4 +1,4 @@
-pageextension 80105 "Transport Order Ln. Card (Map)" extends "Transport Order Line Card"
+pageextension 6188525 "Transport Order Ln. Card (Map)" extends "Transport Order Line Card"
 {
     layout
     {

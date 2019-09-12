@@ -11,9 +11,12 @@ codeunit 6188529 "Map Buffer"
     procedure GetRoutes(var Rec: Record "Map Route");
     begin
         Rec.Copy(Route, true);
-
     end;
 
+    procedure SetRoutes(var Rec: Record "Map Route");
+    begin
+        Route.Copy(Rec, true);
+    end;
     procedure GetRouteDetails(var Rec: Record "Map Route Detail");
     begin
         if RouteDetail.Count > 500 then

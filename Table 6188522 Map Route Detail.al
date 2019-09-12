@@ -155,6 +155,38 @@ table 6188522 "Map Route Detail"
 
     end;
 
+    procedure CreateFromTrPlanAct(TrPlanAct: Record "Transport Planned Activity"; Color: Text; RouteNo: Integer; RouteDesc: Text);
+    var
+        Address: Record Address;
+        Shpmnt: Record Shipment;
+    begin
+        Address.get(TrPlanAct."Address No.");
+        Shpmnt.SetCurrentKey("Trip No.");
+        Shpmnt.SetRange("Trip No.", TrPlanAct."Trip No.");
+        if TrPlanAct.IsLoad then
+            Shpmnt.SetRange("Load Stop No.", TrPlanAct."Stop No.")
+        else
+            Shpmnt.SetRange("Unload Stop No.", TrPlanAct."Stop No.");
+        if not Shpmnt.FindFirst then
+            Shpmnt.Init;
+        init;
+        "Route No." := RouteNo;
+        "Pop Up" := TrPlanAct."Address Description";
+        Name := RouteDesc;
+        Type := Type::Route;
+        "Stop No." += 1;
+        "Marker Type" := "Marker Type"::Circle;
+//        RouteDetails."Marker Fill Color" := TrPlanAct.GetTimeLineColor;
+        if Color = '' then
+            RandomColor
+        else
+            Color := Color;
+        Longitude := Address.Longitude;
+        Latitude := Address.Latitude;
+        Id := Shpmnt.Id;
+        Insert;
+
+    end;
     procedure GetRoutes(var Route: Record "Map Route");
     var
         MapBuffer: Codeunit "Map Buffer";

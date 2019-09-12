@@ -24,5 +24,11 @@ page 6188525 "Map Routes"
     begin
         MapBuffer.GetRoutes(Rec);
     end;
+    trigger OnClosePage();
+    var
+        MapBuffer: Codeunit "Map Buffer";
+    begin
+        MapBuffer.SetRoutes(Rec);
+    end;
 
 }

@@ -1,4 +1,4 @@
-pageextension 80103 "Address Card (Map)" extends "Address Card"
+pageextension 6188523 "Address Card (Map)" extends "Address Card"
 {
     layout
     {
