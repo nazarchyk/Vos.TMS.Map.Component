@@ -81,79 +81,80 @@ table 6188522 "Map Route Detail"
             "Marker Fill Color" := 'red';
             exit;
         end;
-        
+
         if Value > MaxValue then begin
             "Marker Fill Color" := 'blue';
             exit;
         end;
-        
+
         Margin := MaxValue - MinValue;
         RealValue := Value - MinValue;
         case round(RealValue / Margin, 0.01) of
-            0.00..0.03:
+0.00 .. 0.03 :
                 "Marker Fill Color" := '#FF0000'; //Bright Red
-            0.04..0.07:
+0.04 .. 0.07 :
                 "Marker Fill Color" := '#FF1100';
-            0.08..0.10:
+0.08 .. 0.10 :
                 "Marker Fill Color" := '#FF2300';
-            0.11..0.13:
+0.11 .. 0.13 :
                 "Marker Fill Color" := '#FF3400';
-            0.14..0.17:
+0.14 .. 0.17 :
                 "Marker Fill Color" := '#FF4600';
-            0.18..0.20:
+0.18 .. 0.20 :
                 "Marker Fill Color" := '#FF5700';
-            0.21..0.23:
+0.21 .. 0.23 :
                 "Marker Fill Color" := '#FF6900';
-            0.24..0.27:
+0.24 .. 0.27 :
                 "Marker Fill Color" := '#FF7B00';
-            0.28..0.30:
+0.28 .. 0.30 :
                 "Marker Fill Color" := '#FF8C00'; // Orange
-            0.31..0.33:
+0.31 .. 0.33 :
                 "Marker Fill Color" := '#FF9E00';
-            0.34..0.37:
+0.34 .. 0.37 :
                 "Marker Fill Color" := '#FFAF00';
-            0.38..0.40:
+0.38 .. 0.40 :
                 "Marker Fill Color" := '#FFC100';
-            0.41..0.43:
+0.41 .. 0.43 :
                 "Marker Fill Color" := '#FFD300';
-            0.44..0.47:
+0.44 .. 0.47 :
                 "Marker Fill Color" := '#FFE400';
-            0.48..0.50:
+0.48 .. 0.50 :
                 "Marker Fill Color" := '#FFF600';
-            0.51..0.53:
+0.51 .. 0.53 :
                 "Marker Fill Color" := '#F7FF00'; // Yellow
-            0.54..0.57:
+0.54 .. 0.57 :
                 "Marker Fill Color" := '#E5FF00';
-            0.58..0.60:
+0.58 .. 0.60 :
                 "Marker Fill Color" := '#D4FF00';
-            0.61..0.63:
+0.61 .. 0.63 :
                 "Marker Fill Color" := '#C2FF00';
-            0.64..0.67:
+0.64 .. 0.67 :
                 "Marker Fill Color" := '#B0FF00';
-            0.68..0.70:
+0.68 .. 0.70 :
                 "Marker Fill Color" := '#9FFF00';
-            0.71..0.73:
+0.71 .. 0.73 :
                 "Marker Fill Color" := '#8DFF00';
-            0.74..0.78:
+0.74 .. 0.78 :
                 "Marker Fill Color" := '#7CFF00';
-            0.78..0.80:
+0.78 .. 0.80 :
                 "Marker Fill Color" := '#6AFF00';
-            0.81..0.83:
+0.81 .. 0.83 :
                 "Marker Fill Color" := '#58FF00';
-            0.84..0.87:
+0.84 .. 0.87 :
                 "Marker Fill Color" := '#47FF00';
-            0.88..0.90:
+0.88 .. 0.90 :
                 "Marker Fill Color" := '#35FF00';
-            0.91..0.93:
+0.91 .. 0.93 :
                 "Marker Fill Color" := '#24FF00';
-            0.94..0.97:
+0.94 .. 0.97 :
                 "Marker Fill Color" := '#12FF00';
-            0.98..1.00:
+0.98 .. 1.00 :
                 "Marker Fill Color" := '#00FF00'; // Bright Green
         end;
 
 
     end;
+
     procedure GetRoutes(var Route: Record "Map Route");
     var
         MapBuffer: Codeunit "Map Buffer";
@@ -207,6 +208,92 @@ table 6188522 "Map Route Detail"
         else
             Selected := Selected::" ";
         SetMarkerStrokeBasedOnSelected;
+    end;
+
+    procedure RandomColor()
+    begin
+        case "Route No." of
+            1 : Color := '#ee3256';
+            2 : Color := '#a1a9aa';
+            3 : Color := '#c248cf';
+            4 : Color := '#11d989';
+            5 : Color := '#5a736e';
+            6 : Color := '#0a332f';
+            7 : Color := '#0c359d';
+            8 : Color := '#eb6377';
+            9 : Color := '#4ca03b';
+            10 : Color := '#0e90ae';
+            11 : Color := '#fd3075';
+            12 : Color := '#70959a';
+            13 : Color := '#6bebdc';
+            14 : Color := '#4a6362';
+            15 : Color := '#dd61c5';
+            16 : Color := '#188959';
+            17 : Color := '#4f2652';
+            18 : Color := '#caacb1';
+            19 : Color := '#f3d33d';
+            20 : Color := '#78a88c';
+            21 : Color := '#619f2c';
+            22 : Color := '#acae1e';
+            23 : Color := '#182673';
+            24 : Color := '#1ffc81';
+            25 : Color := '#2a58e0';
+            26 : Color := '#d63293';
+            27 : Color := '#cb3140';
+            28 : Color := '#6ea6c0';
+            29 : Color := '#9b7dbc';
+            30 : Color := '#ae578e';
+            31 : Color := '#a363da';
+            32 : Color := '#9ed175';
+            33 : Color := '#85584e';
+            34 : Color := '#2929fc';
+            35 : Color := '#9d24a8';
+            36 : Color := '#78db01';
+            37 : Color := '#502ab4';
+            38 : Color := '#fc5e42';
+            39 : Color := '#45531a';
+            40 : Color := '#536cca';
+            41 : Color := '#';
+            42 : Color := '#';
+            43 : Color := '#';
+            44 : Color := '#';
+            45 : Color := '#';
+            46 : Color := '#';
+            47 : Color := '#';
+            48 : Color := '#';
+            49 : Color := '#';
+            50 : Color := '#';
+            51 : Color := '#';
+            52 : Color := '#';
+            53 : Color := '#';
+            54 : Color := '#';
+            55 : Color := '#';
+            56 : Color := '#';
+            57 : Color := '#';
+            58 : Color := '#';
+            59 : Color := '#';
+            60 : Color := '#';
+            61 : Color := '#';
+            62 : Color := '#';
+            63 : Color := '#';
+            64 : Color := '#';
+            65 : Color := '#';
+            66 : Color := '#';
+            67 : Color := '#';
+            68 : Color := '#';
+            69 : Color := '#';
+            70 : Color := '#';
+            71 : Color := '#';
+            72 : Color := '#';
+            73 : Color := '#';
+            74 : Color := '#';
+            75 : Color := '#';
+            76 : Color := '#';
+            77 : Color := '#';
+            78 : Color := '#';
+            79 : Color := '#';
+            80 : Color := '#';
+        end;
     end;
 
     procedure CreateTrip()

@@ -1,18 +1,50 @@
 codeunit 6188526 "Map Show Trip"
 {
     TableNo = Trip;
+    var
+        MultipleRoutes: Boolean;
     trigger OnRun();
     var
         RouteDetails: Record "Map Route Detail" temporary;
     begin
         RouteDetails.FromBuffer;
 //        GetActualTripFromBoardComputer(Rec, RouteDetails);
-        GetInternationalRoute(Rec, RouteDetails);
-        GetTakenOverTripRoute(Rec, RouteDetails);
-        GetRoundTripRoute(Rec, RouteDetails);
-        GetPredictionResults(RouteDetails);
+        if MultipleRoutes then
+            GetMultipleTripRoute(Rec, RouteDetails)
+        else begin
+            GetInternationalRoute(Rec, RouteDetails);
+            GetTakenOverTripRoute(Rec, RouteDetails);
+            GetRoundTripRoute(Rec, RouteDetails);
+            GetPredictionResults(RouteDetails);
+        end;
         RouteDetails.ToBuffer;
     end;
+    procedure SetMultiple()
+    begin
+        MultipleRoutes := true;
+    end;
+
+    local procedure GetMultipleTripRoute(Trip: Record Trip; var RouteDetails: Record "Map Route Detail")
+    var
+        TrPlanAct: Record "Transport Planned Activity";
+        Equip: Record Equipment;
+        RouteNo: Integer;
+    begin        
+        if RouteDetails.FindLast then
+            RouteNo := RouteDetails."Route No." + 1
+        else
+            RouteNo := 1;
+
+        RouteDetails."Stop No." := 0;
+        TrPlanAct.SetCurrentKey("Trip No.", "Stop No.");
+        TrPlanAct.SetFilter("Address No.", '<>%1', '');
+        TrPlanAct.SetRange("Trip No.", Trip."No.");
+        TrPlanAct.SetFilter(Timetype, '<>%1', TrPlanAct.Timetype::Rest);
+        if TrPlanAct.FindSet then repeat
+            CreateRouteDetailsFromTrPlanAct(TrPlanAct, RouteDetails, '', RouteNo, Trip."No.");
+        until TrPlanAct.Next = 0;
+    end;
+
 
     local procedure GetPredictionResults(var RouteDetails: Record "Map Route Detail");
     var
@@ -71,7 +103,7 @@ codeunit 6188526 "Map Show Trip"
         TrPlanAct.SetRange("Trip No.", Trip."No.");
         TrPlanAct.SetFilter(Timetype, '<>%1', TrPlanAct.Timetype::Rest);
         if TrPlanAct.FindSet then repeat
-            CreateRouteDetailsFromTrPlanAct(TrPlanAct, RouteDetails, 'Blue', Trip."No.");
+            CreateRouteDetailsFromTrPlanAct(TrPlanAct, RouteDetails, 'Blue', 1, Trip."No.");
             until TrPlanAct.Next = 0;
 
         if Equip.get(Trip."First Truck No.", Equip.Type::Truck) then begin
@@ -112,7 +144,7 @@ codeunit 6188526 "Map Show Trip"
         if TrPlanAct.FindSet then begin
             FirstDistributionStop := TrPlanAct."Stop No.";;
             repeat
-                CreateRouteDetailsFromTrPlanAct(TrPlanAct, RouteDetails, 'Blue', 'Distribution');
+                CreateRouteDetailsFromTrPlanAct(TrPlanAct, RouteDetails, 'Blue', 1, 'Distribution');
             until TrPlanAct.Next = 0;
         end;
 
@@ -124,7 +156,7 @@ codeunit 6188526 "Map Show Trip"
         TrPlanAct.SetFilter("Crossing Activity Type", '%1|%2', TrPlanAct."Crossing Activity Type"::Arrival, TrPlanAct."Crossing Activity Type"::" ");
         if TrPlanAct.FindSet then begin
             repeat
-                CreateRouteDetailsFromTrPlanAct(TrPlanAct, RouteDetails, 'Green', 'Import');
+                CreateRouteDetailsFromTrPlanAct(TrPlanAct, RouteDetails, 'Green', 2, 'Import');
                 LastImportStop := TrPlanAct."Stop No.";
             until TrPlanAct.Next = 0;
         end;
@@ -136,7 +168,7 @@ codeunit 6188526 "Map Show Trip"
         TrPlanAct.SetRange("Stop No.", LastImportStop, FirstDistributionStop);
         TrPlanAct.SetFilter(Timetype, '<>%1', TrPlanAct.Timetype::Rest);
         if TrPlanAct.FindSet then repeat
-            CreateRouteDetailsFromTrPlanAct(TrPlanAct, RouteDetails, 'Orange', 'Empty');
+            CreateRouteDetailsFromTrPlanAct(TrPlanAct, RouteDetails, 'Orange', 3, 'Empty');
         until TrPlanAct.Next = 0;
 
         Trip.FindCurrentEquipImpExpCol(TruckNo, DriverNo, TrailerNo, LZVTrailerNo, CoDriverNo);
@@ -178,7 +210,7 @@ codeunit 6188526 "Map Show Trip"
         TrPlanAct.SetFilter(Timetype, '%1|%2', TrPlanAct.Timetype::Unload, TrPlanAct.Timetype::Miscellaneous);
         TrPlanAct.SetFilter("Crossing Activity Type", '%1|%2', TrPlanAct."Crossing Activity Type"::Arrival, TrPlanAct."Crossing Activity Type"::" ");
         if TrPlanAct.FindSet then repeat
-            CreateRouteDetailsFromTrPlanAct(TrPlanAct, RouteDetails, 'Blue', 'Export');
+            CreateRouteDetailsFromTrPlanAct(TrPlanAct, RouteDetails, 'Blue', 1, 'Export');
             LastExportStop := TrPlanAct."Stop No.";
         until TrPlanAct.Next = 0;
 
@@ -191,7 +223,7 @@ codeunit 6188526 "Map Show Trip"
         if TrPlanAct.FindSet then begin
             FirstImportStop := TrPlanAct."Stop No.";
             repeat
-                CreateRouteDetailsFromTrPlanAct(TrPlanAct, RouteDetails, 'Green', 'Import');
+                CreateRouteDetailsFromTrPlanAct(TrPlanAct, RouteDetails, 'Green', 2, 'Import');
             until TrPlanAct.Next = 0;
         end;
 
@@ -204,7 +236,7 @@ codeunit 6188526 "Map Show Trip"
         if TrPlanAct.FindSet then begin
             FirstImportStop := TrPlanAct."Stop No.";
             repeat
-                CreateRouteDetailsFromTrPlanAct(TrPlanAct, RouteDetails, 'Orange', 'Empty');
+                CreateRouteDetailsFromTrPlanAct(TrPlanAct, RouteDetails, 'Orange', 3, 'Empty');
             until TrPlanAct.Next = 0;
         end;
 
@@ -222,17 +254,11 @@ codeunit 6188526 "Map Show Trip"
         end;
     end;
 
-    local procedure CreateRouteDetailsFromTrPlanAct(TrPlanAct: Record "Transport Planned Activity"; var RouteDetails: Record "Map Route Detail"; Color: Text; RouteDesc: Text)
+    local procedure CreateRouteDetailsFromTrPlanAct(TrPlanAct: Record "Transport Planned Activity"; var RouteDetails: Record "Map Route Detail"; Color: Text; RouteNo: Integer; RouteDesc: Text)
     var
         Address: Record Address;
         Shpmnt: Record Shipment;
-        i: Integer;
     begin
-        if RouteDetails.FindLast then
-            i := 1
-        else
-            i := RouteDetails."Route No." + 1;
-
         Address.get(TrPlanAct."Address No.");
         Shpmnt.SetCurrentKey("Trip No.");
         Shpmnt.SetRange("Trip No.", TrPlanAct."Trip No.");
@@ -243,13 +269,17 @@ codeunit 6188526 "Map Show Trip"
         if not Shpmnt.FindFirst then
             Shpmnt.Init;
         RouteDetails.init;
-        RouteDetails."Route No." := i;
+        RouteDetails."Route No." := RouteNo;
         RouteDetails."Pop Up" := TrPlanAct."Address Description";
         RouteDetails.Name := RouteDesc;
+        RouteDetails.Type := RouteDetails.Type::Route;
         RouteDetails."Stop No." += 1;
         RouteDetails."Marker Type" := RouteDetails."Marker Type"::Circle;
-        RouteDetails."Marker Fill Color" := TrPlanAct.GetTimeLineColor;
-        RouteDetails.Color := Color;
+//        RouteDetails."Marker Fill Color" := TrPlanAct.GetTimeLineColor;
+        if Color = '' then
+            RouteDetails.RandomColor
+        else
+            RouteDetails.Color := Color;
         RouteDetails.Longitude := Address.Longitude;
         RouteDetails.Latitude := Address.Latitude;
         RouteDetails.Id := Shpmnt.Id;

@@ -44,6 +44,7 @@ pageextension 80151 "Planview Trips (Map)" extends "Planview Trips"
         Trip: Record Trip;
         MapShowTrip: Codeunit "Map Show Trip";
     begin
+        MapShowTrip.SetMultiple;
         Trip.CopyFilters(Rec);
         if Trip.FindSet then repeat
             MapShowTrip.Run(Trip);
