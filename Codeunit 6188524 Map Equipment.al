@@ -22,6 +22,28 @@ codeunit 6188524 "Map Equipment"
 
     end;
 
+    procedure ShowTrucksClose();
+    var
+        MapBuffer: Codeunit "Map Buffer";
+        RouteDetail: Record "Map Route Detail" temporary;
+        Addr: Record Address;
+        Equip: Record Equipment temporary;
+        i: Integer;
+    begin
+        MapBuffer.GetRouteDetails(RouteDetail);
+        RouteDetail.SetRange(Selected, RouteDetail.Selected::Clicked);
+        RouteDetail.FindSet;
+        repeat
+            Addr.Latitude := RouteDetail.Latitude;
+            Addr.Longitude := RouteDetail.Longitude;
+            Addr.GetEquipmentNear(Equip, 0.5);
+        until RouteDetail.Next = 0;
+        if Equip.FindSet then repeat
+            i += 1;
+            AddToMap(Equip, i, 'images/red-truck.png')
+        until Equip.Next = 0;
+    end;
+
     procedure ShowTrucksFromPlanningCode()
     var
         Trip: Record Trip;
@@ -39,22 +61,22 @@ codeunit 6188524 "Map Equipment"
         until Trip.Next = 0;
     end;
 
-    procedure ShowTrucksClose(Lat: Decimal;Long: Decimal);
-        var
-        Equip: Record Equipment;
-        PerAlloc: Record "Periodical Allocation";
-        UserSetup: Record "User Setup";
-        i: Integer;
-    begin
-        UserSetup.Get(UserId);
-        PerAlloc.SetRange("Default Planner No.", UserSetup."Planner No."); // To Do... Filter on close by...
-        PerAlloc.FindSet;
-        repeat
-            Equip.get(PerAlloc."No.", Equip.type::Truck);
-            AddToMap(Equip, i, 'images/red-truck.png')
-        until PerAlloc.Next = 0;
+    // procedure ShowTrucksClose(Lat: Decimal;Long: Decimal);
+    //     var
+    //     Equip: Record Equipment;
+    //     PerAlloc: Record "Periodical Allocation";
+    //     UserSetup: Record "User Setup";
+    //     i: Integer;
+    // begin
+    //     UserSetup.Get(UserId);
+    //     PerAlloc.SetRange("Default Planner No.", UserSetup."Planner No."); // To Do... Filter on close by...
+    //     PerAlloc.FindSet;
+    //     repeat
+    //         Equip.get(PerAlloc."No.", Equip.type::Truck);
+    //         AddToMap(Equip, i, 'images/red-truck.png')
+    //     until PerAlloc.Next = 0;
 
-    end;
+    // end;
     local procedure AddToMap(Equip: Record Equipment; var i: Integer; Icon: Text)
     var
         RouteDetail: Record "Map Route Detail" temporary;

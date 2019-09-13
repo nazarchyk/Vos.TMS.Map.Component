@@ -5,7 +5,7 @@ pageextension 6188526 "Planning Options (Map)" extends "Planning Options"
     {
         addfirst(FactBoxes)
         {
-            part(Map; "Map Component Factbox") { Visible = true; }
+            part(Map; "Map Component Factbox") { }
         }
     }
     trigger OnAfterGetCurrRecord();

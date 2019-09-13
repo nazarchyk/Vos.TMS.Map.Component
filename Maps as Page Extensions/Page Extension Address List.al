@@ -4,7 +4,7 @@ pageextension 6188522 "Address List (Map)" extends "Address List"
     {
         addlast(FactBoxes)
         {
-            part(Map; "Map Component Factbox"){ Visible = false; }
+            part(Map; "Map Component Factbox") { }
         }
     }
     trigger OnAfterGetCurrRecord();

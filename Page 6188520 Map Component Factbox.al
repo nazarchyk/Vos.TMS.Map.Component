@@ -25,7 +25,6 @@ page 6188520 "Map Component Factbox"
                 trigger OnRouteSelected(eventObject: JsonObject);
                 begin
                     Message(format(eventObject));
-
                 end;
 
                 trigger OnMarkerClicked(eventObject: JsonObject); // Single Marker
@@ -81,25 +80,23 @@ page 6188520 "Map Component Factbox"
                     GetDataFromBuffer;
                 end;
             }
-            action(MyTrucks)
+            action(Trucks)
             {
                 Image = Travel;
                 trigger OnAction();
                 var
                     MapEquip: Codeunit "Map Equipment";
                 begin
-                    MapEquip.ShowMyTrucks;
-                    GetDataFromBuffer;
-                end;
-            }
-            action(OtherTrucks)
-            {
-                Image = InsertTravelFee;
-                trigger OnAction();
-                var
-                    MapEquip: Codeunit "Map Equipment";
-                begin
-                    MapEquip.ShowTrucksFromPlanningCode;
+                    case StrMenu('My Trucks,Trucks Ittervoort,Trucks Deventer,Nearby', 1) of
+                        1:
+                            MapEquip.ShowMyTrucks;
+                        2:
+                            MapEquip.ShowTrucksFromPlanningCode;
+                        3:
+                            Message('Not yet implemented...');
+                        4:
+                            MapEquip.ShowTrucksClose;
+                    end;
                     GetDataFromBuffer;
                 end;
             }

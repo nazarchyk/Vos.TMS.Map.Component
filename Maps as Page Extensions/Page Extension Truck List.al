@@ -1,10 +1,10 @@
-pageextension 6188523 "Address Card (Map)" extends "Address Card"
+pageextension 6188530 "Truck List (Map)" extends "Truck List"
 {
     layout
     {
         addlast(FactBoxes)
         {
-            part(Map; "Map Component Factbox") { }
+            part(Map; "Map Component Factbox") {  }
         }
     }
     
@@ -15,9 +15,9 @@ pageextension 6188523 "Address Card (Map)" extends "Address Card"
         RouteDetails.Reset;
         RouteDetails.DeleteAll;
         RouteDetails."Route No." := 0;
-        RouteDetails.Latitude := Latitude;
-        RouteDetails.Longitude := Longitude;
-        RouteDetails."Marker Text" := Description + ' ' + Street + ' ' + "Post Code" + ' ' + City;
+        RouteDetails.Latitude := "Last Latitude";
+        RouteDetails.Longitude := "Last Longitude";
+        RouteDetails."Marker Text" := "Last City";// + ' ' + Street + ' ' + "Post Code" + ' ' + City;
         RouteDetails.Insert;
         RouteDetails.ToBuffer;
         CurrPage.Map.Page.GetDataFromBuffer;

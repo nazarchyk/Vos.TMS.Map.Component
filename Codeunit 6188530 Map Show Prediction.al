@@ -12,6 +12,7 @@ codeunit 6188530 "Map Show Prediction"
         MapBuffer.GetRouteDetails(RouteDetails);
         TripPrediction.FindFirst;
         TripPrediction.CalculateWithActivities(ShpmntPrediction, TrPlanAct, Shpmnt);
+        TrPlanAct.Reset;
         TrPlanAct.SetFilter("Address No.", '<>%1', '');
         if TrPlanAct.FindSet then repeat
             RouteDetails.CreateFromTrPlanAct(TrPlanAct, '', 1, TripPrediction."Trip No.");
