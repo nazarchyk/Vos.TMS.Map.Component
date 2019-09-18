@@ -40,6 +40,11 @@ table 6188522 "Map Route Detail"
         exit(true);
     end;
 
+    procedure SetSelectedIcon();
+    begin
+        RouteDetail.Icon := 'images/blue-truck.png';
+    end;
+
     procedure SetMarkerStrokeBasedOnSelected();
     begin
         "Marker Stroke With (Pixels)" := 6;
@@ -214,6 +219,28 @@ table 6188522 "Map Route Detail"
     begin
         if Abs(Latitude + Longitude) > 1 then
             exit(MapShowMarker.GetMarkerJson(Rec));
+    end;
+
+    procedure FindRoute()
+    var
+        Equip: Record Equipment;
+        Trip: Record Trip;
+        ShowTrip: Codeunit "Map Show Trip";
+    begin
+        Equip.SetCurrentKey(Id);
+        Equip.SetRange(Id, Id);
+        if not Equip.FindFirst then
+            exit;
+        
+        trip.SetCurrentKey("First Truck No.");
+        trip.SetRange("First Truck No.", Equip."No.");
+        trip.SetRange(Status, trip.Status::Released, Trip.Status::"Loaded/In Transit");
+        if not trip.FindLast then
+            exit;
+
+        ShowTrip.SetMultiple;
+        ShowTrip.Run(Trip);
+
     end;
 
     procedure CheckShipmentIsSelected(): Boolean

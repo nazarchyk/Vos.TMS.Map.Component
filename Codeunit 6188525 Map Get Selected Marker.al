@@ -38,6 +38,7 @@ codeunit 6188525 "Map Get Selected Marker"
             RouteDetail.Selected::Selected:
                 RouteDetail.SelectShipment;
         end;
+        RouteDetail.SetSelectedIcon;
         RouteDetail.SetMarkerStrokeBasedOnSelected;
         RouteDetail.Modify;
         RouteDetail.Reset;
