@@ -97,6 +97,7 @@ codeunit 6188524 "Map Equipment"
         RouteDetail."Marker Type" := RouteDetail."Marker Type"::Icon;
         RouteDetail.Icon := Icon;
         RouteDetail."Marker Text" := Equip.Description;
+        RouteDetail.Source := 'Equipment';
         RouteDetail.Reset;
         MapBuffer.SetDataOneByOne(RouteDetail);
     end;
