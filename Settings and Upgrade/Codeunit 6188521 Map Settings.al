@@ -87,6 +87,10 @@ codeunit 6188521 "Map Settings"
         //         // settings.Add('lassoSettings', lassoSettings);
 
         //         CurrPage.Map.SetSettings(settings);
+        
+        // settings.Add('fitMarkersBounds', true);                          // OPTIONAL. Default value: true 
+                                                                            // If true, when new marker is added, map will try to fit all the markers on screen including the new one. Current zoom value might be changed.
+                                                                            // If false, when new marker is added, map will preserve current zoom level and move map towards new marker.
     end;
 
     local procedure GetProviderSettings(var providerSettings: JsonObject)
