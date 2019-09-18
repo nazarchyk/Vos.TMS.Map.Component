@@ -212,7 +212,8 @@ table 6188522 "Map Route Detail"
     var
         MapShowMarker: codeunit "Map Show Marker";
     begin
-        exit(MapShowMarker.GetMarkerJson(Rec));
+        if Abs(Latitude + Longitude) > 1 then
+            exit(MapShowMarker.GetMarkerJson(Rec));
     end;
 
     procedure CheckShipmentIsSelected(): Boolean

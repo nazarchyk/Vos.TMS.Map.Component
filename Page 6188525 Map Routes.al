@@ -16,6 +16,10 @@ page 6188525 "Map Routes"
                 field(Color;Color){}
                 field(Hide;Hide) {}
             }
+            part("Map Route Details";"Map Route Details")
+            {
+                SubPageLink = "Route No." = field("No.");
+            }
         }
     }
     trigger OnOpenPage();
