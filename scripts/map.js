@@ -143,3 +143,27 @@ function DisableHeatmap() {
 	event.initCustomEvent('meta-ui-map-disable-heatmap', true, true, null);
 	window.dispatchEvent(event);
 }
+
+function EnableFitMarkersBounds() {
+	var event = document.createEvent('CustomEvent');
+	event.initCustomEvent('meta-ui-map-enable-fit-markers-bounds', true, true, null);
+	window.dispatchEvent(event);
+}
+
+function DisableFitMarkersBounds() {
+	var event = document.createEvent('CustomEvent');
+	event.initCustomEvent('meta-ui-map-disable-fit-markers-bounds', true, true, null);
+	window.dispatchEvent(event);
+}
+
+function SetZoomAround(zoomObject) {
+	var event = document.createEvent('CustomEvent');
+	event.initCustomEvent('meta-ui-map-disable-fit-markers-bounds', true, true, zoomObject);
+	window.dispatchEvent(event);
+}
+
+function RemoveMarker(markerId) {
+	var event = document.createEvent('CustomEvent');
+	event.initCustomEvent('meta-ui-map-remove-marker', true, true, markerId);
+	window.dispatchEvent(event);
+}

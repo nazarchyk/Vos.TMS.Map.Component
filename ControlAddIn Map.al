@@ -39,4 +39,9 @@ controladdin Map
     procedure EnableHeatmap();
     procedure UpdateHeatmap();
     procedure DisableHeatmap();
+
+    procedure EnableFitMarkersBounds();
+    procedure DisableFitMarkersBounds();
+    procedure SetZoomAround(zoomObject: JsonObject);
+    procedure RemoveMarker(markerId: Text);
 }
