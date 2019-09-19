@@ -22,6 +22,22 @@ page 6188525 "Map Routes"
             }
         }
     }
+    actions
+    {
+        area(Processing)
+        {
+            action(ShowAll)
+            {
+                Image = ShowSelected;
+                Promoted = true;
+                PromotedCategory = Process;
+                trigger OnAction();
+                begin
+                    ModifyAll(Hide, false);
+                end;
+            }
+        }
+    }
     trigger OnOpenPage();
     var
         MapBuffer: Codeunit "Map Buffer";

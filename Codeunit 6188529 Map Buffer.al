@@ -19,9 +19,11 @@ codeunit 6188529 "Map Buffer"
     end;
     procedure GetRouteDetails(var Rec: Record "Map Route Detail");
     begin
-        if RouteDetail.Count > 500 then
-            exit;
         Rec.Copy(RouteDetail, true);
+        if Rec.Count > 500 then begin
+            RouteDetail.SetRange("Stop No.", 1, 500);
+            Message('Only the first 500 markers are shown on map...');
+        end;
 
     end;
 
@@ -50,6 +52,7 @@ codeunit 6188529 "Map Buffer"
                 Route.Color := RouteDetail.Color;
                 Route.Name := RouteDetail.Name;
                 Route.Type := RouteDetail.Type;
+                Route.Hide := RouteDetail.Hidden;
                 Route.Insert;
             end;
 

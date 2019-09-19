@@ -8,6 +8,7 @@ table 6188522 "Map Route Detail"
         field(3; Color; Text[7]) { }
         field(4; Name; Text[250]) { }
         field(5; Type; Option) { OptionMembers = Markers, Route; }
+        field(6; Hidden; Boolean) { }
         field(7; Longitude; Decimal) { }
         field(8; Latitude; Decimal) { }
         field(9; "Pop Up"; Text[250]) { }
@@ -42,7 +43,8 @@ table 6188522 "Map Route Detail"
 
     procedure SetSelectedIcon();
     begin
-        RouteDetail.Icon := 'images/blue-truck.png';
+        if "Marker Type" = "Marker Type"::Icon then
+            Icon := 'images/blue-truck.png';
     end;
 
     procedure SetMarkerStrokeBasedOnSelected();
@@ -160,7 +162,7 @@ table 6188522 "Map Route Detail"
 
     end;
 
-    procedure CreateFromTrPlanAct(TrPlanAct: Record "Transport Planned Activity"; Color: Text; RouteNo: Integer; RouteDesc: Text);
+    procedure CreateFromTrPlanAct(TrPlanAct: Record "Transport Planned Activity"; Color: Text; RouteNo: Integer; RouteDesc: Text; SetHidden: Boolean);
     var
         Address: Record Address;
         Shpmnt: Record Shipment;
@@ -176,12 +178,13 @@ table 6188522 "Map Route Detail"
             Shpmnt.Init;
         init;
         "Route No." := RouteNo;
+        Hidden := SetHidden;
         "Pop Up" := TrPlanAct."Address Description";
         Name := RouteDesc;
         Type := Type::Route;
         "Stop No." += 1;
         "Marker Type" := "Marker Type"::Circle;
-//        RouteDetails."Marker Fill Color" := TrPlanAct.GetTimeLineColor;
+        //        RouteDetails."Marker Fill Color" := TrPlanAct.GetTimeLineColor;
         if Color = '' then
             RandomColor
         else
@@ -192,6 +195,7 @@ table 6188522 "Map Route Detail"
         Insert;
 
     end;
+
     procedure GetRoutes(var Route: Record "Map Route");
     var
         MapBuffer: Codeunit "Map Buffer";
@@ -231,7 +235,7 @@ table 6188522 "Map Route Detail"
         Equip.SetRange(Id, Id);
         if not Equip.FindFirst then
             exit;
-        
+
         trip.SetCurrentKey("First Truck No.");
         trip.SetRange("First Truck No.", Equip."No.");
         trip.SetRange(Status, trip.Status::Released, Trip.Status::"Loaded/In Transit");
@@ -274,85 +278,85 @@ table 6188522 "Map Route Detail"
     begin
         case "Route No." of
             1 : Color := '#ee3256';
-            2 : Color := '#a1a9aa';
-            3 : Color := '#c248cf';
-            4 : Color := '#11d989';
-            5 : Color := '#5a736e';
-            6 : Color := '#0a332f';
-            7 : Color := '#0c359d';
-            8 : Color := '#eb6377';
-            9 : Color := '#4ca03b';
-            10 : Color := '#0e90ae';
-            11 : Color := '#fd3075';
-            12 : Color := '#70959a';
-            13 : Color := '#6bebdc';
-            14 : Color := '#4a6362';
-            15 : Color := '#dd61c5';
-            16 : Color := '#188959';
-            17 : Color := '#4f2652';
-            18 : Color := '#caacb1';
-            19 : Color := '#f3d33d';
-            20 : Color := '#78a88c';
-            21 : Color := '#619f2c';
-            22 : Color := '#acae1e';
-            23 : Color := '#182673';
-            24 : Color := '#1ffc81';
-            25 : Color := '#2a58e0';
-            26 : Color := '#d63293';
-            27 : Color := '#cb3140';
-            28 : Color := '#6ea6c0';
-            29 : Color := '#9b7dbc';
-            30 : Color := '#ae578e';
-            31 : Color := '#a363da';
-            32 : Color := '#9ed175';
-            33 : Color := '#85584e';
-            34 : Color := '#2929fc';
-            35 : Color := '#9d24a8';
-            36 : Color := '#78db01';
-            37 : Color := '#502ab4';
-            38 : Color := '#fc5e42';
-            39 : Color := '#45531a';
-            40 : Color := '#536cca';
-            41 : Color := '#';
-            42 : Color := '#';
-            43 : Color := '#';
-            44 : Color := '#';
-            45 : Color := '#';
-            46 : Color := '#';
-            47 : Color := '#';
-            48 : Color := '#';
-            49 : Color := '#';
-            50 : Color := '#';
-            51 : Color := '#';
-            52 : Color := '#';
-            53 : Color := '#';
-            54 : Color := '#';
-            55 : Color := '#';
-            56 : Color := '#';
-            57 : Color := '#';
-            58 : Color := '#';
-            59 : Color := '#';
-            60 : Color := '#';
-            61 : Color := '#';
-            62 : Color := '#';
-            63 : Color := '#';
-            64 : Color := '#';
-            65 : Color := '#';
-            66 : Color := '#';
-            67 : Color := '#';
-            68 : Color := '#';
-            69 : Color := '#';
-            70 : Color := '#';
-            71 : Color := '#';
-            72 : Color := '#';
-            73 : Color := '#';
-            74 : Color := '#';
-            75 : Color := '#';
-            76 : Color := '#';
-            77 : Color := '#';
-            78 : Color := '#';
-            79 : Color := '#';
-            80 : Color := '#';
+2 : Color := '#a1a9aa';
+3 : Color := '#c248cf';
+4 : Color := '#11d989';
+5 : Color := '#5a736e';
+6 : Color := '#0a332f';
+7 : Color := '#0c359d';
+8 : Color := '#eb6377';
+9 : Color := '#4ca03b';
+10 : Color := '#0e90ae';
+11 : Color := '#fd3075';
+12 : Color := '#70959a';
+13 : Color := '#6bebdc';
+14 : Color := '#4a6362';
+15 : Color := '#dd61c5';
+16 : Color := '#188959';
+17 : Color := '#4f2652';
+18 : Color := '#caacb1';
+19 : Color := '#f3d33d';
+20 : Color := '#78a88c';
+21 : Color := '#619f2c';
+22 : Color := '#acae1e';
+23 : Color := '#182673';
+24 : Color := '#1ffc81';
+25 : Color := '#2a58e0';
+26 : Color := '#d63293';
+27 : Color := '#cb3140';
+28 : Color := '#6ea6c0';
+29 : Color := '#9b7dbc';
+30 : Color := '#ae578e';
+31 : Color := '#a363da';
+32 : Color := '#9ed175';
+33 : Color := '#85584e';
+34 : Color := '#2929fc';
+35 : Color := '#9d24a8';
+36 : Color := '#78db01';
+37 : Color := '#502ab4';
+38 : Color := '#fc5e42';
+39 : Color := '#45531a';
+40 : Color := '#536cca';
+41 : Color := '#';
+42 : Color := '#';
+43 : Color := '#';
+44 : Color := '#';
+45 : Color := '#';
+46 : Color := '#';
+47 : Color := '#';
+48 : Color := '#';
+49 : Color := '#';
+50 : Color := '#';
+51 : Color := '#';
+52 : Color := '#';
+53 : Color := '#';
+54 : Color := '#';
+55 : Color := '#';
+56 : Color := '#';
+57 : Color := '#';
+58 : Color := '#';
+59 : Color := '#';
+60 : Color := '#';
+61 : Color := '#';
+62 : Color := '#';
+63 : Color := '#';
+64 : Color := '#';
+65 : Color := '#';
+66 : Color := '#';
+67 : Color := '#';
+68 : Color := '#';
+69 : Color := '#';
+70 : Color := '#';
+71 : Color := '#';
+72 : Color := '#';
+73 : Color := '#';
+74 : Color := '#';
+75 : Color := '#';
+76 : Color := '#';
+77 : Color := '#';
+78 : Color := '#';
+79 : Color := '#';
+80 : Color := '#';
         end;
     end;
 

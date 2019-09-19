@@ -61,6 +61,7 @@ page 6188520 "Map Component Factbox"
                 Image = UpdateShipment;
                 trigger OnAction();
                 begin
+                    ZoomDisabled := false;
                     GetDataFromBuffer;
                 end;
             }
@@ -87,7 +88,7 @@ page 6188520 "Map Component Factbox"
                 var
                     MapEquip: Codeunit "Map Equipment";
                 begin
-                    case StrMenu('My Trucks,Trucks Ittervoort,Trucks Deventer,Nearby', 1) of
+                    case StrMenu('My Trucks,Trucks Ittervoort,Trucks Deventer,Nearby,Find Trips', 1) of
                         1:
                             MapEquip.ShowMyTrucks;
                         2:
@@ -96,6 +97,8 @@ page 6188520 "Map Component Factbox"
                             Message('Not yet implemented...');
                         4:
                             MapEquip.ShowTrucksClose;
+                        5:
+                            MapEquip.FindTripsForSelectedTrucks;
                     end;
                     GetDataFromBuffer;
                 end;
@@ -159,6 +162,7 @@ page 6188520 "Map Component Factbox"
                 trigger OnAction();
                 begin
                     ClearMap;
+                    ZoomDisabled := false;
                 end;
             }
             action("Toggle Selected Only")
@@ -287,8 +291,13 @@ page 6188520 "Map Component Factbox"
             exit;
         ShowMarkerOnMap;
         ShowRouteOnMap;
+        if not ZoomDisabled then begin
+            ZoomDisabled := true;
+            CurrPage.Map.DisableFitMarkersBounds;
+        end;
     end;
 
     var
         IsReady: Boolean;
+        ZoomDisabled: Boolean;
 }

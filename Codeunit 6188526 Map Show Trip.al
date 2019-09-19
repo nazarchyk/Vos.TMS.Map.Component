@@ -41,7 +41,7 @@ codeunit 6188526 "Map Show Trip"
         TrPlanAct.SetRange("Trip No.", Trip."No.");
         TrPlanAct.SetFilter(Timetype, '<>%1', TrPlanAct.Timetype::Rest);
         if TrPlanAct.FindSet then repeat
-            RouteDetails.CreateFromTrPlanAct(TrPlanAct, '', RouteNo, Trip."No.")
+            RouteDetails.CreateFromTrPlanAct(TrPlanAct, '', RouteNo, Trip."No.", true)
         until TrPlanAct.Next = 0;
     end;
 
@@ -77,7 +77,7 @@ codeunit 6188526 "Map Show Trip"
         TrPlanAct.SetRange("Trip No.", Trip."No.");
         TrPlanAct.SetFilter(Timetype, '<>%1', TrPlanAct.Timetype::Rest);
         if TrPlanAct.FindSet then repeat
-            RouteDetails.CreateFromTrPlanAct(TrPlanAct, 'Blue', 1, Trip."No.")
+            RouteDetails.CreateFromTrPlanAct(TrPlanAct, 'Blue', 1, Trip."No.", false)
             until TrPlanAct.Next = 0;
 
         if Equip.get(Trip."First Truck No.", Equip.Type::Truck) then begin
@@ -118,7 +118,7 @@ codeunit 6188526 "Map Show Trip"
         if TrPlanAct.FindSet then begin
             FirstDistributionStop := TrPlanAct."Stop No.";;
             repeat
-                RouteDetails.CreateFromTrPlanAct(TrPlanAct, 'Blue', 1, 'Distribution');
+                RouteDetails.CreateFromTrPlanAct(TrPlanAct, 'Blue', 1, 'Distribution', false);
             until TrPlanAct.Next = 0;
         end;
 
@@ -130,7 +130,7 @@ codeunit 6188526 "Map Show Trip"
         TrPlanAct.SetFilter("Crossing Activity Type", '%1|%2', TrPlanAct."Crossing Activity Type"::Arrival, TrPlanAct."Crossing Activity Type"::" ");
         if TrPlanAct.FindSet then begin
             repeat
-                RouteDetails.CreateFromTrPlanAct(TrPlanAct, 'Green', 2, 'Import');
+                RouteDetails.CreateFromTrPlanAct(TrPlanAct, 'Green', 2, 'Import', false);
                 LastImportStop := TrPlanAct."Stop No.";
             until TrPlanAct.Next = 0;
         end;
@@ -142,7 +142,7 @@ codeunit 6188526 "Map Show Trip"
         TrPlanAct.SetRange("Stop No.", LastImportStop, FirstDistributionStop);
         TrPlanAct.SetFilter(Timetype, '<>%1', TrPlanAct.Timetype::Rest);
         if TrPlanAct.FindSet then repeat
-            RouteDetails.CreateFromTrPlanAct(TrPlanAct, 'Orange', 3, 'Empty');
+            RouteDetails.CreateFromTrPlanAct(TrPlanAct, 'Orange', 3, 'Empty', false);
         until TrPlanAct.Next = 0;
 
         Trip.FindCurrentEquipImpExpCol(TruckNo, DriverNo, TrailerNo, LZVTrailerNo, CoDriverNo);
@@ -184,7 +184,7 @@ codeunit 6188526 "Map Show Trip"
         TrPlanAct.SetFilter(Timetype, '%1|%2', TrPlanAct.Timetype::Unload, TrPlanAct.Timetype::Miscellaneous);
         TrPlanAct.SetFilter("Crossing Activity Type", '%1|%2', TrPlanAct."Crossing Activity Type"::Arrival, TrPlanAct."Crossing Activity Type"::" ");
         if TrPlanAct.FindSet then repeat
-            RouteDetails.CreateFromTrPlanAct(TrPlanAct, 'Blue', 1, 'Export');
+            RouteDetails.CreateFromTrPlanAct(TrPlanAct, 'Blue', 1, 'Export', false);
             LastExportStop := TrPlanAct."Stop No.";
         until TrPlanAct.Next = 0;
 
@@ -197,7 +197,7 @@ codeunit 6188526 "Map Show Trip"
         if TrPlanAct.FindSet then begin
             FirstImportStop := TrPlanAct."Stop No.";
             repeat
-                RouteDetails.CreateFromTrPlanAct(TrPlanAct, 'Green', 2, 'Import');
+                RouteDetails.CreateFromTrPlanAct(TrPlanAct, 'Green', 2, 'Import', false);
             until TrPlanAct.Next = 0;
         end;
 
@@ -210,7 +210,7 @@ codeunit 6188526 "Map Show Trip"
         if TrPlanAct.FindSet then begin
             FirstImportStop := TrPlanAct."Stop No.";
             repeat
-                RouteDetails.CreateFromTrPlanAct(TrPlanAct, 'Orange', 3, 'Empty');
+                RouteDetails.CreateFromTrPlanAct(TrPlanAct, 'Orange', 3, 'Empty', false);
             until TrPlanAct.Next = 0;
         end;
 

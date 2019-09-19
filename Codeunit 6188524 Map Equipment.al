@@ -101,4 +101,16 @@ codeunit 6188524 "Map Equipment"
         RouteDetail.Reset;
         MapBuffer.SetDataOneByOne(RouteDetail);
     end;
+    procedure FindTripsForSelectedTrucks()
+    var
+        RouteDetail: Record "Map Route Detail" temporary;
+        MapBuffer: Codeunit "Map Buffer";
+    begin
+        MapBuffer.GetRouteDetails(RouteDetail);
+        RouteDetail.SetRange(Selected, RouteDetail.Selected::Clicked, RouteDetail.Selected::Selected);
+        RouteDetail.SetRange(Source, 'Equipment');
+        if RouteDetail.FindSet then repeat
+            RouteDetail.FindRoute();
+        until RouteDetail.Next = 0;
+    end;
 }
