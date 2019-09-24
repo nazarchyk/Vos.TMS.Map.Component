@@ -16,7 +16,6 @@ codeunit 6188525 "Map Get Selected Marker"
     procedure GetMarker(Marker: JsonObject);
     var
         RouteDetail: Record "Map Route Detail" temporary;
-        PredictionBuffer: Codeunit "Prediction Buffer Mgt.";
         MapBuffer: Codeunit "Map Buffer";
         JsonTkn: JsonToken;
         JsonObj: JsonObject;
@@ -24,7 +23,6 @@ codeunit 6188525 "Map Get Selected Marker"
         Id: guid;
     begin
         MapBuffer.GetRouteDetails(RouteDetail);
-        //    Message('Selected : ' + Format(JsonObj));
         Marker.Get('id', JsonTkn);
         JsonVal := JsonTkn.AsValue;
         Evaluate(Id, JsonVal.AsText);
@@ -43,8 +41,5 @@ codeunit 6188525 "Map Get Selected Marker"
         RouteDetail.Modify;
         RouteDetail.Reset;
         MapBuffer.SetRouteDetails(RouteDetail);
-        PredictionBuffer.Show(Id);
     end;
-
-
 }

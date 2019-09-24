@@ -89,15 +89,15 @@ page 6188520 "Map Component Factbox"
                     MapEquip: Codeunit "Map Equipment";
                 begin
                     case StrMenu('My Trucks,Trucks Ittervoort,Trucks Deventer,Nearby,Find Trips', 1) of
-                        1:
+1 :
                             MapEquip.ShowMyTrucks;
-                        2:
+2 :
                             MapEquip.ShowTrucksFromPlanningCode;
-                        3:
+3 :
                             Message('Not yet implemented...');
-                        4:
+4 :
                             MapEquip.ShowTrucksClose;
-                        5:
+5 :
                             MapEquip.FindTripsForSelectedTrucks;
                     end;
                     GetDataFromBuffer;
@@ -180,7 +180,7 @@ page 6188520 "Map Component Factbox"
                         RouteDetail.SetRange(Selected);
                     MapBuffer.SetRouteDetails(RouteDetail);
                     GetDataFromBuffer;
-                        
+
                 end;
             }
 
@@ -219,13 +219,21 @@ page 6188520 "Map Component Factbox"
         MapBuffer: Codeunit "Map Buffer";
     begin
         MapBuffer.GetRouteDetails(RouteDetail);
+        if RouteDetail.Count > 500 then begin
+            RouteDetail.SetRange("Stop No.", 0, 500);
+            if not WarningDisplayed then begin
+                Message('Only the first 500 stops are displayed on the map.\Please reduce filters.');
+                WarningDisplayed := true;
+            end;
+        end;
+
         RouteDetail.SetRange(Type, RouteDetail.Type::Markers);
         if RouteDetail.findset then repeat
             if RouteDetail."Marker Type" = RouteDetail."Marker Type"::Icon then
                 CurrPage.Map.ShowIconMarker(RouteDetail.ShowMarker(IsReady))
             else
                 CurrPage.Map.ShowCircleMarker(RouteDetail.ShowMarker(IsReady));
-        until RouteDetail.next = 0;
+            until RouteDetail.next = 0;
     end;
 
     local procedure ShowRouteOnMap();
@@ -239,7 +247,7 @@ page 6188520 "Map Component Factbox"
         Route.SetRange("No.", 1, 99);
         if Route.FindSet then repeat
             CurrPage.Map.ShowRoute(Route.ShowRoute);
-        until Route.Next = 0;
+            until Route.Next = 0;
     end;
 
     local procedure ClearMap();
@@ -300,4 +308,5 @@ page 6188520 "Map Component Factbox"
     var
         IsReady: Boolean;
         ZoomDisabled: Boolean;
+        WarningDisplayed: Boolean;
 }
