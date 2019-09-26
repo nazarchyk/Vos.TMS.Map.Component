@@ -294,9 +294,9 @@ page 6188520 "Map Component Factbox"
     var
         MapBuffer: Codeunit "Map Buffer";
     begin
-        ClearMap;
         if not IsReady then
             exit;
+        ClearMap;
         ShowMarkerOnMap;
         ShowRouteOnMap;
         if not ZoomDisabled then begin
