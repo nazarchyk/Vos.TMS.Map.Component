@@ -4,7 +4,12 @@ pageextension 6188529 "Planview Trips (Map)" extends "Planview Trips"
     {
         addlast(Content)
         {
-            part(Map; "Map Component Factbox") { Visible = MapVisible; UpdatePropagation = Both; }
+            part(Map; "Map Component Factbox") 
+            { 
+                ApplicationArea = All;
+                UpdatePropagation = Both;
+                Visible = IsMapVisible; 
+            }
         }
     }
 
@@ -14,29 +19,38 @@ pageextension 6188529 "Planview Trips (Map)" extends "Planview Trips"
         {
             action(ShowOnMap)
             {
+                ApplicationArea = All;
+                Caption = 'Show/Hide Map';
                 Image = Map;
+
                 trigger OnAction();
                 begin
-                    MapVisible := not MapVisible;
+                    IsMapVisible := not IsMapVisible;
                 end;
             }
         }
     }
-    
-    trigger OnAfterGetCurrRecord();
-    begin
-        //GetShpmntBuffer(ShpmntBuffer);
-        //AddSelectedShpmntsToMap;
-        if FiltersChanged then;
-            UpdateMap;
-    end;
+
+    var
+        IsMapVisible: Boolean;
+        xFilters: Text;
 
     trigger OnOpenPage();
     var
         MapBuffer: Codeunit "Map Buffer";
     begin
-        MapBuffer.ClearAll;
-        MapVisible := true;
+        MapBuffer.ClearAll();
+        IsMapVisible := true;
+    end;
+
+    trigger OnAfterGetCurrRecord();
+    begin
+        if xFilters <> GetFilters() then begin
+            xFilters := GetFilters();
+            
+            If IsMapVisible then
+                UpdateMap();
+        end;
     end;
 
     local procedure UpdateMap();
@@ -48,27 +62,14 @@ pageextension 6188529 "Planview Trips (Map)" extends "Planview Trips"
     begin
         MapBuffer.GetRouteDetails(RouteDetail);
         RouteDetail.SetRange(Type, RouteDetail.Type::Route);
-        RouteDetail.DeleteAll;
+        RouteDetail.DeleteAll();
         MapBuffer.SetRouteDetails(RouteDetail);
-        MapShowTrip.SetMultiple;
+
+        MapShowTrip.SetMultiple();
         Trip.CopyFilters(Rec);
-        if Trip.FindSet then repeat
-            MapShowTrip.Run(Trip);
-        until Trip.Next = 0;      
+        if Trip.FindSet() then 
+            repeat
+                MapShowTrip.Run(Trip);
+            until (Trip.Next() = 0);
     end;
-
-
-    local procedure FiltersChanged(): Boolean
-    begin
-        if GetFilters = xFilters then
-            exit(false);
-        xFilters := GetFilters;
-        exit(true);
-    end;
-
-    var
-        TripBuffer: Record Trip temporary;
-        xFilters: Text;
-        MapVisible: Boolean;
-
 }

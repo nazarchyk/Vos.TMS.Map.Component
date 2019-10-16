@@ -1,48 +1,52 @@
 codeunit 6188526 "Map Show Trip"
 {
     TableNo = Trip;
+
     var
-        MultipleRoutes: Boolean;
+        IsMultipleRoutes: Boolean;
+
     trigger OnRun();
     var
         RouteDetails: Record "Map Route Detail" temporary;
     begin
-        RouteDetails.FromBuffer;
-//        GetActualTripFromBoardComputer(Rec, RouteDetails);
-        if MultipleRoutes then
+        RouteDetails.FromBuffer();
+        // GetActualTripFromBoardComputer(Rec, RouteDetails);
+        if IsMultipleRoutes then
             GetMultipleTripRoute(Rec, RouteDetails)
         else begin
             GetInternationalRoute(Rec, RouteDetails);
             GetTakenOverTripRoute(Rec, RouteDetails);
             GetRoundTripRoute(Rec, RouteDetails);
-//            GetPredictionResults(RouteDetails);
+        	// GetPredictionResults(RouteDetails);
         end;
-        RouteDetails.ToBuffer;
+        RouteDetails.ToBuffer();
     end;
+
     procedure SetMultiple()
     begin
-        MultipleRoutes := true;
+        IsMultipleRoutes := true;
     end;
 
     local procedure GetMultipleTripRoute(Trip: Record Trip; var RouteDetails: Record "Map Route Detail")
     var
-        TrPlanAct: Record "Transport Planned Activity";
-        Equip: Record Equipment;
+        TransportPlannedActivity: Record "Transport Planned Activity";
         RouteNo: Integer;
-    begin        
-        if RouteDetails.FindLast then
+    begin
+        RouteDetails."Stop No." := 0;
+
+        if RouteDetails.FindLast() then
             RouteNo := RouteDetails."Route No." + 1
         else
             RouteNo := 1;
-
-        RouteDetails."Stop No." := 0;
-        TrPlanAct.SetCurrentKey("Trip No.", "Stop No.");
-        TrPlanAct.SetFilter("Address No.", '<>%1', '');
-        TrPlanAct.SetRange("Trip No.", Trip."No.");
-        TrPlanAct.SetFilter(Timetype, '<>%1', TrPlanAct.Timetype::Rest);
-        if TrPlanAct.FindSet then repeat
-            RouteDetails.CreateFromTrPlanAct(TrPlanAct, '', RouteNo, Trip."No.", true)
-        until TrPlanAct.Next = 0;
+        
+        TransportPlannedActivity.SetCurrentKey("Trip No.", "Stop No.");
+        TransportPlannedActivity.SetRange("Trip No.", Trip."No.");
+        TransportPlannedActivity.SetFilter("Address No.", '<>%1', '');
+        TransportPlannedActivity.SetFilter(Timetype, '<>%1', TransportPlannedActivity.Timetype::Rest);
+        if TransportPlannedActivity.FindSet() then 
+            repeat
+                RouteDetails.CreateFromTrPlanAct(TransportPlannedActivity, '', RouteNo, Trip."No.", true);
+            until (TransportPlannedActivity.Next() = 0);
     end;
 
     local procedure GetActualTripFromBoardComputer(Trip: Record Trip; var RouteDetails: Record "Map Route Detail");

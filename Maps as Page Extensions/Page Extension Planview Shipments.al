@@ -4,7 +4,12 @@ pageextension 6188528 "Planview Shipment (Map)" extends "Planview Shipments"
     {
         addbefore(TableShip)
         {
-            part(Map; "Map Component Factbox") { Visible = MapVisible; UpdatePropagation = Both; }
+            part(Map; "Map Component Factbox") 
+            { 
+                ApplicationArea = All;
+                UpdatePropagation = Both;
+                Visible = IsMapVisible; 
+            }
         }
     }
 
@@ -14,50 +19,66 @@ pageextension 6188528 "Planview Shipment (Map)" extends "Planview Shipments"
         {
             action(ShowOnMap)
             {
+                ApplicationArea = All;
+                Caption = 'Show/Hide Map';
                 Image = Map;
+
                 trigger OnAction();
                 begin
-                    MapVisible := not MapVisible;
+                    IsMapVisible := not IsMapVisible;
                 end;
             }
         }
     }
-    trigger OnAfterGetCurrRecord();
-    begin
-        GetShpmntBuffer(ShpmntBuffer);
-        AddSelectedShpmntsToMap;
-        if FiltersChanged then
-            UpdateMap;
-    end;
+
+    var
+        ShipmentBuffer: Record Shipment temporary;
+        IsMapVisible: Boolean;
+        xFilters: Text;
 
     trigger OnOpenPage();
     var
         MapBuffer: Codeunit "Map Buffer";
     begin
-        MapBuffer.ClearAll;
-        MapVisible := true;
+        MapBuffer.ClearAll();
+        IsMapVisible := true;
     end;
 
-    local procedure AddSelectedShpmntsToMap()
+    trigger OnAfterGetCurrRecord();
+    begin
+        GetShpmntBuffer(ShipmentBuffer);
+        AddSelectedShipmentsToMap();
+
+        if xFilters <> GetFilters() then begin
+            xFilters := GetFilters();
+            
+            If IsMapVisible then
+                UpdateMap();
+        end;
+    end;
+
+    local procedure AddSelectedShipmentsToMap()
     var
-        MapBuffer: Codeunit "Map Buffer";
         RouteDetail: Record "Map Route Detail" temporary;
+        MapBuffer: Codeunit "Map Buffer";
     begin
         MapBuffer.GetRouteDetails(RouteDetail);
-        if ShpmntBuffer.FindSet then repeat
-            RouteDetail.SetRange(Id, ShpmntBuffer.Id);
-            if RouteDetail.FindFirst then begin
-                if ShpmntBuffer."Plan-ID" = '' then
-                    RouteDetail.Selected := RouteDetail.Selected::Clicked
-                else
-                    RouteDetail.Selected := RouteDetail.Selected::Selected;
-                RouteDetail.SetMarkerStrokeBasedOnSelected;
-                RouteDetail.Modify;
-            end;
-        until ShpmntBuffer.Next = 0;
-        RouteDetail.Reset;
+        if ShipmentBuffer.FindSet() then 
+            repeat
+                RouteDetail.SetRange(Id, ShipmentBuffer.Id);
+                if RouteDetail.FindFirst then begin
+                    if ShipmentBuffer."Plan-ID" = '' then
+                        RouteDetail.Selected := RouteDetail.Selected::Clicked
+                    else
+                        RouteDetail.Selected := RouteDetail.Selected::Selected;
+                    RouteDetail.SetMarkerStrokeBasedOnSelected();
+                    RouteDetail.Modify();
+                end;
+            until (ShipmentBuffer.Next() = 0);
+
+        RouteDetail.Reset();
         MapBuffer.SetRouteDetails(RouteDetail);
-        CurrPage.Map.Page.GetDataFromBuffer;
+        CurrPage.Map.Page.GetDataFromBuffer();
     end;
 
     local procedure UpdateMap();
@@ -65,20 +86,6 @@ pageextension 6188528 "Planview Shipment (Map)" extends "Planview Shipments"
         ShowShipments: Codeunit "Map Show Shipments";
     begin
         ShowShipments.Run(Rec);
-        CurrPage.Map.Page.GetDataFromBuffer;
+        CurrPage.Map.Page.GetDataFromBuffer();
     end;
-
-    local procedure FiltersChanged(): Boolean
-    begin
-        if GetFilters = xFilters then
-            exit(false);
-        xFilters := GetFilters;
-        exit(true);
-    end;
-
-    var
-        ShpmntBuffer: Record Shipment temporary;
-        xFilters: Text;
-        MapVisible: Boolean;
-
 }
