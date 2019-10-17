@@ -40,7 +40,7 @@ pageextension 6188529 "Planview Trips (Map)" extends "Planview Trips"
         MapBuffer: Codeunit "Map Buffer";
     begin
         MapBuffer.ClearAll();
-        IsMapVisible := true;
+        // IsMapVisible := true;
     end;
 
     trigger OnAfterGetCurrRecord();

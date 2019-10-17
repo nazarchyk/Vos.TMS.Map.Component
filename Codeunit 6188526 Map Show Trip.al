@@ -45,7 +45,8 @@ codeunit 6188526 "Map Show Trip"
         TransportPlannedActivity.SetFilter(Timetype, '<>%1', TransportPlannedActivity.Timetype::Rest);
         if TransportPlannedActivity.FindSet() then 
             repeat
-                RouteDetails.CreateFromTrPlanAct(TransportPlannedActivity, '', RouteNo, Trip."No.", true);
+                // RouteDetails.CreateFromTrPlanAct(TransportPlannedActivity, '', RouteNo, Trip."No.", true);
+                RouteDetails.CreateFromTrPlanAct(TransportPlannedActivity, '', RouteNo, Trip."No.", false);
             until (TransportPlannedActivity.Next() = 0);
     end;
 

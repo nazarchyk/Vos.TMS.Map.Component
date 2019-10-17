@@ -7,7 +7,7 @@ pageextension 6188527 "Trip Card (Map)" extends "Trip Card"
             part(Map; "Map Component Factbox") 
             {
                 ApplicationArea = All;
-             }
+            }
             part(MapDetails; "Map Route Factbox") 
             { 
                 ApplicationArea = All;
@@ -40,16 +40,16 @@ pageextension 6188527 "Trip Card (Map)" extends "Trip Card"
 
     local procedure SuggestShipments();
     var
-        // RouteDetailBuffer: Record "Map Route Detail" temporary;
-        // MapBuffer: Codeunit "Map Buffer";
+        RouteDetailBuffer: Record "Map Route Detail" temporary;
+        MapBuffer: Codeunit "Map Buffer";
         ShowTrip: Codeunit "Map Show Trip";
     begin
-        // MapBuffer.GetRouteDetails(RouteDetailBuffer);
-        // RouteDetailBuffer.SetRange(Type, RouteDetailBuffer.Type::Route);
-        // RouteDetailBuffer.DeleteAll();
-        // MapBuffer.SetRouteDetails(RouteDetailBuffer);
+        MapBuffer.GetRouteDetails(RouteDetailBuffer);
+        RouteDetailBuffer.SetRange(Type, RouteDetailBuffer.Type::Route);
+        RouteDetailBuffer.DeleteAll();
+        MapBuffer.SetRouteDetails(RouteDetailBuffer);
 
-        // ShowTrip.SetMultiple();
+        ShowTrip.SetMultiple();
         ShowTrip.Run(Rec);
 
         CurrPage.Map.Page.GetDataFromBuffer();
