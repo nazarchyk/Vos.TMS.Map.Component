@@ -1,43 +1,41 @@
 codeunit 6188527 "Map Show Shipments"
 {
-    TableNo = Shipment;
-    trigger OnRun();
+    procedure ConvertShipmentsToMapContent(var Shipment: Record Shipment; var RouteDetail: Record "Map Route Detail")
     var
-        Shpmnt: Record Shipment;
-        //   Route : Record "Map Route" temporary;
-        RouteDetail: Record "Map Route Detail" temporary;
-        MapBuffer: Codeunit "Map Buffer";
-        Addr: Record Address;
+        Address: Record Address;
     begin
-        RouteDetail.DeleteAll;
-        Shpmnt.CopyFilters(Rec);
-        Shpmnt.SetAutoCalcFields("Loading Meters");
-        if Shpmnt.FindSet then repeat
-            RouteDetail.Init;
-            RouteDetail."Route No." := 0;
-            RouteDetail.Name := "Route No.";
-            RouteDetail."Stop No." += 1;
-            RouteDetail.Id := Shpmnt.Id;
-            RouteDetail.Source := TableName;
-            if Shpmnt."Lane Type" = Shpmnt."Lane Type"::Collection then begin
-                Addr.get(Shpmnt."From Address No.");
-                RouteDetail."Marker Fill Color" := Shpmnt.GetColor;
-            end else if Shpmnt."Lane Type" = Shpmnt."Lane Type"::Delivery then begin
-                    Addr.get(Shpmnt."To Address No.");
-                    RouteDetail."Marker Fill Color" := Shpmnt.GetColor;
-                end;
-            RouteDetail.Latitude := Addr.Latitude;
-            RouteDetail.Longitude := Addr.Longitude;
-            RouteDetail."Marker Type" := RouteDetail."Marker Type"::Circle;
-            if Shpmnt."Plan-ID" = UserId then
-                RouteDetail.Selected := RouteDetail.Selected::Selected;
-            RouteDetail.SetMarkerRadiusBasedOnLoadingMeters(Shpmnt."Loading Meters");
-            RouteDetail.SetMarkerStrokeBasedOnSelected;
-            RouteDetail."Marker Text" := 'LM: ' + format(Shpmnt."Loading Meters") + ' ' + Addr.Description + ' ' + Addr.Street + ' ' + Addr."Post Code" + ' ' + Addr.City;
-            RouteDetail.Insert;
-            until Shpmnt.Next = 0;
+        Shipment.SetAutoCalcFields("Loading Meters");
+        if Shipment.FindSet() then
+            repeat
+                RouteDetail.Init();
+                RouteDetail."Route No." := 0;
+                RouteDetail.Name := Shipment."Route No.";
+                RouteDetail."Stop No." += 1;
+                RouteDetail.Id := Shipment.Id;
+                RouteDetail.Source := Shipment.TableName;
 
-        MapBuffer.SetRouteDetails(RouteDetail);
+                case Shipment."Lane Type" of
+                    Shipment."Lane Type"::Collection:
+                        Address.get(Shipment."From Address No.");
+
+                    Shipment."Lane Type"::Delivery:
+                        Address.get(Shipment."To Address No.");
+                end;
+
+                RouteDetail."Marker Fill Color" := Shipment.GetColor();
+                RouteDetail.Latitude := Address.Latitude;
+                RouteDetail.Longitude := Address.Longitude;
+                RouteDetail."Marker Type" := RouteDetail."Marker Type"::Circle;
+                if Shipment."Plan-ID" = UserId then
+                    RouteDetail.Selected := RouteDetail.Selected::Selected;
+
+                RouteDetail.SetMarkerRadiusBasedOnLoadingMeters(Shipment."Loading Meters");
+                RouteDetail.SetMarkerStrokeBasedOnSelected();
+                RouteDetail."Marker Text" := 'LM: ' + format(Shipment."Loading Meters") + ' ' +
+                    Address.Description + ' ' + Address.Street + ' ' + Address."Post Code" + ' ' + Address.City;
+
+                RouteDetail.Insert();
+            until (Shipment.Next() = 0);
     end;
 
     procedure SelectShipments()
@@ -50,7 +48,7 @@ codeunit 6188527 "Map Show Shipments"
         RouteDetail.FindSet;
         repeat
             RouteDetail.SelectShipment;
-        RouteDetail.Modify;
+            RouteDetail.Modify;
         until RouteDetail.Next = 0;
         RouteDetail.Reset;
         MapBuffer.SetRouteDetails(RouteDetail);
@@ -66,11 +64,10 @@ codeunit 6188527 "Map Show Shipments"
         RouteDetail.SetRange(Selected, RouteDetail.Selected::Selected);
         RouteDetail.FindSet;
         repeat
-        RouteDetail.SelectShipment;
-        RouteDetail.Modify;
+            RouteDetail.SelectShipment;
+            RouteDetail.Modify;
         until RouteDetail.Next = 0;
         RouteDetail.Reset;
         MapBuffer.SetRouteDetails(RouteDetail);
-
     end;
 }

@@ -1,9 +1,10 @@
 codeunit 6188522 "Map Show Route"
 {
 
-    procedure GetRouteJson(var Rte: Record "Map Route") route: JsonObject;
+    // procedure GetRouteJson(var Rte: Record "Map Route") route: JsonObject;
+    procedure GetRouteJson(var Rte: Record "Map Route"; var RouteDetails: Record "Map Route Detail") route: JsonObject;
     var
-        RouteDetails: Record "Map Route Detail" temporary;
+        // RouteDetails: Record "Map Route Detail" temporary;
         MapBuffer: Codeunit "Map Buffer";
         coordinate: JsonObject;
         coordinates: JsonArray;
@@ -16,9 +17,8 @@ codeunit 6188522 "Map Show Route"
         selectionSettings: JsonObject;
         popup: JsonObject;
     begin
-        MapBuffer.GetRouteDetails(RouteDetails);
-        with RouteDetails do
-        begin
+        // MapBuffer.GetRouteDetails(RouteDetails);
+        with RouteDetails do begin
             SetRange("Route No.", Rte."No.");
 
             /*** DECORATOR SETTINGS ***/
@@ -48,49 +48,52 @@ codeunit 6188522 "Map Show Route"
             FindSet;
             repeat
                 coordinate.Add('latitude', Latitude);
-            coordinate.Add('longitude', Longitude);
+                coordinate.Add('longitude', Longitude);
 
-            // Each coordinate can have marker: Icon marker or Circle marker.
-            // If marker is not provided, it won't be displayed
+                // Each coordinate can have marker: Icon marker or Circle marker.
+                // If marker is not provided, it won't be displayed
 
-            /*** ICON MARKER EXAMPLE ***/
-            // DEFAULT VALUES ARE DETERMINED BY DEFAULT SETTINGS
+                /*** ICON MARKER EXAMPLE ***/
+                // DEFAULT VALUES ARE DETERMINED BY DEFAULT SETTINGS
 
-            // marker.Add('type', 0);                        // REQUIRED. Type 0 - Icon Marker, Type 1 - Circle Marker.
-            // markerSettings.Add('iconUrl', someUrl);       // REQUIRED. Icon URL.
-            // markerSettings.Add('shadowUrl', someUrl);     // Optional. Shadow URL.
-            // markerSettings.Add('iconAnchor', '');         // Optional. Icon anchor. Array of two numbers [X, Y].
-            // markerSettings.Add('popupAnchor', '');        // Optional. Popup anchor. Array of two numbers [X, Y].
-            // markerSettings.Add('iconSize', '');           // Optional. Icon size. Array of two numbers [X, Y].
-            // markerSettings.Add('shadowSize', '');         // Optional. Shadow size. Array of two numbers [X, Y].
-            // markerSettings.Add('shadowAnchor', '');       // Optional. Shadow anchor. Array of two numbers [X, Y].
-            // marker.Add('settings', markerSettings);
+                // marker.Add('type', 0);                        // REQUIRED. Type 0 - Icon Marker, Type 1 - Circle Marker.
+                // markerSettings.Add('iconUrl', someUrl);       // REQUIRED. Icon URL.
+                // markerSettings.Add('shadowUrl', someUrl);     // Optional. Shadow URL.
+                // markerSettings.Add('iconAnchor', '');         // Optional. Icon anchor. Array of two numbers [X, Y].
+                // markerSettings.Add('popupAnchor', '');        // Optional. Popup anchor. Array of two numbers [X, Y].
+                // markerSettings.Add('iconSize', '');           // Optional. Icon size. Array of two numbers [X, Y].
+                // markerSettings.Add('shadowSize', '');         // Optional. Shadow size. Array of two numbers [X, Y].
+                // markerSettings.Add('shadowAnchor', '');       // Optional. Shadow anchor. Array of two numbers [X, Y].
+                // marker.Add('settings', markerSettings);
 
-            /*** CIRCLE MARKER EXAMPLE ***/
-            // DEFAULT VALUES ARE DETERMINED BY DEFAULT SETTINGS
-            marker.Add('type', "Marker Type");                            // REQUIRED. Type 0 - Icon Marker, Type 1 - Circle Marker.
-            markerSettings.Add('fillColor', "Marker Fill Color");           // Optional. Circle marker fill color.
-            markerSettings.Add('fillOpacity', "Marker Fill Opacity");             // Optional. Circle marker fill opacity. 1 - non transparent, 0 - transparent
-            markerSettings.Add('radius', "Marker Radius");                 // Optional. Circle marker radius.
-            markerSettings.Add('strokeColor', "Marker Stroke Color");       // Optional. Circle marker stroke color.
-            markerSettings.Add('strokeOpacity', "Marker Stroke Opacity");           // Optional. Circle marker stroke opacity. 1 - non transparent, 0 - transparent.
-            markerSettings.Add('strokeWidthPx', "Marker Stroke With (Pixels)");           // Optional. Circle marker stroke width in pixels.
-            marker.Add('settings', markerSettings);
-            if "Marker Text" <> '' then begin
-                Clear(popup);
-                popup.Add('text', "Marker Text");
-                popup.Add('autoClose', true);      // If true, popup will be automatically closed when added. If false, map will keep popup opened.
-                popup.Add('closeOnClick', false);   // If true, popup will be closed on map click.
-                marker.Add('popup', popup);
-            end;
+                /*** CIRCLE MARKER EXAMPLE ***/
+                // DEFAULT VALUES ARE DETERMINED BY DEFAULT SETTINGS
+                marker.Add('type', "Marker Type");                            // REQUIRED. Type 0 - Icon Marker, Type 1 - Circle Marker.
+                markerSettings.Add('fillColor', "Marker Fill Color");           // Optional. Circle marker fill color.
+                markerSettings.Add('fillOpacity', "Marker Fill Opacity");             // Optional. Circle marker fill opacity. 1 - non transparent, 0 - transparent
+                markerSettings.Add('radius', "Marker Radius");                 // Optional. Circle marker radius.
+                markerSettings.Add('strokeColor', "Marker Stroke Color");       // Optional. Circle marker stroke color.
+                markerSettings.Add('strokeOpacity', "Marker Stroke Opacity");           // Optional. Circle marker stroke opacity. 1 - non transparent, 0 - transparent.
+                markerSettings.Add('strokeWidthPx', "Marker Stroke With (Pixels)");           // Optional. Circle marker stroke width in pixels.
+                marker.Add('settings', markerSettings);
+                if "Marker Text" <> '' then begin
+                    Clear(popup);
+                    popup.Add('text', "Marker Text");
+                    popup.Add('autoClose', true);      // If true, popup will be automatically closed when added. If false, map will keep popup opened.
+                    popup.Add('closeOnClick', false);   // If true, popup will be closed on map click.
+                    marker.Add('popup', popup);
+                end;
 
-            // coordinate.Add('marker', marker);
+                // coordinate.Add('marker', marker);
 
-            coordinates.Add(coordinate);
-            Clear(coordinate);
-            Clear(marker);
-            Clear(markerSettings);
+                coordinates.Add(coordinate);
+                Clear(coordinate);
+                Clear(marker);
+                Clear(markerSettings);
             until Next = 0;
+
+            route.Add('id', Rte."No.");// SEB ... Test
+            route.Add('layerId','default'); // SEB ... Test
 
             route.Add('coordinates', coordinates);
             route.Add('color', Color.ToLower);

@@ -9,7 +9,7 @@ page 6188521 "Map Component Full Page"
     {
         area(Content)
         {
-            usercontrol(Map; Map)
+            usercontrol(MapControl; MetaUIMapAddIn)
             {
                 ApplicationArea = All;
 
@@ -115,32 +115,32 @@ page 6188521 "Map Component Full Page"
                 end;
             }
 
-            action("Enable heatmap")
-            {
-                Image = Approve;
-                trigger OnAction();
-                begin
-                    EnableHeatmap;
-                end;
-            }
+            // action("Enable heatmap")
+            // {
+            //     Image = Approve;
+            //     trigger OnAction();
+            //     begin
+            //         EnableHeatmap;
+            //     end;
+            // }
 
-            action("Update heatmap")
-            {
-                Image = UpdateDescription;
-                trigger OnAction();
-                begin
-                    UpdateHeatmap;
-                end;
-            }
+            // action("Update heatmap")
+            // {
+            //     Image = UpdateDescription;
+            //     trigger OnAction();
+            //     begin
+            //         UpdateHeatmap;
+            //     end;
+            // }
 
-            action("Disable heatmap")
-            {
-                Image = UnApply;
-                trigger OnAction();
-                begin
-                    DisableHeatmap;
-                end;
-            }
+            // action("Disable heatmap")
+            // {
+            //     Image = UnApply;
+            //     trigger OnAction();
+            //     begin
+            //         DisableHeatmap;
+            //     end;
+            // }
         }
     }
 
@@ -153,9 +153,9 @@ page 6188521 "Map Component Full Page"
         RouteDetail.SetRange(Type, RouteDetail.Type::Markers);
         if RouteDetail.findset then repeat
             if RouteDetail."Marker Type" = RouteDetail."Marker Type"::Icon then
-                CurrPage.Map.ShowIconMarker(RouteDetail.ShowMarker(IsReady))
+                CurrPage.MapControl.ShowIconMarker(RouteDetail.ShowMarker())
             else
-                CurrPage.Map.ShowCircleMarker(RouteDetail.ShowMarker(IsReady));
+                CurrPage.MapControl.ShowCircleMarker(RouteDetail.ShowMarker());
         until RouteDetail.next = 0;
     end;
 
@@ -169,49 +169,49 @@ page 6188521 "Map Component Full Page"
         MapBuffer.GetRoutes(Route);
         Route.SetRange("No.", 1, 99);
         if Route.FindSet then repeat
-            CurrPage.Map.ShowRoute(Route.ShowRoute);
+            CurrPage.MapControl.ShowRoute(Route.ShowRoute);
         until Route.Next = 0;
     end;
 
     local procedure ClearMap();
     begin
-        CurrPage.Map.ClearMap();
+        CurrPage.MapControl.ClearMap();
     end;
 
     local procedure SetSettings();
     var
         MapSettings: Codeunit "Map Settings";
     begin
-        CurrPage.Map.SetSettings(MapSettings.SetSettings);
+        CurrPage.MapControl.SetSettings(MapSettings.SetSettings);
     end;
 
     local procedure EnableLasso()
     begin
         if not IsReady then
             exit;
-        CurrPage.Map.EnableLasso();
+        CurrPage.MapControl.EnableLasso();
     end;
 
-    local procedure EnableHeatmap()
-    begin
-        if not IsReady then
-            exit;
-        CurrPage.Map.EnableHeatmap();
-    end;
+    // local procedure EnableHeatmap()
+    // begin
+    //     if not IsReady then
+    //         exit;
+    //     CurrPage.MapControl.EnableHeatmap();
+    // end;
 
-    local procedure UpdateHeatmap()
-    begin
-        if not IsReady then
-            exit;
-        CurrPage.Map.UpdateHeatmap();
-    end;
+    // local procedure UpdateHeatmap()
+    // begin
+    //     if not IsReady then
+    //         exit;
+    //     CurrPage.MapControl.UpdateHeatmap();
+    // end;
 
-    local procedure DisableHeatmap()
-    begin
-        if not IsReady then
-            exit;
-        CurrPage.Map.DisableHeatmap();
-    end;
+    // local procedure DisableHeatmap()
+    // begin
+    //     if not IsReady then
+    //         exit;
+    //     CurrPage.MapControl.DisableHeatmap();
+    // end;
 
     local procedure GetDataFromBuffer();
     begin

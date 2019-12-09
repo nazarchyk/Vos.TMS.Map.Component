@@ -1,6 +1,5 @@
 codeunit 6188525 "Map Get Selected Marker"
 {
-
     procedure GetMarkers(Markers: JsonArray);
     var
         JsonTkn: JsonToken;

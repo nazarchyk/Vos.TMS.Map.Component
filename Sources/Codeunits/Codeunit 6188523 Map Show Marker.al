@@ -1,9 +1,5 @@
 codeunit 6188523 "Map Show Marker"
 {
-    trigger OnRun();
-    begin
-    end;
-
     procedure GetMarkerJson(RouteDetails: Record "Map Route Detail") marker: JsonObject;
     var
         coordinates: JsonObject;
@@ -13,11 +9,11 @@ codeunit 6188523 "Map Show Marker"
     begin
         iconAnchor.Add(12);
         iconAnchor.Add(41);
-        with RouteDetails do
-        begin
-            //TestField(Id);
-            marker.Add('type', 1);//"Marker Type");                  // Type 0 - Icon Marker, Type 1 - Circle Marker.
+
+        with RouteDetails do begin
             marker.Add('id', Id);
+            marker.Add('type', 1);                  // "Marker Type": Type 0 - Icon Marker, Type 1 - Circle Marker.
+            marker.Add('layerId','default'); // SEB ... Test
             marker.Add(source, Source);
             coordinates.Add('latitude', Latitude);
             coordinates.Add('longitude', Longitude);
@@ -25,12 +21,12 @@ codeunit 6188523 "Map Show Marker"
 
             if "Marker Text" <> '' then begin
                 popup.Add('text', "Marker Text");
-                popup.Add('autoClose', true);      // If true, popup will be automatically closed when added. If false, map will keep popup opened.
+                popup.Add('autoClose', true);       // If true, popup will be automatically closed when added. If false, map will keep popup opened.
                 popup.Add('closeOnClick', false);   // If true, popup will be closed on map click.
                 marker.Add('popup', popup);
             end;
 
-            settings.Add('iconUrl', Icon);            // Optional. Icon URL, if you want custom marker.
+            settings.Add('iconUrl', Icon);          // Optional. Icon URL, if you want custom marker.
             settings.Add('shadowUrl', '');          // Optional. Shadow URL, if you want custom marker.
             settings.Add('iconAnchor', iconAnchor); // Optional. Icon anchor. Array of two numbers [X, Y].
             settings.Add('popupAnchor', '');        // Optional. Popup anchor. Array of two numbers [X, Y].

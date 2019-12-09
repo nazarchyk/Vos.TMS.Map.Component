@@ -2,13 +2,23 @@ pageextension 6188528 "Planview Shipment (Map)" extends "Planview Shipments"
 {
     layout
     {
-        addbefore(TableShip)
+        // addbefore(TableShip)
+        // {
+        //     part(Map; "Map Component Factbox")
+        //     {
+        //         ApplicationArea = All;
+        //         UpdatePropagation = Both;
+        //         Visible = IsMapVisible;
+        //     }
+        // }
+
+        addlast(FactBoxes)
         {
-            part(Map; "Map Component Factbox") 
-            { 
+            part(Map; "Map Component Factbox")
+            {
                 ApplicationArea = All;
                 UpdatePropagation = Both;
-                Visible = IsMapVisible; 
+                Visible = IsMapVisible;
             }
         }
     }
@@ -23,7 +33,7 @@ pageextension 6188528 "Planview Shipment (Map)" extends "Planview Shipments"
                 Caption = 'Show/Hide Map';
                 Image = Map;
 
-                trigger OnAction();
+                trigger OnAction()
                 begin
                     IsMapVisible := not IsMapVisible;
                 end;
@@ -36,24 +46,25 @@ pageextension 6188528 "Planview Shipment (Map)" extends "Planview Shipments"
         IsMapVisible: Boolean;
         xFilters: Text;
 
-    trigger OnOpenPage();
-    var
-        MapBuffer: Codeunit "Map Buffer";
+    trigger OnOpenPage()
     begin
-        MapBuffer.ClearAll();
         IsMapVisible := true;
     end;
 
-    trigger OnAfterGetCurrRecord();
+    trigger OnAfterGetCurrRecord()
+    var
+        RecReference: RecordRef;
     begin
-        GetShpmntBuffer(ShipmentBuffer);
-        AddSelectedShipmentsToMap();
+        // GetShpmntBuffer(ShipmentBuffer);
+        // AddSelectedShipmentsToMap();
 
         if xFilters <> GetFilters() then begin
             xFilters := GetFilters();
-            
-            If IsMapVisible then
-                UpdateMap();
+
+            If IsMapVisible then begin
+                RecReference.GetTable(Rec);
+                CurrPage.Map.Page.UpdateMapContent(RecReference);
+            end;
         end;
     end;
 
@@ -63,7 +74,7 @@ pageextension 6188528 "Planview Shipment (Map)" extends "Planview Shipments"
         MapBuffer: Codeunit "Map Buffer";
     begin
         MapBuffer.GetRouteDetails(RouteDetail);
-        if ShipmentBuffer.FindSet() then 
+        if ShipmentBuffer.FindSet() then
             repeat
                 RouteDetail.SetRange(Id, ShipmentBuffer.Id);
                 if RouteDetail.FindFirst then begin
@@ -78,14 +89,6 @@ pageextension 6188528 "Planview Shipment (Map)" extends "Planview Shipments"
 
         RouteDetail.Reset();
         MapBuffer.SetRouteDetails(RouteDetail);
-        CurrPage.Map.Page.GetDataFromBuffer();
-    end;
-
-    local procedure UpdateMap();
-    var
-        ShowShipments: Codeunit "Map Show Shipments";
-    begin
-        ShowShipments.Run(Rec);
         CurrPage.Map.Page.GetDataFromBuffer();
     end;
 }

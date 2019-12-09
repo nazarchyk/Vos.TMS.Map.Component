@@ -60,16 +60,16 @@ pageextension 6188529 "Planview Trips (Map)" extends "Planview Trips"
         MapShowTrip: Codeunit "Map Show Trip";
         MapBuffer: Codeunit "Map Buffer";
     begin
-        MapBuffer.GetRouteDetails(RouteDetail);
-        RouteDetail.SetRange(Type, RouteDetail.Type::Route);
-        RouteDetail.DeleteAll();
-        MapBuffer.SetRouteDetails(RouteDetail);
+        // MapBuffer.GetRouteDetails(RouteDetail);
+        // RouteDetail.SetRange(Type, RouteDetail.Type::Route);
+        // RouteDetail.DeleteAll();
+        // MapBuffer.SetRouteDetails(RouteDetail);
 
-        MapShowTrip.SetMultiple();
-        Trip.CopyFilters(Rec);
-        if Trip.FindSet() then 
-            repeat
-                MapShowTrip.Run(Trip);
-            until (Trip.Next() = 0);
+        // MapShowTrip.SetMultiple();
+        // Trip.CopyFilters(Rec);
+        // if Trip.FindSet() then 
+        //     repeat
+        //         MapShowTrip.Run(Trip);
+        //     until (Trip.Next() = 0);
     end;
 }

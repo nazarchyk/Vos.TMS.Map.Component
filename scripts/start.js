@@ -37,6 +37,11 @@ window.addEventListener("meta-ui-map-route-visibility-toggled", function (event)
     Microsoft.Dynamics.NAV.InvokeExtensibilityMethod("OnRouteVisibilityToggled", [event.detail]);
 });
 
+window.addEventListener("meta-ui-map-on-layer-visibility-changed", function (event) {
+    console.log(event);
+    Microsoft.Dynamics.NAV.InvokeExtensibilityMethod("OnLayerVisibilityChanged", [event.detail]);
+});
+
 var body = document.getElementById("controlAddIn");
 
 body.innerHTML = "<meta-ui-map></meta-ui-map>";

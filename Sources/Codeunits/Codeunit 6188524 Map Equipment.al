@@ -38,10 +38,11 @@ codeunit 6188524 "Map Equipment"
             Addr.Longitude := RouteDetail.Longitude;
             Addr.GetEquipmentNear(Equip, 0.5);
         until RouteDetail.Next = 0;
-        if Equip.FindSet then repeat
-            i += 1;
-            AddToMap(Equip, i, 'images/red-truck.png')
-        until Equip.Next = 0;
+        if Equip.FindSet then
+            repeat
+                i += 1;
+                AddToMap(Equip, i, 'images/red-truck.png')
+until Equip.Next = 0;
     end;
 
     procedure ShowTrucksFromPlanningCode()
@@ -101,6 +102,7 @@ codeunit 6188524 "Map Equipment"
         RouteDetail.Reset;
         MapBuffer.SetDataOneByOne(RouteDetail);
     end;
+
     procedure FindTripsForSelectedTrucks()
     var
         RouteDetail: Record "Map Route Detail" temporary;
@@ -109,8 +111,9 @@ codeunit 6188524 "Map Equipment"
         MapBuffer.GetRouteDetails(RouteDetail);
         RouteDetail.SetRange(Selected, RouteDetail.Selected::Clicked, RouteDetail.Selected::Selected);
         RouteDetail.SetRange(Source, 'Equipment');
-        if RouteDetail.FindSet then repeat
-            RouteDetail.FindRoute();
-        until RouteDetail.Next = 0;
+        if RouteDetail.FindSet then
+            repeat
+                RouteDetail.FindRoute();
+            until RouteDetail.Next = 0;
     end;
 }

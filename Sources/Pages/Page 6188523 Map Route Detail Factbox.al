@@ -48,7 +48,7 @@ page 6188523 "Map Route Detail Factbox"
                 Caption = 'Route as Json (Debug)';
                 trigger OnAction();
                 begin
-                    //    Message(Format(ShowRoute(true)));
+                    //    Message(Format(ShowRoute()));
                 end;
             }
             action(MarkerAsJson)
@@ -56,7 +56,7 @@ page 6188523 "Map Route Detail Factbox"
                 Caption = 'Marker as Json (Debug)';
                 trigger OnAction();
                 begin
-                    Message(Format(ShowMarker(true)));
+                    Message(Format(ShowMarker()));
                 end;
             }
         }

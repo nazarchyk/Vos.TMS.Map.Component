@@ -4,12 +4,12 @@ pageextension 6188527 "Trip Card (Map)" extends "Trip Card"
     {
         addfirst(FactBoxes)
         {
-            part(Map; "Map Component Factbox") 
+            part(Map; "Map Component Factbox")
             {
                 ApplicationArea = All;
             }
-            part(MapDetails; "Map Route Factbox") 
-            { 
+            part(MapDetails; "Map Route Factbox")
+            {
                 ApplicationArea = All;
             }
         }
@@ -24,35 +24,38 @@ pageextension 6188527 "Trip Card (Map)" extends "Trip Card"
                 Caption = 'Suggest Shipments';
                 Image = Map;
 
-                trigger OnAction();
+                trigger OnAction()
                 begin
                     FindImportShipments();
-                    SuggestShipments();
+                    // SuggestShipments();
                 end;
             }
         }
     }
 
-    trigger OnAfterGetCurrRecord();
-    begin
-        SuggestShipments();        
-    end;
-
-    local procedure SuggestShipments();
+    trigger OnAfterGetCurrRecord()
     var
-        RouteDetailBuffer: Record "Map Route Detail" temporary;
-        MapBuffer: Codeunit "Map Buffer";
-        ShowTrip: Codeunit "Map Show Trip";
+        RecReference: RecordRef;
     begin
-        MapBuffer.GetRouteDetails(RouteDetailBuffer);
-        RouteDetailBuffer.SetRange(Type, RouteDetailBuffer.Type::Route);
-        RouteDetailBuffer.DeleteAll();
-        MapBuffer.SetRouteDetails(RouteDetailBuffer);
-
-        ShowTrip.SetMultiple();
-        ShowTrip.Run(Rec);
-
-        CurrPage.Map.Page.GetDataFromBuffer();
-        CurrPage.Map.Page.Update();
+        RecReference.GetTable(Rec);
+        CurrPage.Map.Page.UpdateMapContent(RecReference);
     end;
+
+    // local procedure SuggestShipments()
+    // var
+    //     RouteDetailBuffer: Record "Map Route Detail" temporary;
+    //     MapBuffer: Codeunit "Map Buffer";
+    //     ShowTrip: Codeunit "Map Show Trip";
+    // begin
+    //     MapBuffer.GetRouteDetails(RouteDetailBuffer);
+    //     RouteDetailBuffer.SetRange(Type, RouteDetailBuffer.Type::Route);
+    //     RouteDetailBuffer.DeleteAll();
+    //     MapBuffer.SetRouteDetails(RouteDetailBuffer);
+
+    //     ShowTrip.SetMultiple();
+    //     ShowTrip.Run(Rec);
+
+    //     CurrPage.Map.Page.GetDataFromBuffer();
+    //     CurrPage.Map.Page.Update();
+    // end;
 }

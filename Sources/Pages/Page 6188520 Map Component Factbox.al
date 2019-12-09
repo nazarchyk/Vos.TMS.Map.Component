@@ -1,53 +1,59 @@
 page 6188520 "Map Component Factbox"
 {
+    Caption = 'Map Component Factbox';
     PageType = CardPart;
 
     layout
     {
         area(Content)
         {
-            usercontrol(Map; Map)
+            usercontrol(MapControl; MetaUIMapAddIn)
             {
                 ApplicationArea = All;
 
-                trigger OnMapInit();
-                begin
-                    SetSettings;
-                end;
-
-                trigger ControlReady();
-                begin
-                    IsReady := true;
-                    ShowRouteOnMap;
-                    ShowMarkerOnMap;
-                end;
-
-                trigger OnRouteSelected(eventObject: JsonObject);
-                begin
-                    Message(format(eventObject));
-                end;
-
-                trigger OnMarkerClicked(eventObject: JsonObject); // Single Marker
+                trigger OnMapInit()
                 var
-                    GetSelectedMarker: Codeunit "Map Get Selected Marker";
+                    MapSettings: Codeunit "Map Settings";
                 begin
-                    GetSelectedMarker.GetMarker(eventObject);
-                    GetDataFromBuffer;
-                    //CurrPage.Update(false);
+                    CurrPage.MapControl.SetSettings(MapSettings.SetSettings());
                 end;
 
-                trigger OnMarkersSelected(eventObject: JsonArray); // Lasso
-                var
-                    GetSelectedMarker: Codeunit "Map Get Selected Marker";
+                trigger ControlReady()
                 begin
-                    GetSelectedMarker.GetMarkers(eventObject);
-                    GetDataFromBuffer;
+                    PerformMapStructureUpdate();
                 end;
 
-                trigger OnRouteVisibilityToggled(eventObject: JsonObject)
+                trigger OnLayerVisibilityChanged(LayerState: JsonObject)
                 begin
-                    Message(format(eventObject));
+                    MapElementBuffer.ManageLayerVisibility(SourceReference, LayerState);
+
+                    if MapElementBuffer.Selected then
+                        PerformMapContentUpdate()
+                    else
+                        CurrPage.MapControl.ClearLayer(MapElementBuffer.ToJSON(true));
                 end;
+
+                trigger OnMarkerClicked(Marker: JsonObject) // Single Marker
+                begin
+                    MapElementBuffer.ManageSingleSelection(SourceReference, Marker);
+
+                    PerformMapSelectionsUpdate();
+                end;
+
+                trigger OnMarkersSelected(Markers: JsonArray) // Lasso Capture
+                begin
+                    MapElementBuffer.ManageMultiSelection(SourceReference, Markers);
+
+                    PerformMapSelectionsUpdate();
+                end;
+
+                // trigger OnRouteSelected(Route: JsonObject)
+                // begin
+                //     MapElementBuffer.ManageSingleSelection(SourceReference, Route);
+
+                //     // ToDo: Update route selection update ...
+                //     // PerformMapSelectionsUpdate(); 
+                // end;
             }
         }
     }
@@ -56,257 +62,136 @@ page 6188520 "Map Component Factbox"
     {
         area(Processing)
         {
-            action(Update)
+            action(UpdateContent)
             {
+                ApplicationArea = All;
+                Caption = 'Update Content';
                 Image = UpdateShipment;
-                trigger OnAction();
+
+                trigger OnAction()
                 begin
-                    ZoomDisabled := false;
-                    GetDataFromBuffer;
+                    if IsMapControlReady then
+                        PerformMapStructureUpdate();
                 end;
             }
-            action(Details)
+
+            action(LassoSelection)
             {
-                Image = Card;
-                RunObject = page "Map Routes";
-            }
-            action(Prediction)
-            {
-                Image = MapAccounts;
-                trigger OnAction();
-                var
-                    MapShowPrediction: Codeunit "Map Show Prediction";
-                begin
-                    MapShowPrediction.GetPredictionResults;
-                    GetDataFromBuffer;
-                end;
-            }
-            action(Trucks)
-            {
-                Image = Travel;
-                trigger OnAction();
-                var
-                    MapEquip: Codeunit "Map Equipment";
-                begin
-                    case StrMenu('My Trucks,Trucks Ittervoort,Trucks Deventer,Nearby,Find Trips', 1) of
-1 :
-                            MapEquip.ShowMyTrucks;
-2 :
-                            MapEquip.ShowTrucksFromPlanningCode;
-3 :
-                            Message('Not yet implemented...');
-4 :
-                            MapEquip.ShowTrucksClose;
-5 :
-                            MapEquip.FindTripsForSelectedTrucks;
-                    end;
-                    GetDataFromBuffer;
-                end;
-            }
-            action(Marker)
-            {
-                Image = Position;
-                trigger OnAction();
-                begin
-                    ShowMarkerOnMap;
-                end;
-            }
-            action(Route)
-            {
-                Image = "Grid";
-                trigger OnAction();
-                begin
-                    ShowRouteOnMap;
-                end;
-            }
-            action(Lasso)
-            {
+                ApplicationArea = All;
+                Caption = 'Lasso Selection';
                 Image = Map;
-                Caption = 'Lasso';
-                trigger OnAction();
-                begin
-                    EnableLasso;
-                    GetDataFromBuffer;
-                    CurrPage.Update(false);
-                end;
-            }
-            action(SelectForPlanning)
-            {
-                Image = SelectEntries;
-                Caption = 'Select';
-                trigger OnAction();
-                var
-                    ShowShipment: Codeunit "Map Show Shipments";
-                begin
-                    ShowShipment.SelectShipments;
-                    GetDataFromBuffer;
-                    CurrPage.Update(false);
-                end;
-            }
-            action(UnSelectForPlanning)
-            {
-                Image = UnApply;
-                Caption = 'Unselect';
-                trigger OnAction();
-                var
-                    ShowShipment: Codeunit "Map Show Shipments";
-                begin
-                    ShowShipment.DeSelectShipments;
-                    GetDataFromBuffer;
-                    CurrPage.Update(false);
-                end;
-            }
-            action(Clear)
-            {
-                Image = ClearLog;
-                trigger OnAction();
-                begin
-                    ClearMap;
-                    ZoomDisabled := false;
-                end;
-            }
-            action("Toggle Selected Only")
-            {
-                Image = SelectItemSubstitution;
-                trigger OnAction();
-                var
-                    MapBuffer: Codeunit "Map Buffer";
-                    RouteDetail: Record "Map Route Detail" temporary;
-                begin
-                    MapBuffer.GetRouteDetails(RouteDetail);
-                    if RouteDetail.GetFilter(Selected) = '' then
-                        RouteDetail.SetRange(Selected, RouteDetail.Selected::Clicked, RouteDetail.Selected::Selected)
-                    else
-                        RouteDetail.SetRange(Selected);
-                    MapBuffer.SetRouteDetails(RouteDetail);
-                    GetDataFromBuffer;
 
-                end;
-            }
-
-            action("Enable heatmap")
-            {
-                Image = Approve;
-                trigger OnAction();
+                trigger OnAction()
                 begin
-                    EnableHeatmap;
-                end;
-            }
-
-            action("Update heatmap")
-            {
-                Image = UpdateDescription;
-                trigger OnAction();
-                begin
-                    UpdateHeatmap;
-                end;
-            }
-
-            action("Disable heatmap")
-            {
-                Image = UnApply;
-                trigger OnAction();
-                begin
-                    DisableHeatmap;
+                    if IsMapControlReady then
+                        CurrPage.MapControl.EnableLasso();
                 end;
             }
         }
     }
 
-    local procedure ShowMarkerOnMap();
     var
-        RouteDetail: Record "Map Route Detail" temporary;
-        MapBuffer: Codeunit "Map Buffer";
+        MapElementBuffer: Record "Meta UI Map Element" temporary;
+        SourceReference: RecordRef;
+        IsMapControlReady: Boolean;
+
+    procedure UpdateMapContent(var Source: RecordRef)
     begin
-        MapBuffer.GetRouteDetails(RouteDetail);
-        if RouteDetail.Count > 500 then begin
-            RouteDetail.SetRange("Stop No.", 0, 500);
-            if not WarningDisplayed then begin
-                Message('Only the first 500 stops are displayed on the map.\Please reduce filters.');
-                WarningDisplayed := true;
-            end;
+        SourceReference := Source;
+        if IsMapControlReady then
+            PerformMapStructureUpdate();
+    end;
+
+    local procedure PerformMapStructureUpdate();
+    begin
+        IsMapControlReady := false;
+        CurrPage.MapControl.ClearMap();
+
+        MapElementBuffer.InitiateMapStructure(SourceReference);
+
+        MapElementBuffer.SelectLayers('');
+        if MapElementBuffer.FindSet() then
+            repeat
+                case MapElementBuffer.Subtype of
+                    MapElementBuffer.Subtype::Geo:
+                        CurrPage.MapControl.AddGeoJSONLayer(MapElementBuffer.ToJSON(false));
+
+                    MapElementBuffer.Subtype::Cluster:
+                        CurrPage.MapControl.AddMarkerClusterLayer(MapElementBuffer.ToJSON(false));
+
+                    MapElementBuffer.Subtype::Heat:
+                        CurrPage.MapControl.AddHeatLayer(MapElementBuffer.ToJSON(false));
+                end;
+
+                if MapElementBuffer."Base Layer" then
+                    CurrPage.MapControl.ShowLayer(MapElementBuffer.ToJSON(true));
+            until (MapElementBuffer.Next() = 0);
+
+        // ToDo: Show custom layer controls...
+        CurrPage.MapControl.AddLayersControl(MapElementBuffer.LayersControlToJSON(false));
+        CurrPage.MapControl.ShowControl(MapElementBuffer.LayersControlToJSON(true));
+
+        IsMapControlReady := true;
+    end;
+
+    local procedure PerformMapContentUpdate()
+    var
+        MapRoute: Record "Meta UI Map Element" temporary;
+        MapPoint: Record "Meta UI Map Element" temporary;
+    begin
+        MapPoint.Copy(MapElementBuffer, true);
+        MapPoint.SelectPoints(MapElementBuffer.ID);
+        if MapPoint.FindSet() then
+            repeat
+                case MapPoint.Subtype of
+                    MapPoint.Subtype::Circle:
+                        CurrPage.MapControl.ShowCircleMarker(MapPoint.ToJSON(false));
+                    MapPoint.Subtype::Icon:
+                        CurrPage.MapControl.ShowIconMarker(MapPoint.ToJSON(false));
+                end;
+            until (MapPoint.Next() = 0);
+
+        MapRoute.Copy(MapElementBuffer, true);
+        MapRoute.SelectRoutes(MapElementBuffer.ID);
+        if MapRoute.FindSet() then begin
+            CurrPage.MapControl.ShowRoute(MapRoute.ToJSON(false));
+
+            repeat
+                MapPoint.SelectPoints(MapRoute.ID);
+                if MapPoint.FindSet() then
+                    repeat
+                        case MapPoint.Subtype of
+                            MapPoint.Subtype::Circle:
+                                CurrPage.MapControl.ShowCircleMarker(MapPoint.ToJSON(false));
+                            MapPoint.Subtype::Icon:
+                                CurrPage.MapControl.ShowIconMarker(MapPoint.ToJSON(false));
+                        end;
+                    until (MapPoint.Next() = 0);
+            until (MapRoute.Next() = 0);
         end;
 
-        RouteDetail.SetRange(Type, RouteDetail.Type::Markers);
-        if RouteDetail.findset then repeat
-            if RouteDetail."Marker Type" = RouteDetail."Marker Type"::Icon then
-                CurrPage.Map.ShowIconMarker(RouteDetail.ShowMarker(IsReady))
-            else
-                CurrPage.Map.ShowCircleMarker(RouteDetail.ShowMarker(IsReady));
-            until RouteDetail.next = 0;
+        CurrPage.MapControl.FitLayerBounds(MapElementBuffer.ToJSON(true));
     end;
 
-    local procedure ShowRouteOnMap();
-    var
-        Route: Record "Map Route" temporary;
-        MapBuffer: Codeunit "Map Buffer";
+    local procedure PerformMapSelectionsUpdate()
     begin
-        if not IsReady then
-            exit;
-        MapBuffer.GetRoutes(Route);
-        Route.SetRange("No.", 1, 99);
-        if Route.FindSet then repeat
-            CurrPage.Map.ShowRoute(Route.ShowRoute);
-            until Route.Next = 0;
+        if MapElementBuffer.FindSet() then
+            repeat
+                CurrPage.MapControl.RemoveMarker(MapElementBuffer.ToJSON(true));
+
+                case MapElementBuffer.Subtype of
+                    MapElementBuffer.Subtype::Circle:
+                        CurrPage.MapControl.ShowCircleMarker(MapElementBuffer.ToJSON(false));
+                    MapElementBuffer.Subtype::Icon:
+                        CurrPage.MapControl.ShowIconMarker(MapElementBuffer.ToJSON(false));
+                end;
+            until (MapElementBuffer.Next() = 0);
     end;
 
-    local procedure ClearMap();
+    procedure GetDataFromBuffer(); // OBSOLETE: OLD CODE Starts Visualization ...
     begin
-        CurrPage.Map.ClearMap();
+
     end;
 
-    local procedure SetSettings();
-    var
-        MapSettings: Codeunit "Map Settings";
-    begin
-        CurrPage.Map.SetSettings(MapSettings.SetSettings);
-    end;
-
-    local procedure EnableLasso()
-    begin
-        if not IsReady then
-            exit;
-        CurrPage.Map.EnableLasso();
-    end;
-
-    local procedure EnableHeatmap()
-    begin
-        if not IsReady then
-            exit;
-        CurrPage.Map.EnableHeatmap();
-    end;
-
-    local procedure UpdateHeatmap()
-    begin
-        if not IsReady then
-            exit;
-        CurrPage.Map.UpdateHeatmap();
-    end;
-
-    local procedure DisableHeatmap()
-    begin
-        if not IsReady then
-            exit;
-        CurrPage.Map.DisableHeatmap();
-    end;
-
-    procedure GetDataFromBuffer();
-    var
-        MapBuffer: Codeunit "Map Buffer";
-    begin
-        if not IsReady then
-            exit;
-        ClearMap;
-        ShowMarkerOnMap;
-        ShowRouteOnMap;
-        if not ZoomDisabled then begin
-            ZoomDisabled := true;
-            CurrPage.Map.DisableFitMarkersBounds;
-        end;
-    end;
-
-    var
-        IsReady: Boolean;
-        ZoomDisabled: Boolean;
-        WarningDisplayed: Boolean;
+    // ToDo: Implement smoothe map state transfer from small map the fullscreen map...
 }

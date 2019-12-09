@@ -12,7 +12,7 @@ codeunit 6188526 "Map Show Trip"
         RouteDetails.FromBuffer();
         // GetActualTripFromBoardComputer(Rec, RouteDetails);
         if IsMultipleRoutes then
-            GetMultipleTripRoute(Rec, RouteDetails)
+            ConvertTripToMultiRoute(Rec, RouteDetails)
         else begin
             GetInternationalRoute(Rec, RouteDetails);
             GetTakenOverTripRoute(Rec, RouteDetails);
@@ -27,7 +27,7 @@ codeunit 6188526 "Map Show Trip"
         IsMultipleRoutes := true;
     end;
 
-    local procedure GetMultipleTripRoute(Trip: Record Trip; var RouteDetails: Record "Map Route Detail")
+    procedure ConvertTripToMultiRoute(var Trip: Record Trip; var RouteDetails: Record "Map Route Detail")
     var
         TransportPlannedActivity: Record "Transport Planned Activity";
         RouteNo: Integer;
@@ -45,8 +45,7 @@ codeunit 6188526 "Map Show Trip"
         TransportPlannedActivity.SetFilter(Timetype, '<>%1', TransportPlannedActivity.Timetype::Rest);
         if TransportPlannedActivity.FindSet() then 
             repeat
-                // RouteDetails.CreateFromTrPlanAct(TransportPlannedActivity, '', RouteNo, Trip."No.", true);
-                RouteDetails.CreateFromTrPlanAct(TransportPlannedActivity, '', RouteNo, Trip."No.", false);
+                RouteDetails.CreateFromTrPlanAct(TransportPlannedActivity, '', RouteNo, Trip."No.", true);
             until (TransportPlannedActivity.Next() = 0);
     end;
 

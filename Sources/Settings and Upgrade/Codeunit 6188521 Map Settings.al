@@ -24,14 +24,14 @@ codeunit 6188521 "Map Settings"
         settings.Add('providerSettings', providerSettings);
 
         //         /*** DEFAULT ICON SETTINGS ***/
-        iconMarker.Add('iconUrl', 'images/marker-icon.png');        // REQUIRED. Default icon URL.
-        iconMarker.Add('shadowUrl', 'images/marker-shadow.png');    // OPTIONAL. Default icon shadow URL.
+        // iconMarker.Add('iconUrl', 'images/marker-icon.png');        // REQUIRED. Default icon URL.
+        // iconMarker.Add('shadowUrl', 'images/marker-shadow.png');    // OPTIONAL. Default icon shadow URL.
                                                                     //         // iconMarker.Add('iconAnchor', '');                        // OPTIONAL. Icon anchor. Array of two numbers [X, Y]. Checkout leaflet docs.
                                                                     //         // iconMarker.Add('popupAnchor', '');                       // OPTIONAL. Popup anchor. Array of two numbers [X, Y]. Checkout leaflet docs.
                                                                     //         // iconMarker.Add('iconSize', '');                          // OPTIONAL. Icon size. Array of two numbers [X, Y]. Checkout leaflet docs.
                                                                     //         // iconMarker.Add('shadowSize', '');                        // OPTIONAL. Shadow size. Array of two numbers [X, Y]. Checkout leaflet docs.
                                                                     //         // iconMarker.Add('shadowAnchor', '');                      // OPTIONAL. Shadow anchor. Array of two numbers [X, Y]. Checkout leaflet docs.
-        defaultMarkerSettings.Add('iconMarker', iconMarker);
+        // defaultMarkerSettings.Add('iconMarker', iconMarker);
 
         //         // Most of these options aren't really required. But it is better to provide them. In case you don't, leaflet will use it's defaults.
         //         // circleMarker.Add('fillColor', 'pink');              // OPTIONAL. Circle marker fill color. Default value is 'red'.
@@ -42,7 +42,7 @@ codeunit 6188521 "Map Settings"
         //         // circleMarker.Add('strokeWidthPx', 4);               // OPTIONAL. Circle marker stroke width in pixels. Default value is 3.
         //         // defaultMarkerSettings.Add('circleMarker', circleMarker);
 
-        settings.Add('defaultMarkerSettings', defaultMarkerSettings);
+        // settings.Add('defaultMarkerSettings', defaultMarkerSettings);
 
         //         /*** DEFAULT SELECTED ROUTE SETTINGS ***/
         //         // defaultRouteSettings.Add('selectable', false);      // OPTIONAL. Is route selectable. Default value is false.
