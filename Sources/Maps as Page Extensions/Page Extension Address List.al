@@ -7,17 +7,13 @@ pageextension 6188522 "Address List (Map)" extends "Address List"
             part(Map; "Map Component Factbox") { }
         }
     }
-    trigger OnAfterGetCurrRecord();
+
+
+    trigger OnAfterGetCurrRecord()
     var
-        RouteDetails: Record "Map Route Detail" temporary;
+        RecReference: RecordRef;
     begin
-        RouteDetails."Route No." := 0;
-        RouteDetails.Latitude := Latitude;
-        RouteDetails.Longitude := Longitude;
-        RouteDetails."Marker Text" := Description + ' ' + Street + ' ' + "Post Code" + ' ' + City;
-        RouteDetails.Insert;
-        RouteDetails.ToBuffer;
-        CurrPage.Map.Page.GetDataFromBuffer;
-        CurrPage.Map.Page.Update;
+        RecReference.GetTable(Rec);
+        CurrPage.Map.Page.UpdateMapContent(RecReference);
     end;
 }

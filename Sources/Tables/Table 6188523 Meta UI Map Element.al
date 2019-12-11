@@ -403,7 +403,7 @@ table 6188523 "Meta UI Map Element"
         Gradient.Add('1', 'red');
 
         // Property {object} [gradient={0.4: 'blue', 0.65: 'lime', 1: 'red'}]
-        //  Color gradient config, e.g. {0.4: 'blue', 0.65: 'lime', 1: 'red'}
+        // Color gradient config, e.g. {0.4: 'blue', 0.65: 'lime', 1: 'red'}
         Settings.Add('gradient', Gradient);
 
         SavePrimarySettings(Settings);

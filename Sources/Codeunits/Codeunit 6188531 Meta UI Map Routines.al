@@ -15,6 +15,9 @@ codeunit 6188531 "Meta UI Map Routines"
     local procedure MetaUIMapElement_OnMapStructureInitiate(var Source: RecordRef; var MapElementBuffer: Record "Meta UI Map Element")
     begin
         case Source.Number of
+            Database::Address:
+                MapElementBuffer.CreateGeoLayer('00.Base.Geo.Address', 'Address Location', true);
+
             Database::Shipment:
                 begin
                     MapElementBuffer.CreateClusterLayer('00.Base.Cluster.Shipments', 'Shipments', true);
@@ -46,6 +49,8 @@ codeunit 6188531 "Meta UI Map Routines"
             MapElementBuffer.Type::Layer:
                 if MapElementBuffer.Selected then
                     case MapElementBuffer.ID of
+                        '00.Base.Geo.Address':
+                            AddressToMapElement(Source, MapElementBuffer);
                         '00.Base.Cluster.Shipments':
                             ShipmentsToMapElements(Source, MapElementBuffer);
                         '00.Base.Geo.ActiveTrip':
@@ -95,11 +100,22 @@ codeunit 6188531 "Meta UI Map Routines"
         end;
     end;
 
+    local procedure AddressToMapElement(var Source: RecordRef; var MapElementBuffer: Record "Meta UI Map Element")
+    var
+        Address: Record Address;
+    begin
+        Source.SetTable(Address);
+
+        MapElementBuffer.CreateCirclePoint(Address."No.", Address.Description);
+        MapElementBuffer.UpdatePointCoordinates(Address.Latitude, Address.Longitude);
+        MapElementBuffer.UpdatePointPopupSettings(StrSubstNo('%1 %2 %3 %4',
+            Address.Description, Address.Street, Address."Post Code", Address.City), true, false);
+    end;
+
     procedure ShipmentsToMapElements(var Source: RecordRef; var MapElementBuffer: Record "Meta UI Map Element")
     var
         Address: Record Address;
         Shipment: Record Shipment;
-        PopupContent: Text;
     begin
         Source.SetTable(Shipment);
 
@@ -114,12 +130,11 @@ codeunit 6188531 "Meta UI Map Routines"
                         Address.Get(Shipment."To Address No.");
                 end;
 
-                PopupContent := StrSubstNo('LM: %1 %2 %3 %4 %5', Format(Shipment."Loading Meters"),
-                    Address.Description, Address.Street, Address."Post Code", Address.City);
-
                 MapElementBuffer.CreateCirclePoint(Shipment.id, Shipment.Description);
                 MapElementBuffer.UpdatePointCoordinates(Address.Latitude, Address.Longitude);
-                MapElementBuffer.UpdatePointPopupSettings(PopupContent, true, false);
+                MapElementBuffer.UpdatePointPopupSettings(StrSubstNo('LM: %1 %2 %3 %4 %5', Shipment."Loading Meters",
+                    Address.Description, Address.Street, Address."Post Code", Address.City), true, false);
+
                 MapElementBuffer.UpdatePointMarkerSettings('fillColor', Shipment.GetColor());
                 MapElementBuffer.UpdatePointMarkerSettings('radius', 10 + Round(Shipment."Loading Meters", 1, '>'));
 

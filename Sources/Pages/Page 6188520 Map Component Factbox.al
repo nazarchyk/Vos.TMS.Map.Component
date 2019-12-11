@@ -193,5 +193,5 @@ page 6188520 "Map Component Factbox"
 
     end;
 
-    // ToDo: Implement smoothe map state transfer from small map the fullscreen map...
+    // ToDo: Implement smooth map state transfer from small map the fullscreen map...
 }
