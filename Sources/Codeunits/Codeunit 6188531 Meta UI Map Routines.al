@@ -44,6 +44,8 @@ codeunit 6188531 "Meta UI Map Routines"
 
     [EventSubscriber(ObjectType::Table, Database::"Meta UI Map Element", 'OnElementSelectionChanged', '', false, false)]
     local procedure MetaUIMapElement_OnElementSelectionChanged(var Source: RecordRef; var MapElementBuffer: Record "Meta UI Map Element")
+    var 
+        Shipment: Record Shipment;
     begin
         case MapElementBuffer.Type of
             MapElementBuffer.Type::Layer:
@@ -76,9 +78,15 @@ codeunit 6188531 "Meta UI Map Routines"
             MapElementBuffer.Type::Point:
                 case MapElementBuffer.Subtype of
                     MapElementBuffer.Subtype::Circle:
-                        if MapElementBuffer.Selected then
-                            MapElementBuffer.UpdatePointMarkerSettings('strokeColor', 'black')
-                        else
+                        if MapElementBuffer.Selected then begin
+                            MapElementBuffer.UpdatePointMarkerSettings('strokeColor', 'black');
+
+                            if Source.Number = Database::Shipment then begin
+                                Shipment.SetRange(Id, MapElementBuffer.ID);
+                                if Shipment.FindFirst() then
+                                    OnShipmentMarkerSelection(Shipment);
+                            end;
+                        end else
                             MapElementBuffer.UpdatePointMarkerSettings('strokeColor', '#4f90ca');
 
                     MapElementBuffer.Subtype::Icon:
@@ -379,5 +387,11 @@ codeunit 6188531 "Meta UI Map Routines"
             until (MapElementShadow.Next() = 0);
         end else
             Message(NoSelectionException);
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnShipmentMarkerSelection(Shipment: Record Shipment);
+    begin
+        // This event is triggert when circle marker is being selected on the Map Factbox on the Planview Shipment page
     end;
 }
