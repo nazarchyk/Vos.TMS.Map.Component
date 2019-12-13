@@ -164,7 +164,7 @@ codeunit 6188531 "Meta UI Map Routines"
         TransportPlannedActivity.SetFilter("Address No.", '<>%1', '');
         TransportPlannedActivity.SetFilter(Timetype, '<>%1', TransportPlannedActivity.Timetype::Rest);
         if TransportPlannedActivity.FindSet() then begin
-            MapElementBuffer.CreateGeoRoute(Trip."No.", Trip.Name);
+            MapElementBuffer.CreateGeoRoute(Trip."No.", CopyStr(Trip.Name, 1, MaxStrLen(MapElementBuffer.Name)));
 
             repeat
                 Address.Get(TransportPlannedActivity."Address No.");
@@ -392,6 +392,6 @@ codeunit 6188531 "Meta UI Map Routines"
     [IntegrationEvent(false, false)]
     local procedure OnShipmentMarkerSelection(Shipment: Record Shipment);
     begin
-        // This event is triggert when circle marker is being selected on the Map Factbox on the Planview Shipment page
+        // This event is triggered when the circle marker is being selected on the Map Factbox on the Planview Shipment page.
     end;
 }
