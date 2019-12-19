@@ -2,13 +2,14 @@ pageextension 6188529 "Planview Trips (Map)" extends "Planview Trips"
 {
     layout
     {
-        addlast(Content)
+        // addlast(Content)
+        addfirst(FactBoxes)
         {
-            part(Map; "Map Component Factbox") 
-            { 
+            part(Map; "Meta UI Map")
+            {
                 ApplicationArea = All;
                 UpdatePropagation = Both;
-                Visible = IsMapVisible; 
+                Visible = IsMapVisible;
             }
         }
     }
@@ -23,7 +24,7 @@ pageextension 6188529 "Planview Trips (Map)" extends "Planview Trips"
                 Caption = 'Show/Hide Map';
                 Image = Map;
 
-                trigger OnAction();
+                trigger OnAction()
                 begin
                     IsMapVisible := not IsMapVisible;
                 end;
@@ -35,41 +36,41 @@ pageextension 6188529 "Planview Trips (Map)" extends "Planview Trips"
         IsMapVisible: Boolean;
         xFilters: Text;
 
-    trigger OnOpenPage();
-    var
-        MapBuffer: Codeunit "Map Buffer";
+    trigger OnOpenPage()
     begin
-        MapBuffer.ClearAll();
-        // IsMapVisible := true;
+        IsMapVisible := true;
     end;
 
-    trigger OnAfterGetCurrRecord();
-    begin
-        if xFilters <> GetFilters() then begin
-            xFilters := GetFilters();
-            
-            If IsMapVisible then
-                UpdateMap();
-        end;
-    end;
+    // Variant 1 - Visualization only when filters changed
+    // trigger OnAfterGetCurrRecord()
+    // var
+    //     RecReference: RecordRef;
+    // begin
+    //     if xFilters <> GetFilters() then begin
+    //         xFilters := GetFilters();
 
-    local procedure UpdateMap();
+    //         If IsMapVisible then begin
+    //             RecReference.GetTable(Rec);
+    //             CurrPage.Map.Page.UpdateMapContent(RecReference);
+    //         end;
+    //     end;
+    // end;
+
+    // Variant 2 - Visualization on record or selection change
+    trigger OnAfterGetCurrRecord()
     var
         Trip: Record Trip;
-        RouteDetail: Record "Map Route Detail" temporary;
-        MapShowTrip: Codeunit "Map Show Trip";
-        MapBuffer: Codeunit "Map Buffer";
+        RecReference: RecordRef;
     begin
-        // MapBuffer.GetRouteDetails(RouteDetail);
-        // RouteDetail.SetRange(Type, RouteDetail.Type::Route);
-        // RouteDetail.DeleteAll();
-        // MapBuffer.SetRouteDetails(RouteDetail);
+        If IsMapVisible then begin
+            CurrPage.SetSelectionFilter(Trip);
+            if Trip.Count() = 1 then begin
+                RecReference.GetTable(Rec);
+                RecReference.SetRecFilter();
+            end else
+                RecReference.GetTable(Trip);
 
-        // MapShowTrip.SetMultiple();
-        // Trip.CopyFilters(Rec);
-        // if Trip.FindSet() then 
-        //     repeat
-        //         MapShowTrip.Run(Trip);
-        //     until (Trip.Next() = 0);
+            CurrPage.Map.Page.UpdateMapContent(RecReference);
+        end;
     end;
 }

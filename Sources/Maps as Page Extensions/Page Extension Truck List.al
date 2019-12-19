@@ -4,23 +4,18 @@ pageextension 6188530 "Truck List (Map)" extends "Truck List"
     {
         addlast(FactBoxes)
         {
-            part(Map; "Map Component Factbox") {  }
+            part(Map; "Meta UI Map")
+            {
+                ApplicationArea = All;
+            }
         }
     }
-    
-    trigger OnAfterGetCurrRecord();
+
+    trigger OnAfterGetCurrRecord()
     var
-        RouteDetails: Record "Map Route Detail" temporary;
+        RecReference: RecordRef;
     begin
-        RouteDetails.Reset;
-        RouteDetails.DeleteAll;
-        RouteDetails."Route No." := 0;
-        RouteDetails.Latitude := "Last Latitude";
-        RouteDetails.Longitude := "Last Longitude";
-        RouteDetails."Marker Text" := "Last City";// + ' ' + Street + ' ' + "Post Code" + ' ' + City;
-        RouteDetails.Insert;
-        RouteDetails.ToBuffer;
-        CurrPage.Map.Page.GetDataFromBuffer;
-        CurrPage.Map.Page.Update;
+        RecReference.GetTable(Rec);
+        CurrPage.Map.Page.UpdateMapContent(RecReference);
     end;
 }

@@ -215,7 +215,6 @@
  * @param {IconMarker} marker
  */
 function ShowIconMarker(marker) {
-  console.log(marker);
   if (marker.settings) {
     if (marker.settings.iconUrl) {
       var actualIconUrl = Microsoft.Dynamics.NAV.GetImageResource(
@@ -309,7 +308,6 @@ function ClearMap() {
 }
 
 function SetSettings(settings) {
-  console.log(settings);
   if (
     settings.defaultMarkerSettings &&
     settings.defaultMarkerSettings.iconMarker

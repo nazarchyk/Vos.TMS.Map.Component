@@ -181,7 +181,14 @@ table 6188523 "Meta UI Map Element"
 
     /* ------------------------------------------ Process Functions ---------------------------------------- */
 
-    procedure InitiateMapStructure(var Source: RecordRef);
+    procedure InitiateMapSettings(var MapSettings: JsonObject)
+    begin
+        AssertRecordIsTemporary();
+
+        OnMapSettingsInitiate(MapSettings);
+    end;
+
+    procedure InitiateMapStructure(var Source: RecordRef)
     begin
         AssertRecordIsTemporary();
 
@@ -973,8 +980,20 @@ table 6188523 "Meta UI Map Element"
 
     procedure UpdateDataMarkProperty(Value: Text[50])
     begin
+        AssertRecordIsExist();
+
         "Data Mark" := Value;
         Modify();
+    end;
+
+    procedure UpdatePointAsSelected(var Source: RecordRef)
+    begin
+        AssertRecordIsExist();
+
+        Selected := true;
+        Modify();
+
+        OnElementSelectionChanged(Source, Rec);
     end;
 
     procedure ToJSON(OnlyID: Boolean) Element: JsonObject
@@ -1090,17 +1109,25 @@ table 6188523 "Meta UI Map Element"
     /* ------------------------------------------ Events Functions ----------------------------------------- */
 
     [IntegrationEvent(false, false)]
+    local procedure OnMapSettingsInitiate(var MapSettings: JsonObject)
+    begin
+        // This event is meant to be the starting point in the map initialization process.
+        // It is raised by InitiateMapSettings method that must be called in the OnMapInit trigger of the View.
+        // This event allow to specify custom map settings, otherwise default settings will be applied.
+    end;
+
+    [IntegrationEvent(false, false)]
     local procedure OnMapStructureInitiate(var Source: RecordRef; var MapElementBuffer: Record "Meta UI Map Element")
     begin
-        // This event is meant to be the starting point in the map-drawing process. 
-        // It is raised by InitiateMapStructure method that must be called in the beginning.
+        // This event is meant to be the starting point in the map visualization process.
+        // It is raised by InitiateMapStructure method that must be called in the OnControlReady trigger of the View.
         // Basically, on this event subscriber, it requires future map structure (numbers of base and overlay layers).  
     end;
 
     [IntegrationEvent(false, false)]
     local procedure OnElementSelectionChanged(var Source: RecordRef; var MapElementBuffer: Record "Meta UI Map Element")
     begin
-        // This event is a response for map elements selection.
+        // This event is a response for map elements selection when map structure require visualization.
         // It is raised by multiple methods depending on element being selected:
         //  - Single marker or route raised by ManageSingleSelection method;
         //  - Markers lasso raised by ManageMultiSelection method;

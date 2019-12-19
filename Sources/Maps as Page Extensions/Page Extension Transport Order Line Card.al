@@ -1,4 +1,4 @@
-pageextension 6188524 "Transics Activity Report (Map)" extends "Transics Activity Report"
+pageextension 6188525 "Trans. Order Line Card (Map)" extends "Transport Order Line Card"
 {
     layout
     {
@@ -7,7 +7,6 @@ pageextension 6188524 "Transics Activity Report (Map)" extends "Transics Activit
             part(Map; "Meta UI Map")
             {
                 ApplicationArea = All;
-                Visible = false;
             }
         }
     }
@@ -17,6 +16,7 @@ pageextension 6188524 "Transics Activity Report (Map)" extends "Transics Activit
         RecReference: RecordRef;
     begin
         RecReference.GetTable(Rec);
+        RecReference.FilterGroup := 200;
         CurrPage.Map.Page.UpdateMapContent(RecReference);
     end;
 }

@@ -1,4 +1,4 @@
-pageextension 6188524 "Transics Activity Report (Map)" extends "Transics Activity Report"
+pageextension 6188520 "Transport Activity List (Map)" extends "Transport Activity List"
 {
     layout
     {
@@ -12,6 +12,7 @@ pageextension 6188524 "Transics Activity Report (Map)" extends "Transics Activit
         }
     }
 
+    // Warning: This trigger is not being executed in AL, because it doesn't has any code on C/Side
     trigger OnAfterGetCurrRecord()
     var
         RecReference: RecordRef;

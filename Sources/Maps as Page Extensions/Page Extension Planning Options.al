@@ -1,19 +1,22 @@
 pageextension 6188526 "Planning Options (Map)" extends "Planning Options"
-
 {
     layout
     {
         addfirst(FactBoxes)
         {
-            part(Map; "Map Component Factbox") { }
+            part(Map; "Meta UI Map")
+            {
+                ApplicationArea = All;
+            }
         }
     }
-    trigger OnAfterGetCurrRecord();
+
+    trigger OnAfterGetCurrRecord()
     var
-        MapShowTrOrd: Codeunit "Map Show Order";
+        RecReference: RecordRef;
     begin
-        MapShowTrOrd.Run(Rec);
-        CurrPage.Map.Page.GetDataFromBuffer;
-        CurrPage.Map.Page.Update;
+        RecReference.GetTable(Rec);
+        RecReference.FilterGroup := 100;
+        CurrPage.Map.Page.UpdateMapContent(RecReference);
     end;
 }

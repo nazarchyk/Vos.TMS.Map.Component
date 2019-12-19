@@ -1,6 +1,6 @@
-page 6188520 "Map Component Factbox"
+page 6188520 "Meta UI Map"
 {
-    Caption = 'Map Component Factbox';
+    Caption = 'Meta UI Map';
     PageType = CardPart;
 
     layout
@@ -13,9 +13,10 @@ page 6188520 "Map Component Factbox"
 
                 trigger OnMapInit()
                 var
-                    MapSettings: Codeunit "Map Settings";
+                    Settings: JsonObject;
                 begin
-                    CurrPage.MapControl.SetSettings(MapSettings.SetSettings());
+                    MapElementBuffer.InitiateMapSettings(Settings);
+                    CurrPage.MapControl.SetSettings(Settings);
                 end;
 
                 trigger ControlReady()
@@ -47,12 +48,13 @@ page 6188520 "Map Component Factbox"
                     PerformMapSelectionsUpdate();
                 end;
 
+                // Under construction...
                 // trigger OnRouteSelected(Route: JsonObject)
                 // begin
-                //     MapElementBuffer.ManageSingleSelection(SourceReference, Route);
+                // MapElementBuffer.ManageSingleSelection(SourceReference, Route);
 
-                //     // ToDo: Update route selection update ...
-                //     // PerformMapSelectionsUpdate(); 
+                // // ToDo: Update route selection update ...
+                // // PerformMapSelectionsUpdate(); 
                 // end;
             }
         }
@@ -66,7 +68,7 @@ page 6188520 "Map Component Factbox"
             {
                 ApplicationArea = All;
                 Caption = 'Update Content';
-                Image = UpdateShipment;
+                Image = Refresh;
 
                 trigger OnAction()
                 begin
@@ -79,12 +81,30 @@ page 6188520 "Map Component Factbox"
             {
                 ApplicationArea = All;
                 Caption = 'Lasso Selection';
-                Image = Map;
+                Image = Group;
 
                 trigger OnAction()
                 begin
                     if IsMapControlReady then
                         CurrPage.MapControl.EnableLasso();
+                end;
+            }
+
+            action(OpenAsFullMap)
+            {
+                ApplicationArea = All;
+                Caption = 'Open as Full Map';
+                Enabled = false;
+                Image = Map;
+
+                trigger OnAction()
+                var
+                    MetaUIFullMap: Page "Meta UI Full Map";
+                begin
+                    if IsMapControlReady then begin
+                        // ToDo: Implement smooth map state transfer from small map the fullscreen map...
+                        MetaUIFullMap.Run();
+                    end;
                 end;
             }
         }
@@ -96,40 +116,57 @@ page 6188520 "Map Component Factbox"
         IsMapControlReady: Boolean;
 
     procedure UpdateMapContent(var Source: RecordRef)
+    var
+        DataTypeMgmt: Codeunit "Data Type Management";
+        InvalidSourceException: Label 'Meta UI Map: The source reference ''%1'' is invalid.';
     begin
-        SourceReference := Source;
+        if not DataTypeMgmt.GetRecordRef(Source, SourceReference) then
+            Error(InvalidSourceException, Source);
+
         if IsMapControlReady then
             PerformMapStructureUpdate();
     end;
 
-    local procedure PerformMapStructureUpdate();
+    local procedure PerformMapStructureUpdate()
+    var
+        MapLayer: Record "Meta UI Map Element" temporary;
     begin
         IsMapControlReady := false;
         CurrPage.MapControl.ClearMap();
 
         MapElementBuffer.InitiateMapStructure(SourceReference);
 
-        MapElementBuffer.SelectLayers('');
-        if MapElementBuffer.FindSet() then
+        MapLayer.Copy(MapElementBuffer, true);
+        MapLayer.SelectLayers('');
+        if MapLayer.FindSet() then begin
             repeat
-                case MapElementBuffer.Subtype of
-                    MapElementBuffer.Subtype::Geo:
-                        CurrPage.MapControl.AddGeoJSONLayer(MapElementBuffer.ToJSON(false));
+                case MapLayer.Subtype of
+                    MapLayer.Subtype::Geo:
+                        CurrPage.MapControl.AddGeoJSONLayer(MapLayer.ToJSON(false));
 
-                    MapElementBuffer.Subtype::Cluster:
-                        CurrPage.MapControl.AddMarkerClusterLayer(MapElementBuffer.ToJSON(false));
+                    MapLayer.Subtype::Cluster:
+                        CurrPage.MapControl.AddMarkerClusterLayer(MapLayer.ToJSON(false));
 
-                    MapElementBuffer.Subtype::Heat:
-                        CurrPage.MapControl.AddHeatLayer(MapElementBuffer.ToJSON(false));
+                    MapLayer.Subtype::Heat:
+                        CurrPage.MapControl.AddHeatLayer(MapLayer.ToJSON(false));
                 end;
+            until (MapLayer.Next() = 0);
 
-                if MapElementBuffer."Base Layer" then
-                    CurrPage.MapControl.ShowLayer(MapElementBuffer.ToJSON(true));
-            until (MapElementBuffer.Next() = 0);
+            // ToDo: Show custom layer controls...
+            CurrPage.MapControl.AddLayersControl(MapLayer.LayersControlToJSON(false));
+            CurrPage.MapControl.ShowControl(MapLayer.LayersControlToJSON(true));
 
-        // ToDo: Show custom layer controls...
-        CurrPage.MapControl.AddLayersControl(MapElementBuffer.LayersControlToJSON(false));
-        CurrPage.MapControl.ShowControl(MapElementBuffer.LayersControlToJSON(true));
+            MapLayer.SetRange("Base Layer", true);
+            if MapLayer.FindFirst() then
+                CurrPage.MapControl.ShowLayer(MapLayer.ToJSON(true));
+
+            MapLayer.SetRange("Base Layer", false);
+            MapLayer.SetRange(Selected, true);
+            if MapLayer.FindSet() then
+                repeat
+                    CurrPage.MapControl.ShowLayer(MapLayer.ToJSON(true));
+                until (MapLayer.Next() = 0);
+        end;
 
         IsMapControlReady := true;
     end;
@@ -153,10 +190,10 @@ page 6188520 "Map Component Factbox"
 
         MapRoute.Copy(MapElementBuffer, true);
         MapRoute.SelectRoutes(MapElementBuffer.ID);
-        if MapRoute.FindSet() then begin
-            CurrPage.MapControl.ShowRoute(MapRoute.ToJSON(false));
-
+        if MapRoute.FindSet() then
             repeat
+                CurrPage.MapControl.ShowRoute(MapRoute.ToJSON(false));
+
                 MapPoint.SelectPoints(MapRoute.ID);
                 if MapPoint.FindSet() then
                     repeat
@@ -168,7 +205,6 @@ page 6188520 "Map Component Factbox"
                         end;
                     until (MapPoint.Next() = 0);
             until (MapRoute.Next() = 0);
-        end;
 
         CurrPage.MapControl.FitLayerBounds(MapElementBuffer.ToJSON(true));
     end;
@@ -187,11 +223,4 @@ page 6188520 "Map Component Factbox"
                 end;
             until (MapElementBuffer.Next() = 0);
     end;
-
-    procedure GetDataFromBuffer(); // OBSOLETE: OLD CODE Starts Visualization ...
-    begin
-
-    end;
-
-    // ToDo: Implement smooth map state transfer from small map the fullscreen map...
 }

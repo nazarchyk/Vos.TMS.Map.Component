@@ -3,18 +3,9 @@ pageextension 6188528 "Planview Shipment (Map)" extends "Planview Shipments"
     layout
     {
         // addbefore(TableShip)
-        // {
-        //     part(Map; "Map Component Factbox")
-        //     {
-        //         ApplicationArea = All;
-        //         UpdatePropagation = Both;
-        //         Visible = IsMapVisible;
-        //     }
-        // }
-
-        addlast(FactBoxes)
+        addfirst(FactBoxes)
         {
-            part(Map; "Map Component Factbox")
+            part(Map; "Meta UI Map")
             {
                 ApplicationArea = All;
                 UpdatePropagation = Both;
@@ -42,7 +33,6 @@ pageextension 6188528 "Planview Shipment (Map)" extends "Planview Shipments"
     }
 
     var
-        ShipmentBuffer: Record Shipment temporary;
         IsMapVisible: Boolean;
         xFilters: Text;
 
@@ -55,9 +45,6 @@ pageextension 6188528 "Planview Shipment (Map)" extends "Planview Shipments"
     var
         RecReference: RecordRef;
     begin
-        // GetShpmntBuffer(ShipmentBuffer);
-        // AddSelectedShipmentsToMap();
-
         if xFilters <> GetFilters() then begin
             xFilters := GetFilters();
 
@@ -66,29 +53,5 @@ pageextension 6188528 "Planview Shipment (Map)" extends "Planview Shipments"
                 CurrPage.Map.Page.UpdateMapContent(RecReference);
             end;
         end;
-    end;
-
-    local procedure AddSelectedShipmentsToMap()
-    var
-        RouteDetail: Record "Map Route Detail" temporary;
-        MapBuffer: Codeunit "Map Buffer";
-    begin
-        MapBuffer.GetRouteDetails(RouteDetail);
-        if ShipmentBuffer.FindSet() then
-            repeat
-                RouteDetail.SetRange(Id, ShipmentBuffer.Id);
-                if RouteDetail.FindFirst then begin
-                    if ShipmentBuffer."Plan-ID" = '' then
-                        RouteDetail.Selected := RouteDetail.Selected::Clicked
-                    else
-                        RouteDetail.Selected := RouteDetail.Selected::Selected;
-                    RouteDetail.SetMarkerStrokeBasedOnSelected();
-                    RouteDetail.Modify();
-                end;
-            until (ShipmentBuffer.Next() = 0);
-
-        RouteDetail.Reset();
-        MapBuffer.SetRouteDetails(RouteDetail);
-        CurrPage.Map.Page.GetDataFromBuffer();
     end;
 }

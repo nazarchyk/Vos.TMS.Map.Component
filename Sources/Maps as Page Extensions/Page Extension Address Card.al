@@ -4,7 +4,7 @@ pageextension 6188523 "Address Card (Map)" extends "Address Card"
     {
         addlast(FactBoxes)
         {
-            part(Map; "Map Component Factbox")
+            part(Map; "Meta UI Map")
             {
                 ApplicationArea = All;
             }

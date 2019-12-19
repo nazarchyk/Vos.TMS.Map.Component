@@ -1,13 +1,12 @@
-pageextension 6188524 "Transics Activity Report (Map)" extends "Transics Activity Report"
+pageextension 6188531 "Address Validation Card (Map)" extends "Address Validation Card"
 {
     layout
     {
-        addfirst(FactBoxes)
+        addlast(FactBoxes)
         {
             part(Map; "Meta UI Map")
             {
                 ApplicationArea = All;
-                Visible = false;
             }
         }
     }
