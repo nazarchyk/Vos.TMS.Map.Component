@@ -10,24 +10,6 @@ pageextension 6188527 "Trip Card (Map)" extends "Trip Card"
             }
         }
     }
-    actions
-    {
-        addfirst(Processing)
-        {
-            action(SuggestShipments)
-            {
-                ApplicationArea = All;
-                Caption = 'Suggest Shipments';
-                Image = Map;
-
-                trigger OnAction()
-                begin
-                    FindImportShipments();
-                    // ToDo: Identify what is next.....
-                end;
-            }
-        }
-    }
 
     trigger OnAfterGetCurrRecord()
     var
