@@ -1,4 +1,4 @@
-pageextension 6188527 "Trip Card (Map)" extends "Trip Card"
+pageextension 50149 "Trip Card (Map)" extends "Trip Card"
 {
     layout
     {

@@ -1,4 +1,4 @@
-pageextension 6188522 "Address List (Map)" extends "Address List"
+pageextension 50141 "Address List (Map)" extends "Address List"
 {
     layout
     {

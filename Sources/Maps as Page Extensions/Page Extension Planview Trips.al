@@ -1,4 +1,4 @@
-pageextension 6188529 "Planview Trips (Map)" extends "Planview Trips"
+pageextension 50145 "Planview Trips (Map)" extends "Planview Trips"
 {
     layout
     {

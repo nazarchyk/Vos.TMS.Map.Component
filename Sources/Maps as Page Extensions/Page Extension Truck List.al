@@ -1,4 +1,4 @@
-pageextension 6188530 "Truck List (Map)" extends "Truck List"
+pageextension 50150 "Truck List (Map)" extends "Truck List"
 {
     layout
     {

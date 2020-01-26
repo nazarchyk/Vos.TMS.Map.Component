@@ -4,7 +4,7 @@
   "publisher": "Mark Brummel",
   "brief": "",
   "description": "",
-  "version": "1.0.20181217.1",
+  "version": "1.0.0.0",
   "privacyStatement": "",
   "EULA": "",
   "help": "",
@@ -24,8 +24,8 @@
   "platform": "11.0.0.0",
   "application": "11.0.0.0",
   "idRange": {
-    "from": 6188520,
-    "to": 6188539
+    "from": 50140,
+    "to": 50256
   },
   "showMyCode": true
 }

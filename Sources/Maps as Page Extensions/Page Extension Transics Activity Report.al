@@ -1,4 +1,4 @@
-pageextension 6188524 "Transics Activity Report (Map)" extends "Transics Activity Report"
+pageextension 50146 "Transics Activity Report (Map)" extends "Transics Activity Report"
 {
     layout
     {

@@ -1,4 +1,4 @@
-pageextension 6188520 "Transport Activity List (Map)" extends "Transport Activity List"
+pageextension 50147 "Transport Activity List (Map)" extends "Transport Activity List"
 {
     layout
     {

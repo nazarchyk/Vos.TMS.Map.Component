@@ -1,4 +1,4 @@
-codeunit 6188531 "Meta UI Map Routines"
+codeunit 50256 "Meta UI Map Routines"
 {
     EventSubscriberInstance = StaticAutomatic;
 
@@ -14,10 +14,41 @@ codeunit 6188531 "Meta UI Map Routines"
 
     [EventSubscriber(ObjectType::Table, Database::"Meta UI Map Element", 'OnMapSettingsInitiate', '', false, false)]
     local procedure MetaUIMapElement_OnMapSettingsInitiate(var MapSettings: JsonObject)
-    var
-        MapSettingsSetup: Record "Map Settings";
     begin
-        MapSettings := MapSettingsSetup.SettingsToJSON();
+        
+        MapSettings := SettingsToJSON();
+    end;
+
+   local procedure SettingsToJSON() Settings: JsonObject
+    var
+        TrOrdSetup: Record "Transport Order Setup";
+    begin
+        with TrOrdSetup do begin
+            Get;
+
+            Settings.Add('type', 'PTV');
+            Settings.Add('baseUrl', "Map Account URL");
+
+            if "Map Username" <> '' then
+                Settings.Add('username', "Map Username");
+
+            if "Map Password" <> '' then
+                Settings.Add('password', "Map Password");
+
+            if "Map Token" <> '' then
+                Settings.Add('token', "Map Token");
+
+            if "Map Profile" <> '' then
+                Settings.Add('profile', "Map Profile");
+
+            if "Map Subdomains" <> '' then
+                Settings.Add('subdomains', "Map Subdomains");
+
+            Settings.Add('providerSettings', Settings);
+        end;
+        /*** EXAMPLE OF PROVIDER SETTINGS FOR OPENSTREETMAPS ***/
+        // Settings.Add('type', 1);
+        // Settings.Add('baseUrl', 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png');
     end;
 
     [EventSubscriber(ObjectType::Table, Database::"Meta UI Map Element", 'OnMapStructureInitiate', '', false, false)]

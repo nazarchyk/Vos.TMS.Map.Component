@@ -1,4 +1,4 @@
-pageextension 6188531 "Address Validation Card (Map)" extends "Address Validation Card"
+pageextension 50142 "Address Validation Card (Map)" extends "Address Validation Card"
 {
     layout
     {

@@ -1,4 +1,4 @@
-pageextension 6188526 "Planning Options (Map)" extends "Planning Options"
+pageextension 50143 "Planning Options (Map)" extends "Planning Options"
 {
     layout
     {
