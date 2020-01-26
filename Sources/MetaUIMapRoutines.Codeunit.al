@@ -26,7 +26,7 @@ codeunit 50256 "Meta UI Map Routines"
         with TrOrdSetup do begin
             Get;
 
-            Settings.Add('type', 'PTV');
+            Settings.Add('type', 0);
             Settings.Add('baseUrl', "Map Account URL");
 
             if "Map Username" <> '' then
