@@ -29,11 +29,23 @@ pageextension 50145 "Planview Trips (Map)" extends "Planview Trips"
                     IsMapVisible := not IsMapVisible;
                 end;
             }
+            action(ShowAllOnMap)
+            {
+                ApplicationArea = All;
+                Caption = 'Show All on Map';
+                Image = Map;
+
+                trigger OnAction()
+                begin
+                    ShowAllOnMap := not ShowAllOnMap;
+                end;
+            }
         }
     }
 
     var
         IsMapVisible: Boolean;
+        ShowAllOnMap: Boolean;
         xFilters: Text;
 
     trigger OnOpenPage()
@@ -62,15 +74,21 @@ pageextension 50145 "Planview Trips (Map)" extends "Planview Trips"
         Trip: Record Trip;
         RecReference: RecordRef;
     begin
-        If IsMapVisible then begin
+        if not IsMapVisible then
+            exit;
+
+        if ShowAllOnMap then begin
             CurrPage.SetSelectionFilter(Trip);
             if Trip.Count() = 1 then begin
                 RecReference.GetTable(Rec);
                 RecReference.SetRecFilter();
             end else
                 RecReference.GetTable(Trip);
-
-            CurrPage.Map.Page.UpdateMapContent(RecReference);
+        end else begin
+            RecReference.GetTable(Rec);
+            RecReference.SetRecFilter();
         end;
+
+        CurrPage.Map.Page.UpdateMapContent(RecReference);
     end;
 }
