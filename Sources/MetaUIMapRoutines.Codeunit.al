@@ -2,47 +2,6 @@ codeunit 50256 "Meta UI Map Routines"
 {
     EventSubscriberInstance = StaticAutomatic;
 
-
-    [EventSubscriber(ObjectType::Table, Database::"Meta UI Map Element", 'OnMapSettingsInitiate', '', false, false)]
-    local procedure MetaUIMapElement_OnMapSettingsInitiate(var MapSettings: JsonObject)
-    begin
-
-        MapSettings := SettingsToJSON();
-    end;
-
-    local procedure SettingsToJSON() Settings: JsonObject
-    var
-        TrOrdSetup: Record "Transport Order Setup";
-    begin
-        with TrOrdSetup do
-        begin
-            Get;
-
-            Settings.Add('type', 0);
-            Settings.Add('baseUrl', "Map Account URL");
-
-            if "Map Username" <> '' then
-                Settings.Add('username', "Map Username");
-
-            if "Map Password" <> '' then
-                Settings.Add('password', "Map Password");
-
-            if "Map Token" <> '' then
-                Settings.Add('token', "Map Token");
-
-            if "Map Profile" <> '' then
-                Settings.Add('profile', "Map Profile");
-
-            if "Map Subdomains" <> '' then
-                Settings.Add('subdomains', "Map Subdomains");
-
-            Settings.Add('providerSettings', Settings);
-        end;
-        /*** EXAMPLE OF PROVIDER SETTINGS FOR OPENSTREETMAPS ***/
-        // Settings.Add('type', 1);
-        // Settings.Add('baseUrl', 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png');
-    end;
-
     [EventSubscriber(ObjectType::Table, Database::"Meta UI Map Element", 'OnMapStructureInitiate', '', false, false)]
     local procedure MetaUIMapElement_OnMapStructureInitiate(var Source: RecordRef; var MapElementBuffer: Record "Meta UI Map Element")
     var
@@ -53,33 +12,34 @@ codeunit 50256 "Meta UI Map Routines"
         case Source.Number of
             Database::Address :
                 MapElementBuffer.CreateGeoLayer('00.Base.Geo.Address', 'Address Location', true);
-
-        Database::Equipment :
+            Database::Equipment :
                 MapElementBuffer.CreateGeoLayer('00.Base.Geo.Equipment', 'Equipment Location', true);
 
-        Database::"Find Or Create Address Args." :
+            Database::"Find Or Create Address Args." :
                 MapElementBuffer.CreateGeoLayer('00.Base.Geo.AddressArgument', 'Address Location', true);
 
-        Database::"Truck Entry" :
+            Database::"Via Point Address" :
+                MapElementBuffer.CreateGeoLayer('00.Base.Geo.ViaPointAddress', 'Via Point Address', true);
+            Database::"Truck Entry" :
                 MapElementBuffer.CreateGeoLayer('00.Base.Geo.TruckEntry', 'Truck Entries', true);
 
-        Database::Shipment :
-        begin
-            MapElementBuffer.CreateClusterLayer('00.Base.Cluster.Shipments', 'Shipments', true);
+            Database::Shipment :
+                begin
+                    MapElementBuffer.CreateClusterLayer('00.Base.Cluster.Shipments', 'Shipments', true);
+                    MapElementBuffer.UpdateLayerSettings('disableClusteringAtZoom', 1);
+                    MapElementBuffer.CreateGeoLayer('01.Overlay.Geo.MyTrucks', 'My Trucks', false);
+                    MapElementBuffer.CreateGeoLayer('02.Overlay.Geo.IttervoortTrucks', 'Ittervoort Trucks', false);
+                    MapElementBuffer.CreateGeoLayer('03.Overlay.Geo.DeventerTrucks', 'Deventer Trucks', false);
+                    MapElementBuffer.CreateGeoLayer('04.Overlay.Geo.ITTLTrucks', 'ITTL Trucks', false);
+                    MapElementBuffer.CreateGeoLayer('05.Overlay.Geo.NearbyTrucks', 'Nearby Trucks', false);
+                    MapElementBuffer.CreateGeoLayer('06.Overlay.Geo.FindTrips', 'Find Trips', false);
+                end;
 
-            MapElementBuffer.CreateGeoLayer('01.Overlay.Geo.MyTrucks', 'My Trucks', false);
-            MapElementBuffer.CreateGeoLayer('02.Overlay.Geo.IttervoortTrucks', 'Ittervoort Trucks', false);
-            MapElementBuffer.CreateGeoLayer('03.Overlay.Geo.DeventerTrucks', 'Deventer Trucks', false);
-            MapElementBuffer.CreateGeoLayer('04.Overlay.Geo.ITTLTrucks', 'ITTL Trucks', false);
-            MapElementBuffer.CreateGeoLayer('05.Overlay.Geo.NearbyTrucks', 'Nearby Trucks', false);
-            MapElementBuffer.CreateGeoLayer('06.Overlay.Geo.FindTrips', 'Find Trips', false);
-        end;
+                Database::"Transics Activity Report" :
+                    MapElementBuffer.CreateGeoLayer('00.Base.Geo.TransicsActivities', 'Transics Activities', true);
 
-        Database::"Transics Activity Report" :
-                MapElementBuffer.CreateGeoLayer('00.Base.Geo.TransicsActivities', 'Transics Activities', true);
-
-        Database::"Transport Order Line" :
-        begin
+                Database::"Transport Order Line" :
+                    begin
             Source.SetTable(TransportOrderLine);
             case TransportOrderLine.FilterGroup of
 100 :
@@ -133,15 +93,17 @@ codeunit 50256 "Meta UI Map Routines"
         case MapElementBuffer.Type of
             MapElementBuffer.Type::Layer :
                 if MapElementBuffer.Selected then begin
-            case MapElementBuffer.ID of
-'00.Base.Cluster.Shipments' :
+                    case MapElementBuffer.ID of
+                        '00.Base.Cluster.Shipments' :
                             ShipmentsToMapElements(Source, MapElementBuffer);
-'00.Base.Geo.ActiveTrip' :
+                        '00.Base.Geo.ActiveTrip' :
                             TripsToMapElements(Source, MapElementBuffer);
-'00.Base.Geo.Address' :
+                        '00.Base.Geo.Address' :
                             AddressToMapElements(Source, MapElementBuffer);
 '00.Base.Geo.AddressArgument' :
                             AddressArgumentToMapElements(Source, MapElementBuffer);
+'00.Base.Geo.ViaPointAddress' :
+                            ViaPointEntryToMapElements(Source, MapElementBuffer);
 '00.Base.Geo.TruckEntry' :
                             TruckEntryToMapElements(Source, MapElementBuffer);
 '00.Base.Geo.Consultations' :
@@ -241,6 +203,26 @@ codeunit 50256 "Meta UI Map Routines"
         MapElementBuffer.UpdatePointPopupSettings(AddressArgument.City, true, false);
     end;
 
+    local procedure ViaPointEntryToMapElements(var Source: RecordRef; var MapElementBuffer: Record "Meta UI Map Element")
+    var
+        ViaPointAddr: Record "Via Point Address";
+        Addr: Record Address;
+    begin
+        Source.SetTable(ViaPointAddr);
+        if ViaPointAddr.FindSet then begin
+            MapElementBuffer.CreateGeoRoute(ViaPointAddr."Via Point Code", '');
+            repeat
+                MapElementBuffer.CreateCirclePoint(Format(ViaPointAddr."Sequence No."), ViaPointAddr."Via Address Description");
+                Addr.Get(ViaPointAddr."Via Address No.");
+                MapElementBuffer.UpdatePointCoordinates(Addr.Latitude, Addr.Longitude);
+                MapElementBuffer.UpdatePointMarkerSettings('radius', 7);
+                MapElementBuffer.UpdatePointPopupSettings(ViaPointAddr."Via Address Description", true, false);
+                MapElementBuffer.SwitchToParent();
+            until ViaPointAddr.Next = 0;
+
+        end;
+
+    end;
     local procedure TruckEntryToMapElements(var Source: RecordRef; var MapElementBuffer: Record "Meta UI Map Element")
     var
         TruckEntry: Record "Truck Entry";
@@ -250,13 +232,13 @@ codeunit 50256 "Meta UI Map Routines"
         if TruckEntry.FindSet then begin
             MapElementBuffer.CreateGeoRoute(TruckEntry."Truck No.", '');
             repeat
-                MapElementBuffer.CreateCirclePoint(Format(TruckEntry."Created Date Time"), '');
+                MapElementBuffer.CreateCirclePoint(Format(TruckEntry."Entry No."), Format(TruckEntry."Created Date Time"));
                 MapElementBuffer.UpdatePointCoordinates(TruckEntry.Latitude, TruckEntry.Longitude);
                 MapElementBuffer.UpdatePointMarkerSettings('radius', 7);
-                MapElementBuffer.UpdatePointRouteSegmentColor('red');
-
+                MapElementBuffer.UpdatePointPopupSettings(TruckEntry."Address Info", true, false);
                 MapElementBuffer.SwitchToParent();
             until TruckEntry.Next = 0;
+
         end;
     end;
 
@@ -366,7 +348,7 @@ codeunit 50256 "Meta UI Map Routines"
         Shipment: Record Shipment;
     begin
         Source.SetTable(Shipment);
-
+        
         Shipment.SetAutoCalcFields("Loading Meters");
         if Shipment.FindSet() then
             repeat
@@ -464,18 +446,18 @@ codeunit 50256 "Meta UI Map Routines"
         Shipment.SetRange("Irr. No.", TransportOrderLine."Active Irregularity No.");
         if Shipment.FindSet() then begin
             MapElementBuffer.CreateGeoRoute(
-                TransportOrderLine."Transport Order No." + Format(TransportOrderLine."Line No."), '');
+            TransportOrderLine."Transport Order No." + Format(TransportOrderLine."Line No."), '');
 
             repeat
                 Address.Get(Shipment."From Address No.");
 
-            MapElementBuffer.CreateCirclePoint(Shipment.Id, Shipment.Description);
-            MapElementBuffer.UpdatePointCoordinates(Address.Latitude, Address.Longitude);
-            MapElementBuffer.UpdatePointPopupSettings(StrSubstNo(AddressPopupPattern,
+                MapElementBuffer.CreateCirclePoint(Shipment.Id, Shipment.Description);
+                MapElementBuffer.UpdatePointCoordinates(Address.Latitude, Address.Longitude);
+                MapElementBuffer.UpdatePointPopupSettings(StrSubstNo(AddressPopupPattern,
                     Address.Description, Address.Street, Address."Post Code", Address.City), true, false);
-            MapElementBuffer.UpdatePointMarkerSettings('radius', 7);
+                MapElementBuffer.UpdatePointMarkerSettings('radius', 7);
 
-            MapElementBuffer.SwitchToParent();
+                MapElementBuffer.SwitchToParent();
             until(Shipment.Next() = 0);
 
             if Address.Get(TransportOrderLine."To Address No.") then begin
@@ -806,6 +788,45 @@ codeunit 50256 "Meta UI Map Routines"
     local procedure OnShipmentMarkerSelection(Shipment: Record Shipment);
     begin
         // This event is triggered when the circle marker is being selected on the Map Factbox on the Planview Shipment page.
+    end;
+    [EventSubscriber(ObjectType::Table, Database::"Meta UI Map Element", 'OnMapSettingsInitiate', '', false, false)]
+    local procedure MetaUIMapElement_OnMapSettingsInitiate(var MapSettings: JsonObject)
+    begin
+
+        MapSettings := SettingsToJSON();
+    end;
+
+    local procedure SettingsToJSON() Settings: JsonObject
+    var
+        TrOrdSetup: Record "Transport Order Setup";
+    begin
+        with TrOrdSetup do
+        begin
+            Get;
+
+            Settings.Add('type', 0);
+            Settings.Add('baseUrl', "Map Account URL");
+
+            if "Map Username" <> '' then
+                Settings.Add('username', "Map Username");
+
+            if "Map Password" <> '' then
+                Settings.Add('password', "Map Password");
+
+            if "Map Token" <> '' then
+                Settings.Add('token', "Map Token");
+
+            if "Map Profile" <> '' then
+                Settings.Add('profile', "Map Profile");
+
+            if "Map Subdomains" <> '' then
+                Settings.Add('subdomains', "Map Subdomains");
+
+            Settings.Add('providerSettings', Settings);
+        end;
+        /*** EXAMPLE OF PROVIDER SETTINGS FOR OPENSTREETMAPS ***/
+        // Settings.Add('type', 1);
+        // Settings.Add('baseUrl', 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png');
     end;
 
     var
