@@ -114,7 +114,7 @@ codeunit 50256 "Meta UI Map Routines"
                             PlanningOptionsToMapElements(Source, MapElementBuffer);
 '00.Base.Geo.TransicsActivities' :
                             TransicsActivitiesToMapElements(Source, MapElementBuffer);
-'00.Base.Geo.TransportActivities' :
+                        '00.Base.Geo.TransportActivities' :
                             TransportActivitiesToMapElements(Source, MapElementBuffer);
 '00.Base.Geo.TransportOrderLine' :
                             TransportOrderLineToMapElements(Source, MapElementBuffer);
@@ -422,11 +422,11 @@ codeunit 50256 "Meta UI Map Routines"
     local procedure TransportActivitiesToMapElements(var Source: RecordRef; var MapElementBuffer: Record "Meta UI Map Element")
     var
         Trip: Record Trip;
-        TransportPlannedActivity: Record "Transport Planned Activity";
+        TrPlanAct: Record "Transport Planned Activity";
         RecReference: RecordRef;
     begin
-        Source.SetTable(TransportPlannedActivity);
-        Trip.Get(TransportPlannedActivity."Trip No.");
+        Source.SetTable(TrPlanAct);
+        Trip.Get(TrPlanAct."Trip No.");
 
         RecReference.GetTable(Trip);
         RecReference.SetRecFilter();
@@ -478,45 +478,43 @@ codeunit 50256 "Meta UI Map Routines"
         TrPlanAct: Record "Transport Planned Activity";
     begin
         Source.SetTable(Trip);
-        //        if Confirm(trip."No.") then;
         if Trip.FindSet() then begin
-            TrPlanAct.SetCurrentKey("Trip No.", "Stop No.");
+            TrPlanAct.SetCurrentKey("Trip No.", "Sequence No.");
             TrPlanAct.SetFilter("Address No.", '<>%1', '');
             TrPlanAct.SetFilter(Timetype, '<>%1', TrPlanAct.Timetype::Rest);
 
             repeat
                 TrPlanAct.SetRange("Trip No.", Trip."No.");
-            if TrPlanAct.FindSet() then begin
-                MapElementBuffer.CreateGeoRoute(Trip."No.", CopyStr(Trip.Name, 1, MaxStrLen(MapElementBuffer.Name)));
+                if TrPlanAct.FindSet() then begin
+                    MapElementBuffer.CreateGeoRoute(Trip."No.", CopyStr(Trip.Name, 1, MaxStrLen(MapElementBuffer.Name)));
 
-                repeat
-                    Addr.Get(TrPlanAct."Address No.");
+                    repeat
+                        Addr.Get(TrPlanAct."Address No.");
 
-                MapElementBuffer.CreateCirclePoint(
-                            Format(TrPlanAct."Entry No."), Format(TrPlanAct.Timetype));
+                        MapElementBuffer.CreateCirclePoint(Format(TrPlanAct."Entry No."), Format(TrPlanAct.Timetype));
 
-                MapElementBuffer.UpdatePointCoordinates(Addr.Latitude, Addr.Longitude);
-                MapElementBuffer.UpdatePointPopupSettings(TrPlanAct."Address Description", true, false);
+                        MapElementBuffer.UpdatePointCoordinates(Addr.Latitude, Addr.Longitude);
+                        MapElementBuffer.UpdatePointPopupSettings(TrPlanAct."Address Description", true, false);
 
-                if TrPlanAct.IsLoad then
-                    MapElementBuffer.UpdatePointMarkerSettings('fillColor', 'orange')
-                else if TrPlanAct.IsUnload then
-                        MapElementBuffer.UpdatePointMarkerSettings('fillColor', 'lime')
-                    else if TrPlanAct."Cost No." <> 0 then
+                        if TrPlanAct.IsLoad then
+                            MapElementBuffer.UpdatePointMarkerSettings('fillColor', 'orange')
+                        else if TrPlanAct.IsUnload then
+                            MapElementBuffer.UpdatePointMarkerSettings('fillColor', 'lime')
+                        else if TrPlanAct."Cost No." <> 0 then
                             MapElementBuffer.UpdatePointMarkerSettings('fillColor', 'skyblue')
                         else
                             MapElementBuffer.UpdatePointMarkerSettings('fillColor', 'red');
 
 
-                MapElementBuffer.UpdatePointMarkerSettings('radius', 7);
-                if TrPlanAct."Realised Ending Date-Time" <> 0DT then
-                    MapElementBuffer.UpdatePointRouteSegmentColor('grey');
+                        MapElementBuffer.UpdatePointMarkerSettings('radius', 7);
+                        if TrPlanAct."Realised Ending Date-Time" <> 0DT then
+                            MapElementBuffer.UpdatePointRouteSegmentColor('grey');
 
-                MapElementBuffer.SwitchToParent();
-                until(TrPlanAct.Next() = 0);
+                        MapElementBuffer.SwitchToParent();
+                    until(TrPlanAct.Next() = 0);
 
-                MapElementBuffer.SwitchToParent();
-            end;
+                    MapElementBuffer.SwitchToParent();
+                end;
             until(Trip.Next() = 0);
         end;
     end;
