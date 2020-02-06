@@ -2,15 +2,6 @@ codeunit 50256 "Meta UI Map Routines"
 {
     EventSubscriberInstance = StaticAutomatic;
 
-    var
-        RedIconPath: Label 'images/red.truck.19.png';
-        BlueIconPath: Label 'images/blue.truck.19.png';
-        GreenIconPath: Label 'images/green.truck.19.png';
-        BlackIconPath: Label 'images/black.truck.19.png';
-        AddressPopupPattern: Label 'Description: %1<br>Street: %2<br>Post Code: %3<br>City: %4';
-        EquipmentPopupPattern: Label 'Truck No.: %1<br>Driver Name: %2';
-        EquipmentDuplicateMessage: Label 'The %1 with %2=%3 already exists.';
-        LoadingMetersPopupPattern: Label 'Loading Meters: %1';
 
     [EventSubscriber(ObjectType::Table, Database::"Meta UI Map Element", 'OnMapSettingsInitiate', '', false, false)]
     local procedure MetaUIMapElement_OnMapSettingsInitiate(var MapSettings: JsonObject)
@@ -68,6 +59,9 @@ codeunit 50256 "Meta UI Map Routines"
 
         Database::"Find Or Create Address Args." :
                 MapElementBuffer.CreateGeoLayer('00.Base.Geo.AddressArgument', 'Address Location', true);
+
+        Database::"Truck Entry" :
+                MapElementBuffer.CreateGeoLayer('00.Base.Geo.TruckEntry', 'Truck Entries', true);
 
         Database::Shipment :
         begin
@@ -148,6 +142,8 @@ codeunit 50256 "Meta UI Map Routines"
                             AddressToMapElements(Source, MapElementBuffer);
 '00.Base.Geo.AddressArgument' :
                             AddressArgumentToMapElements(Source, MapElementBuffer);
+'00.Base.Geo.TruckEntry' :
+                            TruckEntryToMapElements(Source, MapElementBuffer);
 '00.Base.Geo.Consultations' :
                             ConsultationsToMapElements(Source, MapElementBuffer);
 '00.Base.Geo.Equipment' :
@@ -245,6 +241,25 @@ codeunit 50256 "Meta UI Map Routines"
         MapElementBuffer.UpdatePointPopupSettings(AddressArgument.City, true, false);
     end;
 
+    local procedure TruckEntryToMapElements(var Source: RecordRef; var MapElementBuffer: Record "Meta UI Map Element")
+    var
+        TruckEntry: Record "Truck Entry";
+    begin
+        Source.SetTable(TruckEntry);
+        TruckEntry.SetCurrentKey("Truck No.");
+        if TruckEntry.FindSet then begin
+            MapElementBuffer.CreateGeoRoute(TruckEntry."Truck No.", '');
+            repeat
+                MapElementBuffer.CreateCirclePoint(Format(TruckEntry."Created Date Time"), '');
+                MapElementBuffer.UpdatePointCoordinates(TruckEntry.Latitude, TruckEntry.Longitude);
+                MapElementBuffer.UpdatePointMarkerSettings('radius', 7);
+                MapElementBuffer.UpdatePointRouteSegmentColor('red');
+
+                MapElementBuffer.SwitchToParent();
+            until TruckEntry.Next = 0;
+        end;
+    end;
+
     local procedure ConsultationsToMapElements(var Source: RecordRef; var MapElementBuffer: Record "Meta UI Map Element")
     var
         TXTangoConsultation: Record "TX Tango Consultation";
@@ -258,11 +273,11 @@ codeunit 50256 "Meta UI Map Routines"
 
             repeat
                 MapElementBuffer.CreateCirclePoint(TXTangoConsultation."Place ID", '');
-            MapElementBuffer.UpdatePointCoordinates(TXTangoConsultation.Latitude, TXTangoConsultation.Longitude);
-            MapElementBuffer.UpdatePointMarkerSettings('radius', 7);
-            MapElementBuffer.UpdatePointRouteSegmentColor('red');
+                MapElementBuffer.UpdatePointCoordinates(TXTangoConsultation.Latitude, TXTangoConsultation.Longitude);
+                MapElementBuffer.UpdatePointMarkerSettings('radius', 7);
+                MapElementBuffer.UpdatePointRouteSegmentColor('red');
 
-            MapElementBuffer.SwitchToParent();
+                MapElementBuffer.SwitchToParent();
             until(TXTangoConsultation.Next() = 0);
         end;
     end;
@@ -358,25 +373,24 @@ codeunit 50256 "Meta UI Map Routines"
                 case Shipment."Lane Type" of
                     Shipment."Lane Type"::Collection :
                         Address.Get(Shipment."From Address No.");
-
-            Shipment."Lane Type"::Delivery :
+                    Shipment."Lane Type"::Delivery :
                         Address.Get(Shipment."To Address No.");
-            end;
+                end;
 
-            MapElementBuffer.CreateCirclePoint(Shipment.id, Shipment.Description);
-            MapElementBuffer.UpdatePointCoordinates(Address.Latitude, Address.Longitude);
-            MapElementBuffer.UpdatePointPopupSettings(
+                MapElementBuffer.CreateCirclePoint(Shipment.id, Shipment.Description);
+                MapElementBuffer.UpdatePointCoordinates(Address.Latitude, Address.Longitude);
+                MapElementBuffer.UpdatePointPopupSettings(
                     StrSubstNo(LoadingMetersPopupPattern, Shipment."Loading Meters") + '<br>' +
                     StrSubstNo(AddressPopupPattern, Address.Description, Address.Street,
                         Address."Post Code", Address.City), true, false);
 
-            MapElementBuffer.UpdatePointMarkerSettings('fillColor', Shipment.GetColor());
-            MapElementBuffer.UpdatePointMarkerSettings('radius', 10 + Round(Shipment."Loading Meters", 1, '>'));
+                MapElementBuffer.UpdatePointMarkerSettings('fillColor', Shipment.GetColor());
+                MapElementBuffer.UpdatePointMarkerSettings('radius', 10 + Round(Shipment."Loading Meters", 1, '>'));
 
-            if Shipment."Plan-ID" = UserId() then
-                MapElementBuffer.UpdatePointAsSelected(Source);
+                if Shipment."Plan-ID" = UserId() then
+                    MapElementBuffer.UpdatePointAsSelected(Source);
 
-            MapElementBuffer.SwitchToParent();
+                MapElementBuffer.SwitchToParent();
             until(Shipment.Next() = 0);
     end;
 
@@ -482,7 +496,7 @@ codeunit 50256 "Meta UI Map Routines"
         TrPlanAct: Record "Transport Planned Activity";
     begin
         Source.SetTable(Trip);
-//        if Confirm(trip."No.") then;
+        //        if Confirm(trip."No.") then;
         if Trip.FindSet() then begin
             TrPlanAct.SetCurrentKey("Trip No.", "Stop No.");
             TrPlanAct.SetFilter("Address No.", '<>%1', '');
@@ -496,27 +510,27 @@ codeunit 50256 "Meta UI Map Routines"
                 repeat
                     Addr.Get(TrPlanAct."Address No.");
 
-                    MapElementBuffer.CreateCirclePoint(
+                MapElementBuffer.CreateCirclePoint(
                             Format(TrPlanAct."Entry No."), Format(TrPlanAct.Timetype));
 
-                    MapElementBuffer.UpdatePointCoordinates(Addr.Latitude, Addr.Longitude);
-                    MapElementBuffer.UpdatePointPopupSettings(TrPlanAct."Address Description", true, false);
+                MapElementBuffer.UpdatePointCoordinates(Addr.Latitude, Addr.Longitude);
+                MapElementBuffer.UpdatePointPopupSettings(TrPlanAct."Address Description", true, false);
 
-                    if TrPlanAct.IsLoad then
-                        MapElementBuffer.UpdatePointMarkerSettings('fillColor', 'orange')
-                    else if TrPlanAct.IsUnload then
-                            MapElementBuffer.UpdatePointMarkerSettings('fillColor', 'lime')
+                if TrPlanAct.IsLoad then
+                    MapElementBuffer.UpdatePointMarkerSettings('fillColor', 'orange')
+                else if TrPlanAct.IsUnload then
+                        MapElementBuffer.UpdatePointMarkerSettings('fillColor', 'lime')
                     else if TrPlanAct."Cost No." <> 0 then
-                        MapElementBuffer.UpdatePointMarkerSettings('fillColor', 'skyblue')
-                    else
-                        MapElementBuffer.UpdatePointMarkerSettings('fillColor', 'red');
+                            MapElementBuffer.UpdatePointMarkerSettings('fillColor', 'skyblue')
+                        else
+                            MapElementBuffer.UpdatePointMarkerSettings('fillColor', 'red');
 
 
-                    MapElementBuffer.UpdatePointMarkerSettings('radius', 7);
-                    if TrPlanAct."Realised Ending Date-Time" <> 0DT then
-                        MapElementBuffer.UpdatePointRouteSegmentColor('grey');
+                MapElementBuffer.UpdatePointMarkerSettings('radius', 7);
+                if TrPlanAct."Realised Ending Date-Time" <> 0DT then
+                    MapElementBuffer.UpdatePointRouteSegmentColor('grey');
 
-                    MapElementBuffer.SwitchToParent();
+                MapElementBuffer.SwitchToParent();
                 until(TrPlanAct.Next() = 0);
 
                 MapElementBuffer.SwitchToParent();
@@ -793,4 +807,14 @@ codeunit 50256 "Meta UI Map Routines"
     begin
         // This event is triggered when the circle marker is being selected on the Map Factbox on the Planview Shipment page.
     end;
+
+    var
+        RedIconPath: Label 'images/red.truck.19.png';
+        BlueIconPath: Label 'images/blue.truck.19.png';
+        GreenIconPath: Label 'images/green.truck.19.png';
+        BlackIconPath: Label 'images/black.truck.19.png';
+        AddressPopupPattern: Label 'Description: %1<br>Street: %2<br>Post Code: %3<br>City: %4';
+        EquipmentPopupPattern: Label 'Truck No.: %1<br>Driver Name: %2';
+        EquipmentDuplicateMessage: Label 'The %1 with %2=%3 already exists.';
+        LoadingMetersPopupPattern: Label 'Loading Meters: %1';
 }

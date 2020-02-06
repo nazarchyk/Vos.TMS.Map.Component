@@ -4,10 +4,7 @@ pageextension 50141 "Address List (Map)" extends "Address List"
     {
         addlast(FactBoxes)
         {
-            part(Map; "Meta UI Map")
-            {
-                ApplicationArea = All;
-            }
+            part(Map; "Meta UI Map") { ApplicationArea = All; }
         }
     }
 
