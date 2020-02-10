@@ -26,7 +26,7 @@ codeunit 50256 "Meta UI Map Routines"
             Database::Shipment :
                 begin
                     MapElementBuffer.CreateClusterLayer('00.Base.Cluster.Shipments', 'Shipments', true);
-                    MapElementBuffer.UpdateLayerSettings('disableClusteringAtZoom', 1);
+                    MapElementBuffer.UpdateLayerSettings('disableClusteringAtZoom', GetZoomLevel);
                     MapElementBuffer.CreateGeoLayer('01.Overlay.Geo.MyTrucks', 'My Trucks', false);
                     MapElementBuffer.CreateGeoLayer('02.Overlay.Geo.IttervoortTrucks', 'Ittervoort Trucks', false);
                     MapElementBuffer.CreateGeoLayer('03.Overlay.Geo.DeventerTrucks', 'Deventer Trucks', false);
@@ -40,46 +40,46 @@ codeunit 50256 "Meta UI Map Routines"
 
                 Database::"Transport Order Line" :
                     begin
-            Source.SetTable(TransportOrderLine);
-            case TransportOrderLine.FilterGroup of
-100 :
-                        MapElementBuffer.CreateGeoLayer('00.Base.Geo.PlanningOptions', 'Planning Options', true);
-200 :
-                        MapElementBuffer.CreateGeoLayer('00.Base.Geo.TransportOrderLine', 'Transport Order Line', true);
-            end;
-        end;
+                        Source.SetTable(TransportOrderLine);
+                        case TransportOrderLine.FilterGroup of
+                            100 :
+                                MapElementBuffer.CreateGeoLayer('00.Base.Geo.PlanningOptions', 'Planning Options', true);
+                            200 :
+                                MapElementBuffer.CreateGeoLayer('00.Base.Geo.TransportOrderLine', 'Transport Order Line', true);
+                        end;
+                    end;
 
-        Database::"Transport Planned Activity" :
-                MapElementBuffer.CreateGeoLayer('00.Base.Geo.TransportActivities', 'Transport Activities', true);
+                Database::"Transport Planned Activity" :
+                    MapElementBuffer.CreateGeoLayer('00.Base.Geo.TransportActivities', 'Transport Activities', true);
 
-        Database::Trip :
-        begin
-            Source.SetTable(Trip);
-            if Trip.Count > 1 then begin // Dynamic Trip Layers Planning
-                if Trip.FindSet() then
-                    repeat
-                        MapElementBuffer.CreateGeoLayer(
-                            StrSubstNo('00.Overlay.Geo.Trip.%1', Trip."No."), StrSubstNo('Trip No.: %1', Trip."No."), false);
-                    MapElementBuffer.Selected := true;
-                    MapElementBuffer.Modify;
-                    until(Trip.Next = 0);
-            end else
-                MapElementBuffer.CreateGeoLayer('00.Base.Geo.ActiveTrip', 'Active Trip', true);
+                Database::Trip :
+                    begin
+                        Source.SetTable(Trip);
+                        if Trip.Count > 1 then begin // Dynamic Trip Layers Planning
+                            if Trip.FindSet() then
+                                repeat
+                                    MapElementBuffer.CreateGeoLayer(
+                                        StrSubstNo('00.Overlay.Geo.Trip.%1', Trip."No."), StrSubstNo('Trip No.: %1', Trip."No."), false);
+                                    MapElementBuffer.Selected := true;
+                                    MapElementBuffer.Modify;
+                                until(Trip.Next = 0);
+                        end else
+                            MapElementBuffer.CreateGeoLayer('00.Base.Geo.ActiveTrip', 'Active Trip', true);
 
-            MapElementBuffer.CreateGeoLayer('01.Overlay.Geo.MyTrucks', 'My Trucks', false);
-            MapElementBuffer.CreateGeoLayer('02.Overlay.Geo.IttervoortTrucks', 'Ittervoort Trucks', false);
-            MapElementBuffer.CreateGeoLayer('03.Overlay.Geo.DeventerTrucks', 'Deventer Trucks', false);
-            MapElementBuffer.CreateGeoLayer('04.Overlay.Geo.ITTLTrucks', 'ITTL Trucks', false);
+                        MapElementBuffer.CreateGeoLayer('01.Overlay.Geo.MyTrucks', 'My Trucks', false);
+                        MapElementBuffer.CreateGeoLayer('02.Overlay.Geo.IttervoortTrucks', 'Ittervoort Trucks', false);
+                        MapElementBuffer.CreateGeoLayer('03.Overlay.Geo.DeventerTrucks', 'Deventer Trucks', false);
+                        MapElementBuffer.CreateGeoLayer('04.Overlay.Geo.ITTLTrucks', 'ITTL Trucks', false);
 
-            if Trip.Count = 1 then
-                MapElementBuffer.CreateGeoLayer('07.Overlay.Geo.Predictions', 'Predictions', false);
-        end;
+                        if Trip.Count = 1 then
+                            MapElementBuffer.CreateGeoLayer('07.Overlay.Geo.Predictions', 'Predictions', false);
+                    end;
 
-        Database::"TX Tango Consultation" :
-                MapElementBuffer.CreateGeoLayer('00.Base.Geo.Consultations', 'Consultations Trip', true);
+                Database::"TX Tango Consultation" :
+                    MapElementBuffer.CreateGeoLayer('00.Base.Geo.Consultations', 'Consultations Trip', true);
 
-        else
-        Message(UnknownSourceException, Source);
+                else
+                    Message(UnknownSourceException, Source);
         end;
     end;
 
@@ -100,17 +100,17 @@ codeunit 50256 "Meta UI Map Routines"
                             TripsToMapElements(Source, MapElementBuffer);
                         '00.Base.Geo.Address' :
                             AddressToMapElements(Source, MapElementBuffer);
-'00.Base.Geo.AddressArgument' :
+                        '00.Base.Geo.AddressArgument' :
                             AddressArgumentToMapElements(Source, MapElementBuffer);
-'00.Base.Geo.ViaPointAddress' :
+                        '00.Base.Geo.ViaPointAddress' :
                             ViaPointEntryToMapElements(Source, MapElementBuffer);
-'00.Base.Geo.TruckEntry' :
+                        '00.Base.Geo.TruckEntry' :
                             TruckEntryToMapElements(Source, MapElementBuffer);
-'00.Base.Geo.Consultations' :
+                        '00.Base.Geo.Consultations' :
                             ConsultationsToMapElements(Source, MapElementBuffer);
-'00.Base.Geo.Equipment' :
+                        '00.Base.Geo.Equipment' :
                             EquipmentToMapElements(Source, MapElementBuffer);
-'00.Base.Geo.PlanningOptions' :
+                        '00.Base.Geo.PlanningOptions' :
                             PlanningOptionsToMapElements(Source, MapElementBuffer);
 '00.Base.Geo.TransicsActivities' :
                             TransicsActivitiesToMapElements(Source, MapElementBuffer);
@@ -355,11 +355,13 @@ codeunit 50256 "Meta UI Map Routines"
                 case Shipment."Lane Type" of
                     Shipment."Lane Type"::Collection :
                         Address.Get(Shipment."From Address No.");
-                    Shipment."Lane Type"::Delivery :
+                    Shipment."Lane Type"::Delivery, Shipment."Lane Type"::Direct :
                         Address.Get(Shipment."To Address No.");
                 end;
 
                 MapElementBuffer.CreateCirclePoint(Shipment.id, Shipment.Description);
+                if Address.CoordinatesNotInCountry then
+                    Address.SetDefaultCoordinates;
                 MapElementBuffer.UpdatePointCoordinates(Address.Latitude, Address.Longitude);
                 MapElementBuffer.UpdatePointPopupSettings(
                     StrSubstNo(LoadingMetersPopupPattern, Shipment."Loading Meters") + '<br>' +
@@ -782,10 +784,10 @@ codeunit 50256 "Meta UI Map Routines"
             until(PredictionBuffer.Next() = 0);
     end;
 
-    [IntegrationEvent(false, false)]
+    // This event is triggered when the circle marker is being selected on the Map Factbox on the Planview Shipment page.
     local procedure OnShipmentMarkerSelection(Shipment: Record Shipment);
     begin
-        // This event is triggered when the circle marker is being selected on the Map Factbox on the Planview Shipment page.
+        Shipment.SelectIt;
     end;
     [EventSubscriber(ObjectType::Table, Database::"Meta UI Map Element", 'OnMapSettingsInitiate', '', false, false)]
     local procedure MetaUIMapElement_OnMapSettingsInitiate(var MapSettings: JsonObject)
@@ -825,6 +827,14 @@ codeunit 50256 "Meta UI Map Routines"
         /*** EXAMPLE OF PROVIDER SETTINGS FOR OPENSTREETMAPS ***/
         // Settings.Add('type', 1);
         // Settings.Add('baseUrl', 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png');
+    end;
+
+    local procedure GetZoomLevel(): Integer
+    var
+        UserSetup: Record "User Setup";
+    begin
+        UserSetup.Get(UserId);
+        exit(UserSetup."Zoom Level (Map)");
     end;
 
     var
