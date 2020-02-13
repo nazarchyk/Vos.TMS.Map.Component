@@ -7,6 +7,8 @@ codeunit 50256 "Meta UI Map Routines"
     var
         Trip: Record Trip;
         TransportOrderLine: Record "Transport Order Line";
+        TempTrip: Record "Temp. Trip" temporary;
+        ShpmntCreateTempTrip: Codeunit "Shipment - Create Temp. Trip";
         UnknownSourceException: Label 'The source reference ''%1'' is not supported.';
     begin
         case Source.Number of
@@ -25,8 +27,12 @@ codeunit 50256 "Meta UI Map Routines"
 
             Database::Shipment :
                 begin
+                    ShpmntCreateTempTrip.GetTempTrips(TempTrip);
                     MapElementBuffer.CreateClusterLayer('00.Base.Cluster.Shipments', 'Shipments', true);
                     MapElementBuffer.UpdateLayerSettings('disableClusteringAtZoom', GetZoomLevel);
+                    if TempTrip.FindSet then repeat
+                        MapElementBuffer.CreateGeoLayer('00.Base.Geo.Shipments' + TempTrip.Description, 'Route ' + TempTrip.Description, false);
+                    until TempTrip.Next = 0;
                     MapElementBuffer.CreateGeoLayer('01.Overlay.Geo.MyTrucks', 'My Trucks', false);
                     MapElementBuffer.CreateGeoLayer('02.Overlay.Geo.IttervoortTrucks', 'Ittervoort Trucks', false);
                     MapElementBuffer.CreateGeoLayer('03.Overlay.Geo.DeventerTrucks', 'Deventer Trucks', false);
@@ -112,73 +118,77 @@ codeunit 50256 "Meta UI Map Routines"
                             EquipmentToMapElements(Source, MapElementBuffer);
                         '00.Base.Geo.PlanningOptions' :
                             PlanningOptionsToMapElements(Source, MapElementBuffer);
-'00.Base.Geo.TransicsActivities' :
+                        '00.Base.Geo.TransicsActivities' :
                             TransicsActivitiesToMapElements(Source, MapElementBuffer);
                         '00.Base.Geo.TransportActivities' :
                             TransportActivitiesToMapElements(Source, MapElementBuffer);
-'00.Base.Geo.TransportOrderLine' :
+                        '00.Base.Geo.TransportOrderLine' :
                             TransportOrderLineToMapElements(Source, MapElementBuffer);
-'01.Overlay.Geo.MyTrucks' :
+                        '01.Overlay.Geo.MyTrucks' :
                             MyTrucksToMapElements(MapElementBuffer);
-'02.Overlay.Geo.IttervoortTrucks' :
+                        '02.Overlay.Geo.IttervoortTrucks' :
                             TrucksToMapElements('LIMBURG', MapElementBuffer);
-'03.Overlay.Geo.DeventerTrucks' :
+                        '03.Overlay.Geo.DeventerTrucks' :
                             TrucksToMapElements('DEVENTER', MapElementBuffer);
-'04.Overlay.Geo.ITTLTrucks' :
+                        '04.Overlay.Geo.ITTLTrucks' :
                             ITTLTrucksToMapElements(MapElementBuffer);
-'05.Overlay.Geo.NearbyTrucks' :
+                        '05.Overlay.Geo.NearbyTrucks' :
                             NearTrucksToMapElements(MapElementBuffer);
-'06.Overlay.Geo.FindTrips' :
+                        '06.Overlay.Geo.FindTrips' :
                             FindTripsForSelectedTrucks(MapElementBuffer);
-'07.Overlay.Geo.Predictions' :
+                        '07.Overlay.Geo.Predictions' :
                             PredictionsToMapElements(Source, MapElementBuffer);
-            end;
+                    end;
 
-            // Dynamic Trip Layers Processing
-            if StrPos(MapElementBuffer.ID, 'Overlay.Geo.Trip.') > 0 then begin
-                DynamicTripID := CopyStr(MapElementBuffer.ID, 21);
-                Source.SetTable(Trip);
-                Trip.SetRange("No.", DynamicTripID);
-                Source.GetTable(Trip);
-                TripsToMapElements(Source, MapElementBuffer);
-            end;
-        end;
+                    if StrPos(MapElementBuffer.ID, '00.Base.Geo.Shipments') > 0 then
+                        TempTripToMapElements(Source, MapElementBuffer);
 
-        MapElementBuffer.Type::Route :
+                    // Dynamic Trip Layers Processing
+                    if StrPos(MapElementBuffer.ID, 'Overlay.Geo.Trip.') > 0 then begin
+                        DynamicTripID := CopyStr(MapElementBuffer.ID, 21);
+                        Source.SetTable(Trip);
+                        Trip.SetRange("No.", DynamicTripID);
+                        Source.GetTable(Trip);
+                        TripsToMapElements(Source, MapElementBuffer);
+                    end;
+                end;
+
+            MapElementBuffer.Type::Route :
                 ; // ToDo: Update visuals for selected route
 
-        MapElementBuffer.Type::Point :
+            MapElementBuffer.Type::Point :
                 case MapElementBuffer.Subtype of
                     MapElementBuffer.Subtype::Circle :
                         if MapElementBuffer.Selected then begin
-            MapElementBuffer.UpdatePointMarkerSettings('strokeColor', 'black');
+                            MapElementBuffer.UpdatePointMarkerSettings('strokeColor', 'black');
 
-            if Source.Number = Database::Shipment then begin
-                Shipment.SetRange(Id, MapElementBuffer.ID);
-                if Shipment.FindFirst() then
-                    OnShipmentMarkerSelection(Shipment);
-            end;
-        end else
-            MapElementBuffer.UpdatePointMarkerSettings('strokeColor', '#4f90ca');
+                            if Source.Number = Database::Shipment then begin
+                                Shipment.SetCurrentKey(Id);
+                                Shipment.SetRange(Id, MapElementBuffer.ID);
+                                if Shipment.FindFirst() then
+                                    OnShipmentMarkerSelection(Shipment);
+                            end;    
+                        end else
+                            MapElementBuffer.UpdatePointMarkerSettings('strokeColor', '#4f90ca');
 
-        MapElementBuffer.Subtype::Icon :
+                    MapElementBuffer.Subtype::Icon :
                         if not MapElementBuffer.Selected then begin
-            case MapElementBuffer."Data Mark" of
+                            case MapElementBuffer."Data Mark" of
                                 RedIconPath :
                                     MapElementBuffer.UpdatePointMarkerSettings('iconUrl', RedIconPath);
-            GreenIconPath :
+                                GreenIconPath :
                                     MapElementBuffer.UpdatePointMarkerSettings('iconUrl', GreenIconPath);
-            BlackIconPath :
+                                BlackIconPath :
                                     MapElementBuffer.UpdatePointMarkerSettings('iconUrl', BlackIconPath);
-            end;
-        end else
-            MapElementBuffer.UpdatePointMarkerSettings('iconUrl', BlueIconPath);
+                            end;
+                        end else
+                            MapElementBuffer.UpdatePointMarkerSettings('iconUrl', BlueIconPath);
 
-        MapElementBuffer.Subtype::Intensity :
+                    MapElementBuffer.Subtype::Intensity :
                         ; // ToDo: Update visuals for selected Heat point
+                end;
+            end;
         end;
-        end;
-    end;
 
     local procedure AddressToMapElements(var Source: RecordRef; var MapElementBuffer: Record "Meta UI Map Element")
     var
@@ -352,30 +362,64 @@ codeunit 50256 "Meta UI Map Routines"
         Shipment.SetAutoCalcFields("Loading Meters");
         if Shipment.FindSet() then
             repeat
-                case Shipment."Lane Type" of
-                    Shipment."Lane Type"::Collection :
-                        Address.Get(Shipment."From Address No.");
-                    Shipment."Lane Type"::Delivery, Shipment."Lane Type"::Direct :
-                        Address.Get(Shipment."To Address No.");
+                if Shipment."Temp. Trip No." = '' then begin
+                    case Shipment."Lane Type" of
+                        Shipment."Lane Type"::Collection :
+                            Address.Get(Shipment."From Address No.");
+                        Shipment."Lane Type"::Delivery, Shipment."Lane Type"::Direct :
+                            Address.Get(Shipment."To Address No.");
+                    end;
+
+                    MapElementBuffer.CreateCirclePoint(Shipment.id, Shipment.Description);
+                    if Address.CoordinatesNotInCountry then
+                        Address.SetDefaultCoordinates;
+                    MapElementBuffer.UpdatePointCoordinates(Address.Latitude, Address.Longitude);
+                    MapElementBuffer.UpdatePointPopupSettings(
+                        StrSubstNo(LoadingMetersPopupPattern, Shipment."Loading Meters") + '<br>' +
+                        StrSubstNo(AddressPopupPattern, Address.Description, Address.Street,
+                            Address."Post Code", Address.City), true, false);
+
+                    MapElementBuffer.UpdatePointMarkerSettings('fillColor', Shipment.GetColor());
+                    MapElementBuffer.UpdatePointMarkerSettings('radius', 10 + Round(Shipment."Loading Meters", 1, '>'));
+
+                    if Shipment."Plan-ID" = UserId() then
+                        MapElementBuffer.UpdatePointAsSelected(Source);
+
+                    MapElementBuffer.SwitchToParent();
+                end;
+            until(Shipment.Next() = 0);
+    end;
+    local procedure TempTripToMapElements(var Source: RecordRef; var MapElementBuffer: Record "Meta UI Map Element")
+    var
+        Address: Record Address;
+        Shpmnt: Record Shipment;
+    begin
+        
+        Shpmnt.SetCurrentKey("Temp. Trip No.", "Selection Sequence");
+        Shpmnt.SetRange("Temp. Trip No.", UserId +  CopyStr(MapElementBuffer.ID, StrLen(MapElementBuffer.ID) - 1, 2));
+        if Shpmnt.FindSet() then begin
+            MapElementBuffer.CreateGeoRoute(Shpmnt."Temp. Trip No.", Shpmnt."Temp. Trip No.");
+            repeat
+                case Shpmnt."Lane Type" of
+                    Shpmnt."Lane Type"::Collection :
+                        Address.Get(Shpmnt."From Address No.");
+                    Shpmnt."Lane Type"::Delivery, Shpmnt."Lane Type"::Direct :
+                        Address.Get(Shpmnt."To Address No.");
                 end;
 
-                MapElementBuffer.CreateCirclePoint(Shipment.id, Shipment.Description);
-                if Address.CoordinatesNotInCountry then
-                    Address.SetDefaultCoordinates;
+                MapElementBuffer.CreateCirclePoint(Format(Shpmnt."Selection Sequence"), Format(Shpmnt."Lane Type"));
+
                 MapElementBuffer.UpdatePointCoordinates(Address.Latitude, Address.Longitude);
-                MapElementBuffer.UpdatePointPopupSettings(
-                    StrSubstNo(LoadingMetersPopupPattern, Shipment."Loading Meters") + '<br>' +
-                    StrSubstNo(AddressPopupPattern, Address.Description, Address.Street,
-                        Address."Post Code", Address.City), true, false);
+                MapElementBuffer.UpdatePointPopupSettings("Address".Description, true, false);
 
-                MapElementBuffer.UpdatePointMarkerSettings('fillColor', Shipment.GetColor());
-                MapElementBuffer.UpdatePointMarkerSettings('radius', 10 + Round(Shipment."Loading Meters", 1, '>'));
-
-                if Shipment."Plan-ID" = UserId() then
-                    MapElementBuffer.UpdatePointAsSelected(Source);
+                MapElementBuffer.UpdatePointMarkerSettings('fillColor', Shpmnt.GetColor);
+                MapElementBuffer.UpdatePointMarkerSettings('radius', 5);
 
                 MapElementBuffer.SwitchToParent();
-            until(Shipment.Next() = 0);
+
+            until Shpmnt.Next = 0;
+            MapElementBuffer.SwitchToParent();
+        end;
     end;
 
     local procedure TransicsActivitiesToMapElements(var Source: RecordRef; var MapElementBuffer: Record "Meta UI Map Element")
@@ -592,9 +636,9 @@ codeunit 50256 "Meta UI Map Routines"
                             StrSubstNo(EquipmentPopupPattern, Equipment."No.", Equipment."Last Driver Name"), true, false);
 
                         case PlanningFilter of
-'LIMBURG' :
+                            'LIMBURG' :
                                 IconURLPath := GreenIconPath;
-'DEVENTER' :
+                            'DEVENTER' :
                                 IconURLPath := RedIconPath;
                         end;
 
@@ -609,7 +653,7 @@ codeunit 50256 "Meta UI Map Routines"
                     end;
 
                 end;
-                until(Equipment.Next() = 0);
+            until(Equipment.Next() = 0);
         end;
     end;
 
