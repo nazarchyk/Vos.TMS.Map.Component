@@ -15,7 +15,6 @@ codeunit 50256 "Meta UI Map Routines"
         TransportOrderLine: Record "Transport Order Line";
         TempTrip: Record "Temp. Trip" temporary;
         ShpmntCreateTempTrip: Codeunit "Shipment - Create Temp. Trip";
-        UnknownSourceException: Label 'The source reference ''%1'' is not supported.';
     begin
         case Source.Number of
             Database::Address:
@@ -92,7 +91,7 @@ codeunit 50256 "Meta UI Map Routines"
                 MapElementBuffer.CreateGeoLayer('00.Base.Geo.Consultations', 'Consultations Trip', true);
 
             else
-                Message(UnknownSourceException, Source);
+                SuperUserMessage(Source);
         end;
     end;
 
@@ -602,7 +601,7 @@ codeunit 50256 "Meta UI Map Routines"
             repeat
                 Equipment.Get(PeriodicalAllocation."No.", Equipment.Type::Truck);
                 if IsValidCoordinates(Equipment."Last Latitude", Equipment."Last Longitude") then begin
-                    if MapElementBuffer.CreateIconPoint(Equipment.Id, Equipment.Description) then begin
+                    MapElementBuffer.CreateIconPoint(Equipment.Id, Equipment.Description);// then begin
                         MapElementBuffer.UpdatePointCoordinates(Equipment."Last Latitude", Equipment."Last Longitude");
                         MapElementBuffer.UpdatePointPopupSettings(
                             StrSubstNo(EquipmentPopupPattern, Equipment."No.", Equipment."Last Driver Name"), true, false);
@@ -610,12 +609,12 @@ codeunit 50256 "Meta UI Map Routines"
                         MapElementBuffer.UpdatePointMarkerSettings('iconUrl', RedIconPath);
                         MapElementBuffer.UpdateDataMarkProperty(RedIconPath);
                         MapElementBuffer.SwitchToParent();
-                    end else begin
-                        Message(EquipmentDuplicateMessage,
-                            MapElementBuffer.TableCaption, MapElementBuffer.FieldCaption(ID), MapElementBuffer.ID);
+                   // end else begin
+                    //    Message(EquipmentDuplicateMessage,
+                    //        MapElementBuffer.TableCaption, MapElementBuffer.FieldCaption(ID), MapElementBuffer.ID);
 
-                        MapElementBuffer.Get(ParentID);
-                    end;
+                  //      MapElementBuffer.Get(ParentID);
+                 //   end;
                 end;
             until (PeriodicalAllocation.Next() = 0);
     end;
@@ -643,7 +642,7 @@ codeunit 50256 "Meta UI Map Routines"
             If Equipment.FindSet() then
                 repeat
                     if IsValidCoordinates(Equipment."Last Latitude", Equipment."Last Longitude") then begin
-                        if MapElementBuffer.CreateIconPoint(Equipment.Id, Equipment.Description) then begin
+                        MapElementBuffer.CreateIconPoint(Equipment.Id, Equipment.Description);// then begin
                             MapElementBuffer.UpdatePointCoordinates(Equipment."Last Latitude", Equipment."Last Longitude");
                             MapElementBuffer.UpdatePointPopupSettings(
                                 StrSubstNo(EquipmentPopupPattern, Equipment."No.", Equipment."Last Driver Name"), true, false);
@@ -658,12 +657,12 @@ codeunit 50256 "Meta UI Map Routines"
                             MapElementBuffer.UpdatePointMarkerSettings('iconUrl', IconURLPath);
                             MapElementBuffer.UpdateDataMarkProperty(IconURLPath);
                             MapElementBuffer.SwitchToParent();
-                        end else begin
-                            Message(EquipmentDuplicateMessage,
-                                    MapElementBuffer.TableCaption, MapElementBuffer.FieldCaption(ID), MapElementBuffer.ID);
+                     //   end else begin
+                     //       Message(EquipmentDuplicateMessage,
+                     //               MapElementBuffer.TableCaption, MapElementBuffer.FieldCaption(ID), MapElementBuffer.ID);
 
-                            MapElementBuffer.Get(ParentID);
-                        end;
+                      //      MapElementBuffer.Get(ParentID);
+                      //  end;
 
                     end;
                 until (Equipment.Next() = 0);
@@ -683,7 +682,7 @@ codeunit 50256 "Meta UI Map Routines"
         if Equipment.FindSet() then
             repeat
                 if IsValidCoordinates(Equipment."Last Latitude", Equipment."Last Longitude") then begin
-                    if MapElementBuffer.CreateIconPoint(Equipment.Id, Equipment.Description) then begin
+                    MapElementBuffer.CreateIconPoint(Equipment.Id, Equipment.Description);// then begin
                         MapElementBuffer.UpdatePointCoordinates(Equipment."Last Latitude", Equipment."Last Longitude");
                         MapElementBuffer.UpdatePointPopupSettings(
                             StrSubstNo(EquipmentPopupPattern, Equipment."No.", Equipment."Last Driver Name"), true, false);
@@ -691,12 +690,12 @@ codeunit 50256 "Meta UI Map Routines"
                         MapElementBuffer.UpdatePointMarkerSettings('iconUrl', BlackIconPath);
                         MapElementBuffer.UpdateDataMarkProperty(BlackIconPath);
                         MapElementBuffer.SwitchToParent();
-                    end else begin
-                        Message(EquipmentDuplicateMessage,
-                                MapElementBuffer.TableCaption, MapElementBuffer.FieldCaption(ID), MapElementBuffer.ID);
+                    // end else begin
+                    //     Message(EquipmentDuplicateMessage,
+                    //             MapElementBuffer.TableCaption, MapElementBuffer.FieldCaption(ID), MapElementBuffer.ID);
 
-                        MapElementBuffer.Get(ParentID);
-                    end;
+                    //     MapElementBuffer.Get(ParentID);
+                    // end;
                 end;
             until (Equipment.Next() = 0);
     end;
@@ -887,6 +886,16 @@ codeunit 50256 "Meta UI Map Routines"
         exit(UserSetup."Zoom Level (Map)");
     end;
 
+    local procedure SuperUserMessage(Source: RecordRef);
+    var
+        UserSetup : Record "User Setup";
+        UnknownSourceException: Label 'The source reference ''%1'' is not supported.';
+    begin
+        UserSetup.Get(UserId);
+        if not UserSetup."Super User" then
+            exit;
+        Message(UnknownSourceException, Source);
+    end;
     var
         RedIconPath: Label 'images/red.truck.19.png';
         BlueIconPath: Label 'images/blue.truck.19.png';
