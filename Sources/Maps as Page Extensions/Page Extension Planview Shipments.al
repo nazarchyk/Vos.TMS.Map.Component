@@ -48,10 +48,11 @@ pageextension 50144 "Planview Shipment (Map)" extends "Planview Shipments"
         if xFilters <> GetFilters() then begin
             xFilters := GetFilters();
 
-            If IsMapVisible then begin
-                RecReference.GetTable(Rec);
-                CurrPage.Map.Page.UpdateMapContent(RecReference);
-            end;
+            If IsMapVisible then
+                if GetFilter("Route No.") <> '' then begin
+                    RecReference.GetTable(Rec);
+                    CurrPage.Map.Page.UpdateMapContent(RecReference);
+                end;
         end;
     end;
 }

@@ -34,17 +34,20 @@ codeunit 50256 "Meta UI Map Routines"
                 begin
                     ShpmntCreateTempTrip.GetTempTrips(TempTrip);
                     MapElementBuffer.CreateClusterLayer('00.Base.Cluster.Shipments', 'Shipments', true);
-                    MapElementBuffer.UpdateLayerSettings('disableClusteringAtZoom', GetZoomLevel);
-                    if TempTrip.FindSet then
-                        repeat
-                            MapElementBuffer.CreateGeoLayer('00.Base.Geo.Shipments' + TempTrip.Description, 'Route ' + TempTrip.Description, false);
-                        until TempTrip.Next = 0;
+                    MapElementBuffer.UpdateLayerSettings('disableClusteringAtZoom', GetZoomLevel());
+                        
                     MapElementBuffer.CreateGeoLayer('01.Overlay.Geo.MyTrucks', 'My Trucks', false);
                     MapElementBuffer.CreateGeoLayer('02.Overlay.Geo.IttervoortTrucks', 'Ittervoort Trucks', false);
                     MapElementBuffer.CreateGeoLayer('03.Overlay.Geo.DeventerTrucks', 'Deventer Trucks', false);
                     MapElementBuffer.CreateGeoLayer('04.Overlay.Geo.ITTLTrucks', 'ITTL Trucks', false);
                     MapElementBuffer.CreateGeoLayer('05.Overlay.Geo.NearbyTrucks', 'Nearby Trucks', false);
                     MapElementBuffer.CreateGeoLayer('06.Overlay.Geo.FindTrips', 'Find Trips', false);
+
+                    // Dynamics Routes Layers Planning
+                    if TempTrip.FindSet() then
+                        repeat
+                            MapElementBuffer.CreateGeoLayer('00.Overlay.Geo.Route.' + TempTrip.Description, 'Route ' + TempTrip.Description, false);
+                        until (TempTrip.Next = 0);
                 end;
 
             Database::"Transics Activity Report":
@@ -146,9 +149,6 @@ codeunit 50256 "Meta UI Map Routines"
                             PredictionsToMapElements(Source, MapElementBuffer);
                     end;
 
-                    if StrPos(MapElementBuffer.ID, '00.Base.Geo.Shipments') > 0 then
-                        TempTripToMapElements(Source, MapElementBuffer);
-
                     // Dynamic Trip Layers Processing
                     if StrPos(MapElementBuffer.ID, 'Overlay.Geo.Trip.') > 0 then begin
                         DynamicTripID := CopyStr(MapElementBuffer.ID, 21);
@@ -157,6 +157,10 @@ codeunit 50256 "Meta UI Map Routines"
                         Source.GetTable(Trip);
                         TripsToMapElements(Source, MapElementBuffer);
                     end;
+
+                    // Dynamics Routes Layers Processing
+                    if StrPos(MapElementBuffer.ID, '00.Overlay.Geo.Route.') > 0 then
+                        TempTripToMapElements(Source, MapElementBuffer);                    
                 end;
 
             MapElementBuffer.Type::Route:
@@ -326,7 +330,7 @@ codeunit 50256 "Meta UI Map Routines"
                 StrSubstNo(AddressPopupPattern, Address.Description, Address.Street,
                     Address."Post Code", Address.City), true, false);
 
-            MapElementBuffer.UpdatePointMarkerSettings('radius', 10 + Round(Shipment."Loading Meters", 1, '>'));
+            // MapElementBuffer.UpdatePointMarkerSettings('radius', 10 + Round(Shipment."Loading Meters", 1, '>'));
 
             case Shipment."Lane Type" of
                 Shipment."Lane Type"::Collection,
@@ -414,11 +418,7 @@ codeunit 50256 "Meta UI Map Routines"
                         Address.Get(Shpmnt."To Address No.");
                 end;
 
-                // MapElementBuffer.CreateCirclePoint(Format(Shpmnt."Selection Sequence"), Format(Shpmnt."Lane Type"));
                 MapElementBuffer.CreateCirclePoint(Shpmnt."Temp. Trip No." + Format(Shpmnt."Selection Sequence"), Format(Shpmnt."Lane Type"));
-                // it's a quick fix...  Not unique id causing issue I need to investigate...
-                // Message('ID: %1\ParentID: %2', MapElementBuffer.ID, MapElementBuffer."Parent ID");
-
                 MapElementBuffer.UpdatePointCoordinates(Address.Latitude, Address.Longitude);
                 MapElementBuffer.UpdatePointPopupSettings("Address".Description, true, false);
 
@@ -427,8 +427,6 @@ codeunit 50256 "Meta UI Map Routines"
 
                 MapElementBuffer.SwitchToParent();
             until Shpmnt.Next = 0;
-
-            // MapElementBuffer.SwitchToParent(); - it's redundant...
         end;
     end;
 
@@ -588,12 +586,9 @@ codeunit 50256 "Meta UI Map Routines"
         Equipment: Record Equipment;
         UserSetup: Record "User Setup";
         PeriodicalAllocation: Record "Periodical Allocation";
-        ParentID: Text;
     begin
         UserSetup.Get(UserId());
         UserSetup.TestField("Planner No.");
-
-        ParentID := MapElementBuffer.ID; // SEB: Is used for navigation, becase there is problems with data duplicates
 
         PeriodicalAllocation.SetRange(PeriodicalAllocation.Type, PeriodicalAllocation.Type::Truck);
         PeriodicalAllocation.SetRange("Default Planner No.", UserSetup."Planner No.");
@@ -601,20 +596,14 @@ codeunit 50256 "Meta UI Map Routines"
             repeat
                 Equipment.Get(PeriodicalAllocation."No.", Equipment.Type::Truck);
                 if IsValidCoordinates(Equipment."Last Latitude", Equipment."Last Longitude") then begin
-                    MapElementBuffer.CreateIconPoint(Equipment.Id, Equipment.Description);// then begin
-                        MapElementBuffer.UpdatePointCoordinates(Equipment."Last Latitude", Equipment."Last Longitude");
-                        MapElementBuffer.UpdatePointPopupSettings(
-                            StrSubstNo(EquipmentPopupPattern, Equipment."No.", Equipment."Last Driver Name"), true, false);
+                    MapElementBuffer.CreateIconPoint(Equipment.Id, Equipment.Description);
+                    MapElementBuffer.UpdatePointCoordinates(Equipment."Last Latitude", Equipment."Last Longitude");
+                    MapElementBuffer.UpdatePointPopupSettings(
+                        StrSubstNo(EquipmentPopupPattern, Equipment."No.", Equipment."Last Driver Name"), true, false);
 
-                        MapElementBuffer.UpdatePointMarkerSettings('iconUrl', RedIconPath);
-                        MapElementBuffer.UpdateDataMarkProperty(RedIconPath);
-                        MapElementBuffer.SwitchToParent();
-                   // end else begin
-                    //    Message(EquipmentDuplicateMessage,
-                    //        MapElementBuffer.TableCaption, MapElementBuffer.FieldCaption(ID), MapElementBuffer.ID);
-
-                  //      MapElementBuffer.Get(ParentID);
-                 //   end;
+                    MapElementBuffer.UpdatePointMarkerSettings('iconUrl', RedIconPath);
+                    MapElementBuffer.UpdateDataMarkProperty(RedIconPath);
+                    MapElementBuffer.SwitchToParent();
                 end;
             until (PeriodicalAllocation.Next() = 0);
     end;
@@ -624,10 +613,7 @@ codeunit 50256 "Meta UI Map Routines"
         Trip: Record Trip;
         Equipment: Record Equipment;
         IconURLPath: Text;
-        ParentID: Text;
     begin
-        ParentID := MapElementBuffer.ID; // SEB: Is used for navigation, becase there is problems with data duplicates
-
         Trip.SetRange("Planning Code", PlanningFilter);
         Trip.SetRange(Active, true);
         // Trip.SetRange("Board Computer Mandatory", true); // SEB: This break down the client !!!
@@ -642,28 +628,21 @@ codeunit 50256 "Meta UI Map Routines"
             If Equipment.FindSet() then
                 repeat
                     if IsValidCoordinates(Equipment."Last Latitude", Equipment."Last Longitude") then begin
-                        MapElementBuffer.CreateIconPoint(Equipment.Id, Equipment.Description);// then begin
-                            MapElementBuffer.UpdatePointCoordinates(Equipment."Last Latitude", Equipment."Last Longitude");
-                            MapElementBuffer.UpdatePointPopupSettings(
-                                StrSubstNo(EquipmentPopupPattern, Equipment."No.", Equipment."Last Driver Name"), true, false);
+                        MapElementBuffer.CreateIconPoint(Equipment.Id, Equipment.Description);
+                        MapElementBuffer.UpdatePointCoordinates(Equipment."Last Latitude", Equipment."Last Longitude");
+                        MapElementBuffer.UpdatePointPopupSettings(
+                            StrSubstNo(EquipmentPopupPattern, Equipment."No.", Equipment."Last Driver Name"), true, false);
 
-                            case PlanningFilter of
-                                'LIMBURG':
-                                    IconURLPath := GreenIconPath;
-                                'DEVENTER':
-                                    IconURLPath := RedIconPath;
-                            end;
+                        case PlanningFilter of
+                            'LIMBURG':
+                                IconURLPath := GreenIconPath;
+                            'DEVENTER':
+                                IconURLPath := RedIconPath;
+                        end;
 
-                            MapElementBuffer.UpdatePointMarkerSettings('iconUrl', IconURLPath);
-                            MapElementBuffer.UpdateDataMarkProperty(IconURLPath);
-                            MapElementBuffer.SwitchToParent();
-                     //   end else begin
-                     //       Message(EquipmentDuplicateMessage,
-                     //               MapElementBuffer.TableCaption, MapElementBuffer.FieldCaption(ID), MapElementBuffer.ID);
-
-                      //      MapElementBuffer.Get(ParentID);
-                      //  end;
-
+                        MapElementBuffer.UpdatePointMarkerSettings('iconUrl', IconURLPath);
+                        MapElementBuffer.UpdateDataMarkProperty(IconURLPath);
+                        MapElementBuffer.SwitchToParent();
                     end;
                 until (Equipment.Next() = 0);
         end;
@@ -672,30 +651,21 @@ codeunit 50256 "Meta UI Map Routines"
     local procedure ITTLTrucksToMapElements(var MapElementBuffer: Record "Meta UI Map Element")
     var
         Equipment: Record Equipment;
-        ParentID: Text;
     begin
-        ParentID := MapElementBuffer.ID; // SEB: Is used for navigation, becase there is problems with data duplicates
-
         Equipment.SetRange(Type, Equipment.Type::Truck);
         Equipment.SetRange("Default Company", 'UAB ITTL');
         Equipment.SetFilter("Out Of Service Date", '%1|%2..', 0D, Today());
         if Equipment.FindSet() then
             repeat
                 if IsValidCoordinates(Equipment."Last Latitude", Equipment."Last Longitude") then begin
-                    MapElementBuffer.CreateIconPoint(Equipment.Id, Equipment.Description);// then begin
-                        MapElementBuffer.UpdatePointCoordinates(Equipment."Last Latitude", Equipment."Last Longitude");
-                        MapElementBuffer.UpdatePointPopupSettings(
-                            StrSubstNo(EquipmentPopupPattern, Equipment."No.", Equipment."Last Driver Name"), true, false);
+                    MapElementBuffer.CreateIconPoint(Equipment.Id, Equipment.Description);
+                    MapElementBuffer.UpdatePointCoordinates(Equipment."Last Latitude", Equipment."Last Longitude");
+                    MapElementBuffer.UpdatePointPopupSettings(
+                        StrSubstNo(EquipmentPopupPattern, Equipment."No.", Equipment."Last Driver Name"), true, false);
 
-                        MapElementBuffer.UpdatePointMarkerSettings('iconUrl', BlackIconPath);
-                        MapElementBuffer.UpdateDataMarkProperty(BlackIconPath);
-                        MapElementBuffer.SwitchToParent();
-                    // end else begin
-                    //     Message(EquipmentDuplicateMessage,
-                    //             MapElementBuffer.TableCaption, MapElementBuffer.FieldCaption(ID), MapElementBuffer.ID);
-
-                    //     MapElementBuffer.Get(ParentID);
-                    // end;
+                    MapElementBuffer.UpdatePointMarkerSettings('iconUrl', BlackIconPath);
+                    MapElementBuffer.UpdateDataMarkProperty(BlackIconPath);
+                    MapElementBuffer.SwitchToParent();
                 end;
             until (Equipment.Next() = 0);
     end;
@@ -848,34 +818,32 @@ codeunit 50256 "Meta UI Map Routines"
 
     local procedure SettingsToJSON() Settings: JsonObject
     var
-        TrOrdSetup: Record "Transport Order Setup";
+        TransportOrderSetup: Record "Transport Order Setup";
     begin
-        with TrOrdSetup do begin
-            Get;
-
-            Settings.Add('type', 0);
-            Settings.Add('baseUrl', "Map Account URL");
-
-            if "Map Username" <> '' then
-                Settings.Add('username', "Map Username");
-
-            if "Map Password" <> '' then
-                Settings.Add('password', "Map Password");
-
-            if "Map Token" <> '' then
-                Settings.Add('token', "Map Token");
-
-            if "Map Profile" <> '' then
-                Settings.Add('profile', "Map Profile");
-
-            if "Map Subdomains" <> '' then
-                Settings.Add('subdomains', "Map Subdomains");
-
-            Settings.Add('providerSettings', Settings);
-        end;
         /*** EXAMPLE OF PROVIDER SETTINGS FOR OPENSTREETMAPS ***/
         // Settings.Add('type', 1);
         // Settings.Add('baseUrl', 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png');
+
+        TransportOrderSetup.Get;
+        Settings.Add('type', 0);
+        Settings.Add('baseUrl', TransportOrderSetup."Map Account URL");
+
+        if TransportOrderSetup."Map Username" <> '' then
+            Settings.Add('username', TransportOrderSetup."Map Username");
+
+        if TransportOrderSetup."Map Password" <> '' then
+            Settings.Add('password', TransportOrderSetup."Map Password");
+
+        if TransportOrderSetup."Map Token" <> '' then
+            Settings.Add('token', TransportOrderSetup."Map Token");
+
+        if TransportOrderSetup."Map Profile" <> '' then
+            Settings.Add('profile', TransportOrderSetup."Map Profile");
+
+        if TransportOrderSetup."Map Subdomains" <> '' then
+            Settings.Add('subdomains', TransportOrderSetup."Map Subdomains");
+
+        Settings.Add('providerSettings', Settings);
     end;
 
     local procedure GetZoomLevel(): Integer
