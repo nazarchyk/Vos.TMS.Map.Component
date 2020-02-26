@@ -32,7 +32,6 @@ codeunit 50256 "Meta UI Map Routines"
 
             Database::Shipment:
                 begin
-                    ShpmntCreateTempTrip.GetTempTrips(TempTrip);
                     MapElementBuffer.CreateClusterLayer('00.Base.Cluster.Shipments', 'Shipments', true);
                     MapElementBuffer.UpdateLayerSettings('disableClusteringAtZoom', GetZoomLevel());
                         
@@ -44,6 +43,7 @@ codeunit 50256 "Meta UI Map Routines"
                     MapElementBuffer.CreateGeoLayer('06.Overlay.Geo.FindTrips', 'Find Trips', false);
 
                     // Dynamics Routes Layers Planning
+                    ShpmntCreateTempTrip.GetTempTrips(TempTrip);                    
                     if TempTrip.FindSet() then
                         repeat
                             MapElementBuffer.CreateGeoLayer('00.Overlay.Geo.Route.' + TempTrip.Description, 'Route ' + TempTrip.Description, false);
@@ -854,7 +854,7 @@ codeunit 50256 "Meta UI Map Routines"
         exit(UserSetup."Zoom Level (Map)");
     end;
 
-    local procedure SuperUserMessage(Source: RecordRef);
+    local procedure SuperUserMessage(Source: RecordRef)
     var
         UserSetup : Record "User Setup";
         UnknownSourceException: Label 'The source reference ''%1'' is not supported.';
