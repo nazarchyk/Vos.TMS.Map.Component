@@ -34,11 +34,12 @@ codeunit 50256 "Meta UI Map Routines"
                 begin
                     MapElementBuffer.CreateClusterLayer('00.Base.Cluster.Shipments', 'Shipments', true);
                     MapElementBuffer.UpdateLayerSettings('disableClusteringAtZoom', GetZoomLevel());
-                        
+
                     MapElementBuffer.CreateGeoLayer('01.Overlay.Geo.MyTrucks', 'My Trucks', false);
                     MapElementBuffer.CreateGeoLayer('02.Overlay.Geo.IttervoortTrucks', 'Ittervoort Trucks', false);
                     MapElementBuffer.CreateGeoLayer('03.Overlay.Geo.DeventerTrucks', 'Deventer Trucks', false);
                     MapElementBuffer.CreateGeoLayer('04.Overlay.Geo.ITTLTrucks', 'ITTL Trucks', false);
+                    MapElementBuffer.CreateGeoLayer('08.Overlay.Geo.AlblasserdamTrucks', 'Alblasserdam Trucks', false);
                     MapElementBuffer.CreateGeoLayer('05.Overlay.Geo.NearbyTrucks', 'Nearby Trucks', false);
                     MapElementBuffer.CreateGeoLayer('06.Overlay.Geo.FindTrips', 'Find Trips', false);
 
@@ -85,6 +86,7 @@ codeunit 50256 "Meta UI Map Routines"
                     MapElementBuffer.CreateGeoLayer('02.Overlay.Geo.IttervoortTrucks', 'Ittervoort Trucks', false);
                     MapElementBuffer.CreateGeoLayer('03.Overlay.Geo.DeventerTrucks', 'Deventer Trucks', false);
                     MapElementBuffer.CreateGeoLayer('04.Overlay.Geo.ITTLTrucks', 'ITTL Trucks', false);
+                    MapElementBuffer.CreateGeoLayer('08.Overlay.Geo.AlblasserdamTrucks', 'Alblasserdam Trucks', false);
 
                     if Trip.Count = 1 then
                         MapElementBuffer.CreateGeoLayer('07.Overlay.Geo.Predictions', 'Predictions', false);
@@ -147,6 +149,8 @@ codeunit 50256 "Meta UI Map Routines"
                             FindTripsForSelectedTrucks(MapElementBuffer);
                         '07.Overlay.Geo.Predictions':
                             PredictionsToMapElements(Source, MapElementBuffer);
+                        '08.Overlay.Geo.AlblasserdamTrucks':
+                            TrucksToMapElements('ALBLASSERD', MapElementBuffer);
                     end;
 
                     // Dynamic Trip Layers Processing
@@ -160,7 +164,7 @@ codeunit 50256 "Meta UI Map Routines"
 
                     // Dynamics Routes Layers Processing
                     if StrPos(MapElementBuffer.ID, '00.Overlay.Geo.Route.') > 0 then
-                        TempTripToMapElements(Source, MapElementBuffer);                    
+                        TempTripToMapElements(Source, MapElementBuffer);
                 end;
 
             MapElementBuffer.Type::Route:
@@ -407,7 +411,7 @@ codeunit 50256 "Meta UI Map Routines"
     begin
         Shpmnt.SetCurrentKey("Temp. Trip No.", "Selection Sequence");
         Shpmnt.SetRange("Temp. Trip No.", UserId + CopyStr(MapElementBuffer.ID, StrLen(MapElementBuffer.ID) - 1, 2));
-        if Shpmnt.FindSet() then begin            
+        if Shpmnt.FindSet() then begin
             MapElementBuffer.CreateGeoRoute(Shpmnt."Temp. Trip No.", Shpmnt."Temp. Trip No.");
 
             repeat
@@ -638,6 +642,8 @@ codeunit 50256 "Meta UI Map Routines"
                                 IconURLPath := GreenIconPath;
                             'DEVENTER':
                                 IconURLPath := RedIconPath;
+                            'ALBLASSERD':
+                                IconURLPath := BlueIconPath;
                         end;
 
                         MapElementBuffer.UpdatePointMarkerSettings('iconUrl', IconURLPath);
@@ -856,7 +862,7 @@ codeunit 50256 "Meta UI Map Routines"
 
     local procedure SuperUserMessage(Source: RecordRef)
     var
-        UserSetup : Record "User Setup";
+        UserSetup: Record "User Setup";
         UnknownSourceException: Label 'The source reference ''%1'' is not supported.';
     begin
         UserSetup.Get(UserId);
@@ -864,6 +870,7 @@ codeunit 50256 "Meta UI Map Routines"
             exit;
         Message(UnknownSourceException, Source);
     end;
+
     var
         RedIconPath: Label 'images/red.truck.19.png';
         BlueIconPath: Label 'images/blue.truck.19.png';
