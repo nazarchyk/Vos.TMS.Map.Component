@@ -5,6 +5,8 @@ codeunit 50256 "Meta UI Map Routines"
     [EventSubscriber(ObjectType::Table, Database::"Meta UI Map Element", 'OnMapSettingsInitiate', '', false, false)]
     local procedure MetaUIMapElement_OnMapSettingsInitiate(var MapSettings: JsonObject)
     begin
+        LogExecutionActivity('Meta UI Map Routines', '      MetaUIMapElement_OnMapSettingsInitiate', '');
+
         MapSettings := SettingsToJSON();
     end;
 
@@ -16,6 +18,11 @@ codeunit 50256 "Meta UI Map Routines"
         TempTrip: Record "Temp. Trip" temporary;
         ShpmntCreateTempTrip: Codeunit "Shipment - Create Temp. Trip";
     begin
+        if Source.Number <> 0 then
+            LogExecutionActivity('Meta UI Map Routines', '      MetaUIMapElement_OnMapStructureInitiate', 'Table: ' + Source.Name)
+        else
+            LogExecutionActivity('Meta UI Map Routines', '      MetaUIMapElement_OnMapStructureInitiate', 'No Table Selected');
+
         case Source.Number of
             Database::Address:
                 MapElementBuffer.CreateGeoLayer('00.Base.Geo.Address', 'Address Location', true);
@@ -27,6 +34,7 @@ codeunit 50256 "Meta UI Map Routines"
 
             Database::"Via Point Address":
                 MapElementBuffer.CreateGeoLayer('00.Base.Geo.ViaPointAddress', 'Via Point Address', true);
+
             Database::"Truck Entry":
                 MapElementBuffer.CreateGeoLayer('00.Base.Geo.TruckEntry', 'Truck Entries', true);
 
@@ -39,12 +47,13 @@ codeunit 50256 "Meta UI Map Routines"
                     MapElementBuffer.CreateGeoLayer('02.Overlay.Geo.IttervoortTrucks', 'Ittervoort Trucks', false);
                     MapElementBuffer.CreateGeoLayer('03.Overlay.Geo.DeventerTrucks', 'Deventer Trucks', false);
                     MapElementBuffer.CreateGeoLayer('04.Overlay.Geo.ITTLTrucks', 'ITTL Trucks', false);
-                    MapElementBuffer.CreateGeoLayer('08.Overlay.Geo.AlblasserdamTrucks', 'Alblasserdam Trucks', false);
-                    MapElementBuffer.CreateGeoLayer('05.Overlay.Geo.NearbyTrucks', 'Nearby Trucks', false);
-                    MapElementBuffer.CreateGeoLayer('06.Overlay.Geo.FindTrips', 'Find Trips', false);
+                    MapElementBuffer.CreateGeoLayer('05.Overlay.Geo.AlblasserdamTrucks', 'Alblasserdam Trucks', false);
+
+                    MapElementBuffer.CreateGeoLayer('10.Overlay.Geo.NearbyTrucks', 'Nearby Trucks', false);
+                    MapElementBuffer.CreateGeoLayer('11.Overlay.Geo.FindTrips', 'Find Trips', false);
 
                     // Dynamics Routes Layers Planning
-                    ShpmntCreateTempTrip.GetTempTrips(TempTrip);                    
+                    ShpmntCreateTempTrip.GetTempTrips(TempTrip);
                     if TempTrip.FindSet() then
                         repeat
                             MapElementBuffer.CreateGeoLayer('00.Overlay.Geo.Route.' + TempTrip.Description, 'Route ' + TempTrip.Description, false);
@@ -86,10 +95,10 @@ codeunit 50256 "Meta UI Map Routines"
                     MapElementBuffer.CreateGeoLayer('02.Overlay.Geo.IttervoortTrucks', 'Ittervoort Trucks', false);
                     MapElementBuffer.CreateGeoLayer('03.Overlay.Geo.DeventerTrucks', 'Deventer Trucks', false);
                     MapElementBuffer.CreateGeoLayer('04.Overlay.Geo.ITTLTrucks', 'ITTL Trucks', false);
-                    MapElementBuffer.CreateGeoLayer('08.Overlay.Geo.AlblasserdamTrucks', 'Alblasserdam Trucks', false);
+                    MapElementBuffer.CreateGeoLayer('05.Overlay.Geo.AlblasserdamTrucks', 'Alblasserdam Trucks', false);
 
                     if Trip.Count = 1 then
-                        MapElementBuffer.CreateGeoLayer('07.Overlay.Geo.Predictions', 'Predictions', false);
+                        MapElementBuffer.CreateGeoLayer('20.Overlay.Geo.Predictions', 'Predictions', false);
                 end;
 
             Database::"TX Tango Consultation":
@@ -107,6 +116,10 @@ codeunit 50256 "Meta UI Map Routines"
         Shipment: Record Shipment;
         DynamicTripID: Code[20];
     begin
+        LogExecutionActivity('Meta UI Map Routines', '      MetaUIMapElement_OnElementSelectionChanged', 
+            StrSubstNo('ID: %1 Type:%2 Subtype:%3 Parent:%4 Selected:%5', MapElementBuffer.ID, 
+                MapElementBuffer.Type, MapElementBuffer.Subtype, MapElementBuffer."Parent ID", MapElementBuffer.Selected));
+
         case MapElementBuffer.Type of
             MapElementBuffer.Type::Layer:
                 if MapElementBuffer.Selected then begin
@@ -143,14 +156,14 @@ codeunit 50256 "Meta UI Map Routines"
                             TrucksToMapElements('DEVENTER', MapElementBuffer);
                         '04.Overlay.Geo.ITTLTrucks':
                             ITTLTrucksToMapElements(MapElementBuffer);
-                        '05.Overlay.Geo.NearbyTrucks':
+                        '05.Overlay.Geo.AlblasserdamTrucks':
+                            TrucksToMapElements('ALBLASSERD', MapElementBuffer);                            
+                        '10.Overlay.Geo.NearbyTrucks':
                             NearTrucksToMapElements(MapElementBuffer);
-                        '06.Overlay.Geo.FindTrips':
+                        '11.Overlay.Geo.FindTrips':
                             FindTripsForSelectedTrucks(MapElementBuffer);
-                        '07.Overlay.Geo.Predictions':
+                        '20.Overlay.Geo.Predictions':
                             PredictionsToMapElements(Source, MapElementBuffer);
-                        '08.Overlay.Geo.AlblasserdamTrucks':
-                            TrucksToMapElements('ALBLASSERD', MapElementBuffer);
                     end;
 
                     // Dynamic Trip Layers Processing
@@ -176,12 +189,18 @@ codeunit 50256 "Meta UI Map Routines"
                         if MapElementBuffer.Selected then begin
                             MapElementBuffer.UpdatePointMarkerSettings('strokeColor', 'black');
 
+                            LogExecutionActivity('Meta UI Map Routines', 
+                                '      MetaUIMapElement_OnElementSelectionChanged', 'Before Shipment.FindFirst...');
+
                             if Source.Number = Database::Shipment then begin
                                 Shipment.SetCurrentKey(Id);
                                 Shipment.SetRange(Id, MapElementBuffer.ID);
                                 if Shipment.FindFirst() then
                                     OnShipmentMarkerSelection(Shipment);
                             end;
+
+                            LogExecutionActivity('Meta UI Map Routines', 
+                                '      MetaUIMapElement_OnElementSelectionChanged', 'After Shipment.FindFirst...');
                         end else
                             MapElementBuffer.UpdatePointMarkerSettings('strokeColor', '#4f90ca');
 
@@ -194,6 +213,8 @@ codeunit 50256 "Meta UI Map Routines"
                                     MapElementBuffer.UpdatePointMarkerSettings('iconUrl', GreenIconPath);
                                 BlackIconPath:
                                     MapElementBuffer.UpdatePointMarkerSettings('iconUrl', BlackIconPath);
+                                LightBlueIconPath:
+                                    MapElementBuffer.UpdatePointMarkerSettings('iconUrl', LightBlueIconPath);
                             end;
                         end else
                             MapElementBuffer.UpdatePointMarkerSettings('iconUrl', BlueIconPath);
@@ -384,9 +405,10 @@ codeunit 50256 "Meta UI Map Routines"
                             Address.Get(Shipment."To Address No.");
                     end;
 
+                    if Address.CoordinatesNotInCountry() then
+                        Address.SetDefaultCoordinates();
+
                     MapElementBuffer.CreateCirclePoint(Shipment.id, Shipment.Description);
-                    if Address.CoordinatesNotInCountry then
-                        Address.SetDefaultCoordinates;
                     MapElementBuffer.UpdatePointCoordinates(Address.Latitude, Address.Longitude);
                     MapElementBuffer.UpdatePointPopupSettings(
                         StrSubstNo(LoadingMetersPopupPattern, Shipment."Loading Meters") + '<br>' +
@@ -643,7 +665,7 @@ codeunit 50256 "Meta UI Map Routines"
                             'DEVENTER':
                                 IconURLPath := RedIconPath;
                             'ALBLASSERD':
-                                IconURLPath := BlueIconPath;
+                                IconURLPath := LightBlueIconPath;
                         end;
 
                         MapElementBuffer.UpdatePointMarkerSettings('iconUrl', IconURLPath);
@@ -819,7 +841,7 @@ codeunit 50256 "Meta UI Map Routines"
     // This event is triggered when the circle marker is being selected on the Map Factbox on the Planview Shipment page.
     local procedure OnShipmentMarkerSelection(Shipment: Record Shipment);
     begin
-        Shipment.SelectIt;
+        Shipment.SelectIt();
     end;
 
     local procedure SettingsToJSON() Settings: JsonObject
@@ -865,17 +887,33 @@ codeunit 50256 "Meta UI Map Routines"
         UserSetup: Record "User Setup";
         UnknownSourceException: Label 'The source reference ''%1'' is not supported.';
     begin
-        UserSetup.Get(UserId);
+        UserSetup.Get(UserId());
         if not UserSetup."Super User" then
             exit;
+
         Message(UnknownSourceException, Source);
     end;
 
+    local procedure LogExecutionActivity(Context: Text[30]; Activity: Text; Details: Text)
     var
-        RedIconPath: Label 'images/red.truck.19.png';
-        BlueIconPath: Label 'images/blue.truck.19.png';
-        GreenIconPath: Label 'images/green.truck.19.png';
-        BlackIconPath: Label 'images/black.truck.19.png';
+        UserSetup: Record "User Setup";
+        ActivityLog: Record "Activity Log";
+    begin
+        if UserId() = 'GLOBAL.MEDIATOR@VOS-GROUP.EU' then begin
+            if UserSetup.Get(UserId()) then begin
+                ActivityLog.LogActivity(UserSetup, ActivityLog.Status::Success, Context, Activity, Details);
+                Commit();
+            end;
+        end;
+    end;
+
+    var
+        RedIconPath: Label 'sources/controls/images/red.truck.19.png';
+        BlueIconPath: Label 'sources/controls/images/blue.truck.19.png';
+        GreenIconPath: Label 'sources/controls/images/green.truck.19.png';
+        BlackIconPath: Label 'sources/controls/images/black.truck.19.png';
+        LightBlueIconPath: Label 'sources/controls/images/light-blue.truck.19.png';
+
         AddressPopupPattern: Label 'Description: %1<br>Street: %2<br>Post Code: %3<br>City: %4';
         EquipmentPopupPattern: Label 'Truck No.: %1<br>Driver Name: %2';
         EquipmentDuplicateMessage: Label 'The %1 with %2=%3 already exists.';

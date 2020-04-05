@@ -4,7 +4,7 @@ pageextension 50142 "Address Validation Card (Map)" extends "Address Validation 
     {
         addlast(FactBoxes)
         {
-            part(Map; "Meta UI Map")
+            part(MapControl; "Meta UI Map")
             {
                 ApplicationArea = All;
             }
@@ -16,6 +16,6 @@ pageextension 50142 "Address Validation Card (Map)" extends "Address Validation 
         RecReference: RecordRef;
     begin
         RecReference.GetTable(Rec);
-        CurrPage.Map.Page.UpdateMapContent(RecReference);
+        CurrPage.MapControl.Page.UpdateMapContent(RecReference);
     end;
 }

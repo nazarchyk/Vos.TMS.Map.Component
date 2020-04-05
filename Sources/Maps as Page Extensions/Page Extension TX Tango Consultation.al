@@ -4,7 +4,7 @@ pageextension 50151 "TX Tango Consultation (Map)" extends "TX Tango Consultation
     {
         addfirst(FactBoxes)
         {
-            part(Map; "Meta UI Map")
+            part(MapControl; "Meta UI Map")
             {
                 ApplicationArea = All;
                 Visible = false;
@@ -18,6 +18,6 @@ pageextension 50151 "TX Tango Consultation (Map)" extends "TX Tango Consultation
         RecReference: RecordRef;
     begin
         RecReference.GetTable(Rec);
-        CurrPage.Map.Page.UpdateMapContent(RecReference);
+        CurrPage.MapControl.Page.UpdateMapContent(RecReference);
     end;
 }

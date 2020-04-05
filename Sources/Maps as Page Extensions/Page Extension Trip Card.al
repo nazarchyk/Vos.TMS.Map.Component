@@ -4,7 +4,7 @@ pageextension 50149 "Trip Card (Map)" extends "Trip Card"
     {
         addfirst(FactBoxes)
         {
-            part(Map; "Meta UI Map")
+            part(MapControl; "Meta UI Map")
             {
                 ApplicationArea = All;
             }
@@ -17,6 +17,6 @@ pageextension 50149 "Trip Card (Map)" extends "Trip Card"
     begin
         RecReference.GetTable(Rec);
         RecReference.SetRecFilter();
-        CurrPage.Map.Page.UpdateMapContent(RecReference);
+        CurrPage.MapControl.Page.UpdateMapContent(RecReference);
     end;
 }

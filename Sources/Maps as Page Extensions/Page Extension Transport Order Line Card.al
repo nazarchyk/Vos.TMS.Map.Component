@@ -4,7 +4,7 @@ pageextension 50148 "Trans. Order Line Card (Map)" extends "Transport Order Line
     {
         addfirst(FactBoxes)
         {
-            part(Map; "Meta UI Map")
+            part(MapControl; "Meta UI Map")
             {
                 ApplicationArea = All;
             }
@@ -17,6 +17,6 @@ pageextension 50148 "Trans. Order Line Card (Map)" extends "Transport Order Line
     begin
         RecReference.GetTable(Rec);
         RecReference.FilterGroup := 200;
-        CurrPage.Map.Page.UpdateMapContent(RecReference);
+        CurrPage.MapControl.Page.UpdateMapContent(RecReference);
     end;
 }

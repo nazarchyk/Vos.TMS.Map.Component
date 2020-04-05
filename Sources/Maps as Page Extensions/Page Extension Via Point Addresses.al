@@ -1,22 +1,24 @@
-pageextension 50146 "Transics Activity Report (Map)" extends "Transics Activity Report"
+pageextension 50153 "Via Point Addresses (Map)" extends "Via Point Addresses"
 {
     layout
     {
-        addfirst(FactBoxes)
+        addlast(FactBoxes)
         {
             part(MapControl; "Meta UI Map")
             {
                 ApplicationArea = All;
-                Visible = false;
             }
         }
     }
 
     trigger OnAfterGetCurrRecord()
     var
+        ViaPointAddress: Record "Via Point Address";
         RecReference: RecordRef;
     begin
-        RecReference.GetTable(Rec);
+        ViaPointAddress.SetRange("Via Point Code", "Via Point Code");
+
+        RecReference.GetTable(ViaPointAddress);
         CurrPage.MapControl.Page.UpdateMapContent(RecReference);
     end;
 }

@@ -1,44 +1,54 @@
 pageextension 50144 "Planview Shipment (Map)" extends "Planview Shipments"
 {
+    PromotedActionCategories = 'New,Process,Report,Meta UI Grid: Shipments,Meta UI Map';
+
     layout
     {
-        // addbefore(TableShip)
         addfirst(FactBoxes)
         {
-            part(Map; "Meta UI Map")
+            part(MapControl; "Meta UI Map")
             {
                 ApplicationArea = All;
                 UpdatePropagation = Both;
-                Visible = IsMapVisible;
+                Visible = IsMapControlVisible;
             }
         }
     }
 
     actions
     {
-        addfirst(Processing)
+        addlast(Processing)
         {
-            action(ShowOnMap)
+            group(MetaUIMap)
             {
-                ApplicationArea = All;
-                Caption = 'Show/Hide Map';
-                Image = Map;
+                Caption = 'Meta UI Map';
 
-                trigger OnAction()
-                begin
-                    IsMapVisible := not IsMapVisible;
-                end;
+                action(ToggleMapVisibility)
+                {
+                    ApplicationArea = All;
+                    Caption = 'Toggle Visibility';
+                    Image = Map;
+
+                    Promoted = true;
+                    PromotedCategory = Category5;
+                    PromotedIsBig = true;
+
+                    trigger OnAction()
+                    begin
+                        IsMapControlVisible := not IsMapControlVisible;
+                    end;
+                }
             }
         }
     }
 
     var
-        IsMapVisible: Boolean;
+        IsMapControlVisible: Boolean;
         xFilters: Text;
 
     trigger OnOpenPage()
     begin
-        IsMapVisible := true;
+        IsMapControlVisible := true;
     end;
 
     trigger OnAfterGetCurrRecord()
@@ -48,10 +58,10 @@ pageextension 50144 "Planview Shipment (Map)" extends "Planview Shipments"
         if xFilters <> GetFilters() then begin
             xFilters := GetFilters();
 
-            If IsMapVisible then
+            If IsMapControlVisible then
                 if GetFilter("Route No.") <> '' then begin
                     RecReference.GetTable(Rec);
-                    CurrPage.Map.Page.UpdateMapContent(RecReference);
+                    CurrPage.MapControl.Page.UpdateMapContent(RecReference);
                 end;
         end;
     end;

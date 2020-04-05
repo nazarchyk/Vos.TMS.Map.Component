@@ -4,7 +4,7 @@ pageextension 50150 "Truck List (Map)" extends "Truck List"
     {
         addlast(FactBoxes)
         {
-            part(Map; "Meta UI Map")
+            part(MapControl; "Meta UI Map")
             {
                 ApplicationArea = All;
             }
@@ -16,6 +16,6 @@ pageextension 50150 "Truck List (Map)" extends "Truck List"
         RecReference: RecordRef;
     begin
         RecReference.GetTable(Rec);
-        CurrPage.Map.Page.UpdateMapContent(RecReference);
+        CurrPage.MapControl.Page.UpdateMapContent(RecReference);
     end;
 }

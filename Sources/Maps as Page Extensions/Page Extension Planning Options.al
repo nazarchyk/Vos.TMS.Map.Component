@@ -4,7 +4,7 @@ pageextension 50143 "Planning Options (Map)" extends "Planning Options"
     {
         addfirst(FactBoxes)
         {
-            part(Map; "Meta UI Map")
+            part(MapControl; "Meta UI Map")
             {
                 ApplicationArea = All;
             }
@@ -17,6 +17,6 @@ pageextension 50143 "Planning Options (Map)" extends "Planning Options"
     begin
         RecReference.GetTable(Rec);
         RecReference.FilterGroup := 100;
-        CurrPage.Map.Page.UpdateMapContent(RecReference);
+        CurrPage.MapControl.Page.UpdateMapContent(RecReference);
     end;
 }

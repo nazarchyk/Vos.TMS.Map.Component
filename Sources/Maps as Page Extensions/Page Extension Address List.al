@@ -4,7 +4,10 @@ pageextension 50141 "Address List (Map)" extends "Address List"
     {
         addlast(FactBoxes)
         {
-            part(Map; "Meta UI Map") { ApplicationArea = All; }
+            part(MapControl; "Meta UI Map")
+            {
+                ApplicationArea = All;
+            }
         }
     }
 
@@ -13,6 +16,6 @@ pageextension 50141 "Address List (Map)" extends "Address List"
         RecReference: RecordRef;
     begin
         RecReference.GetTable(Rec);
-        CurrPage.Map.Page.UpdateMapContent(RecReference);
+        CurrPage.MapControl.Page.UpdateMapContent(RecReference);
     end;
 }

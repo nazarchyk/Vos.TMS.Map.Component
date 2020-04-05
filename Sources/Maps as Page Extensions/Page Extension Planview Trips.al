@@ -1,56 +1,71 @@
 pageextension 50145 "Planview Trips (Map)" extends "Planview Trips"
 {
+    PromotedActionCategories = 'New,Process,Report,Meta UI Grid: Trips,Meta UI Map';
+
     layout
     {
-        // addlast(Content)
         addfirst(FactBoxes)
         {
-            part(Map; "Meta UI Map")
+            part(MapControl; "Meta UI Map")
             {
                 ApplicationArea = All;
                 UpdatePropagation = Both;
-                Visible = IsMapVisible;
+                Visible = IsMapControlVisible;
             }
         }
     }
 
     actions
     {
-        addfirst(Processing)
+        addlast(Processing)
         {
-            action(ShowOnMap)
+            group(MetaUIMap)
             {
-                ApplicationArea = All;
-                Caption = 'Show/Hide Map';
-                Image = Map;
+                Caption = 'Meta UI Map';
 
-                trigger OnAction()
-                begin
-                    IsMapVisible := not IsMapVisible;
-                end;
-            }
-            action(ShowAllOnMap)
-            {
-                ApplicationArea = All;
-                Caption = 'Show All on Map';
-                Image = Map;
+                action(ToggleMapVisibility)
+                {
+                    ApplicationArea = All;
+                    Caption = 'Toggle Visibility';
+                    Image = Map;
 
-                trigger OnAction()
-                begin
-                    ShowAllOnMap := not ShowAllOnMap;
-                end;
+                    Promoted = true;
+                    PromotedCategory = Category5;
+                    PromotedIsBig = true;
+
+                    trigger OnAction()
+                    begin
+                        IsMapControlVisible := not IsMapControlVisible;
+                    end;
+                }
+
+                action(ToggleMultiTripsSelection)
+                {
+                    ApplicationArea = All;
+                    Caption = 'Toggle Multi Trips Selection';
+                    Image = ShowSelected; // RefreshPlanningLine
+
+                    Promoted = true;
+                    PromotedCategory = Category5;
+                    PromotedIsBig = true;
+
+                    trigger OnAction()
+                    begin
+                        IsMultiTripsSelectionEnabled := not IsMultiTripsSelectionEnabled;
+                    end;
+                }
             }
         }
     }
 
     var
-        IsMapVisible: Boolean;
-        ShowAllOnMap: Boolean;
+        IsMapControlVisible: Boolean;
+        IsMultiTripsSelectionEnabled: Boolean;
         xFilters: Text;
 
     trigger OnOpenPage()
     begin
-        IsMapVisible := true;
+        IsMapControlVisible := true;
     end;
 
     // Variant 1 - Visualization only when filters changed
@@ -61,7 +76,7 @@ pageextension 50145 "Planview Trips (Map)" extends "Planview Trips"
     //     if xFilters <> GetFilters() then begin
     //         xFilters := GetFilters();
 
-    //         If IsMapVisible then begin
+    //         If IsMapControlVisible then begin
     //             RecReference.GetTable(Rec);
     //             CurrPage.Map.Page.UpdateMapContent(RecReference);
     //         end;
@@ -74,10 +89,10 @@ pageextension 50145 "Planview Trips (Map)" extends "Planview Trips"
         Trip: Record Trip;
         RecReference: RecordRef;
     begin
-        if not IsMapVisible then
+        if not IsMapControlVisible then
             exit;
 
-        if ShowAllOnMap then begin
+        if IsMultiTripsSelectionEnabled then begin
             CurrPage.SetSelectionFilter(Trip);
             if Trip.Count() = 1 then begin
                 RecReference.GetTable(Rec);
@@ -89,6 +104,6 @@ pageextension 50145 "Planview Trips (Map)" extends "Planview Trips"
             RecReference.SetRecFilter();
         end;
 
-        CurrPage.Map.Page.UpdateMapContent(RecReference);
+        CurrPage.MapControl.Page.UpdateMapContent(RecReference);
     end;
 }
