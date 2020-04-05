@@ -201,9 +201,15 @@ codeunit 50256 "Meta UI Map Routines"
 
                             LogExecutionActivity('Meta UI Map Routines', 
                                 '      MetaUIMapElement_OnElementSelectionChanged', 'After Shipment.FindFirst...');
-                        end else
+                        end else begin
                             MapElementBuffer.UpdatePointMarkerSettings('strokeColor', '#4f90ca');
-
+                            if Source.Number = Database::Shipment then begin
+                                Shipment.SetCurrentKey(Id);
+                                Shipment.SetRange(Id, MapElementBuffer.ID);
+                                if Shipment.FindFirst() then
+                                    OnShipmentMarkerSelection(Shipment);
+                            end;
+                        end;
                     MapElementBuffer.Subtype::Icon:
                         if not MapElementBuffer.Selected then begin
                             case MapElementBuffer."Data Mark" of
