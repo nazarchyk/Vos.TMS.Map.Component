@@ -26,7 +26,7 @@ codeunit 50256 "Meta UI Map Routines"
         case Source.Number of
             Database::Address:
                 MapElementBuffer.CreateGeoLayer('00.Base.Geo.Address', 'Address Location', true);
-            Database::Equipment:
+            Database::Truck:
                 MapElementBuffer.CreateGeoLayer('00.Base.Geo.Equipment', 'Equipment Location', true);
 
             Database::"Find Or Create Address Args.":
@@ -318,13 +318,13 @@ codeunit 50256 "Meta UI Map Routines"
 
     local procedure EquipmentToMapElements(var Source: RecordRef; var MapElementBuffer: Record "Meta UI Map Element")
     var
-        Equipment: Record Equipment;
+        Equipment: Record Truck;
     begin
         Source.SetTable(Equipment);
 
         MapElementBuffer.CreateCirclePoint(Equipment."No.", Equipment.Description);
-        MapElementBuffer.UpdatePointCoordinates(Equipment."Last Latitude", Equipment."Last Longitude");
-        MapElementBuffer.UpdatePointPopupSettings(Equipment."Last City", true, false);
+        MapElementBuffer.UpdatePointCoordinates(Equipment.GetLatitude, Equipment.GetLongitude);
+        MapElementBuffer.UpdatePointPopupSettings(Equipment.GetLastCity, true, false);
     end;
 
     local procedure PlanningOptionsToMapElements(var Source: RecordRef; var MapElementBuffer: Record "Meta UI Map Element")
@@ -615,7 +615,7 @@ codeunit 50256 "Meta UI Map Routines"
 
     local procedure MyTrucksToMapElements(var MapElementBuffer: Record "Meta UI Map Element")
     var
-        Equipment: Record Equipment;
+        Equipment: Record Truck;
         UserSetup: Record "User Setup";
         PeriodicalAllocation: Record "Periodical Allocation";
     begin
@@ -626,12 +626,12 @@ codeunit 50256 "Meta UI Map Routines"
         PeriodicalAllocation.SetRange("Default Planner No.", UserSetup."Planner No.");
         if PeriodicalAllocation.FindSet() then
             repeat
-                Equipment.Get(PeriodicalAllocation."No.", Equipment.Type::Truck);
-                if IsValidCoordinates(Equipment."Last Latitude", Equipment."Last Longitude") then begin
+                Equipment.Get(PeriodicalAllocation."No.");
+                if IsValidCoordinates(Equipment.GetLatitude, Equipment.GetLongitude) then begin
                     MapElementBuffer.CreateIconPoint(Equipment.Id, Equipment.Description);
-                    MapElementBuffer.UpdatePointCoordinates(Equipment."Last Latitude", Equipment."Last Longitude");
+                    MapElementBuffer.UpdatePointCoordinates(Equipment.GetLatitude, Equipment.GetLongitude);
                     MapElementBuffer.UpdatePointPopupSettings(
-                        StrSubstNo(EquipmentPopupPattern, Equipment."No.", Equipment."Last Driver Name"), true, false);
+                        StrSubstNo(EquipmentPopupPattern, Equipment."No.", ''), true, false);
 
                     MapElementBuffer.UpdatePointMarkerSettings('iconUrl', RedIconPath);
                     MapElementBuffer.UpdateDataMarkProperty(RedIconPath);
@@ -643,7 +643,7 @@ codeunit 50256 "Meta UI Map Routines"
     local procedure TrucksToMapElements(PlanningFilter: Code[10]; var MapElementBuffer: Record "Meta UI Map Element")
     var
         Trip: Record Trip;
-        Equipment: Record Equipment;
+        Equipment: Record Truck;
         IconURLPath: Text;
     begin
         Trip.SetRange("Planning Code", PlanningFilter);
@@ -652,18 +652,18 @@ codeunit 50256 "Meta UI Map Routines"
         if Trip.FindSet() then begin
             repeat
                 if Trip."Board Computer Mandatory" then // SEB: Use this instead filtering, due to issue mentioned earlier...
-                    if Equipment.Get(Trip."First Truck No.", Equipment.Type::Truck) then
+                    if Equipment.Get(Trip."First Truck No.") then
                         Equipment.Mark := true;
             until (Trip.Next() = 0);
 
             Equipment.MarkedOnly := true;
             If Equipment.FindSet() then
                 repeat
-                    if IsValidCoordinates(Equipment."Last Latitude", Equipment."Last Longitude") then begin
+                    if IsValidCoordinates(Equipment.GetLatitude, Equipment.GetLongitude) then begin
                         MapElementBuffer.CreateIconPoint(Equipment.Id, Equipment.Description);
-                        MapElementBuffer.UpdatePointCoordinates(Equipment."Last Latitude", Equipment."Last Longitude");
+                        MapElementBuffer.UpdatePointCoordinates(Equipment.GetLatitude, Equipment.GetLongitude);
                         MapElementBuffer.UpdatePointPopupSettings(
-                            StrSubstNo(EquipmentPopupPattern, Equipment."No.", Equipment."Last Driver Name"), true, false);
+                            StrSubstNo(EquipmentPopupPattern, Equipment."No.", ''), true, false);
 
                         case PlanningFilter of
                             'LIMBURG':
@@ -684,18 +684,17 @@ codeunit 50256 "Meta UI Map Routines"
 
     local procedure ITTLTrucksToMapElements(var MapElementBuffer: Record "Meta UI Map Element")
     var
-        Equipment: Record Equipment;
+        Equipment: Record Truck;
     begin
-        Equipment.SetRange(Type, Equipment.Type::Truck);
         Equipment.SetRange("Default Company", 'UAB ITTL');
         Equipment.SetFilter("Out Of Service Date", '%1|%2..', 0D, Today());
         if Equipment.FindSet() then
             repeat
-                if IsValidCoordinates(Equipment."Last Latitude", Equipment."Last Longitude") then begin
+                if IsValidCoordinates(Equipment.GetLatitude, Equipment.GetLongitude) then begin
                     MapElementBuffer.CreateIconPoint(Equipment.Id, Equipment.Description);
-                    MapElementBuffer.UpdatePointCoordinates(Equipment."Last Latitude", Equipment."Last Longitude");
+                    MapElementBuffer.UpdatePointCoordinates(Equipment.GetLatitude, Equipment.GetLongitude);
                     MapElementBuffer.UpdatePointPopupSettings(
-                        StrSubstNo(EquipmentPopupPattern, Equipment."No.", Equipment."Last Driver Name"), true, false);
+                        StrSubstNo(EquipmentPopupPattern, Equipment."No.", ''), true, false);
 
                     MapElementBuffer.UpdatePointMarkerSettings('iconUrl', BlackIconPath);
                     MapElementBuffer.UpdateDataMarkProperty(BlackIconPath);
@@ -708,7 +707,7 @@ codeunit 50256 "Meta UI Map Routines"
     var
         Address: Record Address;
         Shipment: Record Shipment;
-        EquipmentBuffer: Record Equipment temporary;
+        EquipmentBuffer: Record Truck temporary;
         MapElementShadow: Record "Meta UI Map Element" temporary;
         NoSelectionException: Label 'This function requires selected shipment(s) as a calculation base.';
     begin
@@ -733,11 +732,11 @@ codeunit 50256 "Meta UI Map Routines"
 
             if EquipmentBuffer.FindSet() then
                 repeat
-                    if IsValidCoordinates(EquipmentBuffer."Last Latitude", EquipmentBuffer."Last Longitude") then begin
+                    if IsValidCoordinates(EquipmentBuffer.GetLatitude, EquipmentBuffer.GetLongitude) then begin
                         MapElementBuffer.CreateIconPoint(EquipmentBuffer.Id, EquipmentBuffer.Description);
-                        MapElementBuffer.UpdatePointCoordinates(EquipmentBuffer."Last Latitude", EquipmentBuffer."Last Longitude");
+                        MapElementBuffer.UpdatePointCoordinates(EquipmentBuffer.GetLatitude, EquipmentBuffer.GetLongitude);
                         MapElementBuffer.UpdatePointPopupSettings(
-                                StrSubstNo(EquipmentPopupPattern, EquipmentBuffer."No.", EquipmentBuffer."Last Driver Name"), true, false);
+                                StrSubstNo(EquipmentPopupPattern, EquipmentBuffer."No.", ''), true, false);
 
                         MapElementBuffer.UpdatePointMarkerSettings('iconUrl', RedIconPath);
                         MapElementBuffer.UpdateDataMarkProperty(RedIconPath);
@@ -751,7 +750,7 @@ codeunit 50256 "Meta UI Map Routines"
     local procedure FindTripsForSelectedTrucks(var MapElementBuffer: Record "Meta UI Map Element")
     var
         Trip: Record Trip;
-        Equipment: Record Equipment;
+        Equipment: Record Truck;
         MapElementShadow: Record "Meta UI Map Element" temporary;
         NoSelectionException: Label 'This function requires selected truck(s) as a calculation base.';
         RecReference: RecordRef;
