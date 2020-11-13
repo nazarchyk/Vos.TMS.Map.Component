@@ -69,8 +69,10 @@ codeunit 50256 "Meta UI Map Routines"
                     case TransportOrderLine.FilterGroup of
                         100:
                             MapElementBuffer.CreateGeoLayer('00.Base.Geo.PlanningOptions', 'Planning Options', true);
-                        200:
-                            MapElementBuffer.CreateGeoLayer('00.Base.Geo.TransportOrderLine', 'Transport Order Line', true);
+                        200: begin
+                            MapElementBuffer.CreateGeoLayer('00.Base.Geo.PlanTrOrderLine', 'Planning Transport Order', true);
+                            MapElementBuffer.CreateGeoLayer('01.Base.Geo.TrackingTrOrderLine', 'Transport Order Tracking', true);
+                        end;
                     end;
                 end;
 
@@ -146,8 +148,10 @@ codeunit 50256 "Meta UI Map Routines"
                             TransicsActivitiesToMapElements(Source, MapElementBuffer);
                         '00.Base.Geo.TransportActivities':
                             TransportActivitiesToMapElements(Source, MapElementBuffer);
-                        '00.Base.Geo.TransportOrderLine':
+                        '00.Base.Geo.PlanTrOrderLine':
                             TransportOrderLineToMapElements(Source, MapElementBuffer);
+                        '01.Base.Geo.TrackingTrOrderLine':
+                            TrOrderTruckEntryToMapElements(Source, MapElementBuffer);
                         '01.Overlay.Geo.MyTrucks':
                             MyTrucksToMapElements(MapElementBuffer);
                         '02.Overlay.Geo.IttervoortTrucks':
@@ -292,6 +296,64 @@ codeunit 50256 "Meta UI Map Routines"
             until TruckEntry.Next = 0;
 
         end;
+    end;
+    local procedure TrOrderTruckEntryToMapElements(var Source: RecordRef; var MapElementBuffer: Record "Meta UI Map Element")
+    var
+        TruckEntry: Record "Truck Entry" temporary;
+        TransportOrderLine: Record "Transport Order Line";
+        Shipment: Record Shipment;
+        Address: Record Address;
+        GetEntries: Codeunit "Get Truck Entries";
+        Index: Integer;
+    begin
+        Source.SetTable(TransportOrderLine);
+     
+        GetEntries.GetTruckEntriesForTrOrderRec(TransportOrderLine,TruckEntry);
+        //TruckEntry.SetCurrentKey("Truck No.");
+        if TruckEntry.FindSet then begin
+            MapElementBuffer.CreateGeoRoute(TruckEntry."Truck No.", '');
+            if Address.Get(TransportOrderLine."From Address No.") then begin
+                MapElementBuffer.CreateCirclePoint(format(CreateGuid), '');
+                MapElementBuffer.UpdatePointCoordinates(Address.Latitude, Address.Longitude);
+                MapElementBuffer.UpdatePointMarkerSettings('radius', 1);
+                MapElementBuffer.SwitchToParent();
+            end;
+
+            repeat
+                MapElementBuffer.CreateCirclePoint(Format(TruckEntry."Entry No."), Format(TruckEntry."Created Date Time"));
+                MapElementBuffer.UpdatePointCoordinates(TruckEntry.Latitude, TruckEntry.Longitude);
+                MapElementBuffer.UpdatePointMarkerSettings('radius', 1);
+                MapElementBuffer.UpdatePointPopupSettings(Format(TruckEntry."Created Date Time"), true, false);
+                MapElementBuffer.SwitchToParent();
+            until TruckEntry.Next = 0;
+            MapElementBuffer.SwitchToParent();
+        end;
+
+        Shipment.SetRange("Transport Order No.", TransportOrderLine."Transport Order No.");
+        Shipment.SetRange("Transport Order Line No.", TransportOrderLine."Line No.");
+        Shipment.SetRange("Irr. No.", TransportOrderLine."Active Irregularity No.");
+        if Shipment.FindSet() then begin
+            repeat
+                Address.Get(Shipment."From Address No.");
+
+                MapElementBuffer.CreateCirclePoint(Shipment.Id, Shipment.Description);
+                MapElementBuffer.UpdatePointCoordinates(Address.Latitude, Address.Longitude);
+                MapElementBuffer.UpdatePointPopupSettings(StrSubstNo(AddressPopupPattern,
+                    Address.Description, Address.Street, Address."Post Code", Address.City), true, false);
+                MapElementBuffer.UpdatePointMarkerSettings('radius', 7);
+
+                MapElementBuffer.SwitchToParent();
+            until (Shipment.Next() = 0);
+
+            if Address.Get(TransportOrderLine."To Address No.") then begin
+                MapElementBuffer.CreateCirclePoint(Format(TransportOrderLine."Line No."), '');
+                MapElementBuffer.UpdatePointCoordinates(Address.Latitude, Address.Longitude);
+                MapElementBuffer.UpdatePointPopupSettings(StrSubstNo(AddressPopupPattern,
+                    Address.Description, Address.Street, Address."Post Code", Address.City), true, false);
+                MapElementBuffer.UpdatePointMarkerSettings('radius', 7);
+            end;
+        end;
+
     end;
 
     local procedure ConsultationsToMapElements(var Source: RecordRef; var MapElementBuffer: Record "Meta UI Map Element")
