@@ -303,7 +303,7 @@ codeunit 50256 "Meta UI Map Routines"
         TransportOrderLine: Record "Transport Order Line";
         Shipment: Record Shipment;
         Address: Record Address;
-        GetEntries: Codeunit "Get Truck Entries";
+        GetEntries: Codeunit "Truck Entries Management";
         Index: Integer;
     begin
         Source.SetTable(TransportOrderLine);
