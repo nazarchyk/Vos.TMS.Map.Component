@@ -21,11 +21,12 @@
     }
   ],
   "screenshots": [],
-  "platform": "11.0.0.0",
-  "application": "11.0.0.0",
+  "platform": "14.0.0.0",
+  "application": "14.0.0.0",
   "idRange": {
     "from": 50140,
     "to": 50256
   },
-  "showMyCode": true
+  "showMyCode": true,
+  "runtime": "3.2"
 }

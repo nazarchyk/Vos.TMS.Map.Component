@@ -15,6 +15,7 @@ codeunit 50256 "Meta UI Map Routines"
     var
         Trip: Record Trip;
         TransportOrderLine: Record "Transport Order Line";
+        PlanningOptions: Record "Planning Options";
         TempTrip: Record "Temp. Trip" temporary;
         ShpmntCreateTempTrip: Codeunit "Shipment - Create Temp. Trip";
     begin
@@ -63,17 +64,16 @@ codeunit 50256 "Meta UI Map Routines"
             Database::"Transics Activity Report":
                 MapElementBuffer.CreateGeoLayer('00.Base.Geo.TransicsActivities', 'Transics Activities', true);
 
+            Database::"Planning Options":
+                begin
+                    Source.SetTable(PlanningOptions);
+                    MapElementBuffer.CreateGeoLayer('00.Base.Geo.PlanningOptions', 'Planning Options', true);
+                end;
             Database::"Transport Order Line":
                 begin
                     Source.SetTable(TransportOrderLine);
-                    case TransportOrderLine.FilterGroup of
-                        100:
-                            MapElementBuffer.CreateGeoLayer('00.Base.Geo.PlanningOptions', 'Planning Options', true);
-                        200: begin
-                            MapElementBuffer.CreateGeoLayer('00.Base.Geo.PlanTrOrderLine', 'Planning Transport Order', true);
-                            MapElementBuffer.CreateGeoLayer('01.Base.Geo.TrackingTrOrderLine', 'Transport Order Tracking', true);
-                        end;
-                    end;
+                    MapElementBuffer.CreateGeoLayer('00.Base.Geo.PlanTrOrderLine', 'Planning Transport Order', true);
+                    MapElementBuffer.CreateGeoLayer('01.Base.Geo.TrackingTrOrderLine', 'Transport Order Tracking', true);
                 end;
 
             Database::"Transport Planned Activity":
@@ -118,8 +118,8 @@ codeunit 50256 "Meta UI Map Routines"
         Shipment: Record Shipment;
         DynamicTripID: Code[20];
     begin
-        LogExecutionActivity('Meta UI Map Routines', '      MetaUIMapElement_OnElementSelectionChanged', 
-            StrSubstNo('ID: %1 Type:%2 Subtype:%3 Parent:%4 Selected:%5', MapElementBuffer.ID, 
+        LogExecutionActivity('Meta UI Map Routines', '      MetaUIMapElement_OnElementSelectionChanged',
+            StrSubstNo('ID: %1 Type:%2 Subtype:%3 Parent:%4 Selected:%5', MapElementBuffer.ID,
                 MapElementBuffer.Type, MapElementBuffer.Subtype, MapElementBuffer."Parent ID", MapElementBuffer.Selected));
 
         case MapElementBuffer.Type of
@@ -161,7 +161,7 @@ codeunit 50256 "Meta UI Map Routines"
                         '04.Overlay.Geo.ITTLTrucks':
                             ITTLTrucksToMapElements(MapElementBuffer);
                         '05.Overlay.Geo.AlblasserdamTrucks':
-                            TrucksToMapElements('ALBLASSERD', MapElementBuffer);                            
+                            TrucksToMapElements('ALBLASSERD', MapElementBuffer);
                         '10.Overlay.Geo.NearbyTrucks':
                             NearTrucksToMapElements(MapElementBuffer);
                         '11.Overlay.Geo.FindTrips':
@@ -193,7 +193,7 @@ codeunit 50256 "Meta UI Map Routines"
                         if MapElementBuffer.Selected then begin
                             MapElementBuffer.UpdatePointMarkerSettings('strokeColor', 'black');
 
-                            LogExecutionActivity('Meta UI Map Routines', 
+                            LogExecutionActivity('Meta UI Map Routines',
                                 '      MetaUIMapElement_OnElementSelectionChanged', 'Before Shipment.FindFirst...');
 
                             if Source.Number = Database::Shipment then begin
@@ -203,7 +203,7 @@ codeunit 50256 "Meta UI Map Routines"
                                     OnShipmentMarkerSelection(Shipment);
                             end;
 
-                            LogExecutionActivity('Meta UI Map Routines', 
+                            LogExecutionActivity('Meta UI Map Routines',
                                 '      MetaUIMapElement_OnElementSelectionChanged', 'After Shipment.FindFirst...');
                         end else begin
                             MapElementBuffer.UpdatePointMarkerSettings('strokeColor', '#4f90ca');
@@ -297,6 +297,7 @@ codeunit 50256 "Meta UI Map Routines"
 
         end;
     end;
+
     local procedure TrOrderTruckEntryToMapElements(var Source: RecordRef; var MapElementBuffer: Record "Meta UI Map Element")
     var
         TruckEntry: Record "Truck Entry" temporary;
@@ -307,8 +308,8 @@ codeunit 50256 "Meta UI Map Routines"
         Index: Integer;
     begin
         Source.SetTable(TransportOrderLine);
-     
-        GetEntries.GetTruckEntriesForTrOrderRec(TransportOrderLine,TruckEntry);
+
+        GetEntries.GetTruckEntriesForTrOrderRec(TransportOrderLine, TruckEntry);
         //TruckEntry.SetCurrentKey("Truck No.");
         if TruckEntry.FindSet then begin
             MapElementBuffer.CreateGeoRoute(TruckEntry."Truck No.", '');
@@ -393,28 +394,29 @@ codeunit 50256 "Meta UI Map Routines"
     var
         Address: Record Address;
         Shipment: Record Shipment;
-        TransportOrderLine: Record "Transport Order Line";
+        //TransportOrderLine: Record "Transport Order Line";
+        PlanningOptions: record "Planning Options";
         Index: Integer;
     begin
-        Source.SetTable(TransportOrderLine);
+        Source.SetTable(PlanningOptions);
 
-        Shipment.SetRange("Transport Order No.", TransportOrderLine."Transport Order No.");
-        Shipment.SetRange("Transport Order Line No.", TransportOrderLine."Line No.");
-        Shipment.SetRange("Irr. No.", TransportOrderLine."Active Irregularity No.");
+        Shipment.SetRange("Transport Order No.", PlanningOptions."Transport Order No.");
+        Shipment.SetRange("Transport Order Line No.", PlanningOptions."Line No.");
+        Shipment.SetRange("Irr. No.", PlanningOptions."Active Irregularity No.");
         Shipment.SetAutoCalcFields("Loading Meters");
         if not Shipment.FindSet() then
             exit;
 
         MapElementBuffer.CreateGeoRoute(
-            TransportOrderLine."Transport Order No." + Format(TransportOrderLine."Line No."), '');
+            PlanningOptions."Transport Order No." + Format(PlanningOptions."Line No."), '');
 
         for Index := 0 to Shipment.Count() do begin
             if Index <> 0 then begin
                 Address.Get(Shipment."TO Address No.");
                 MapElementBuffer.CreateCirclePoint(Shipment.Id, Shipment.Description);
             end else begin
-                Address.Get(TransportOrderLine."From Address No.");
-                MapElementBuffer.CreateCirclePoint(Format(TransportOrderLine."Line No."), '');
+                Address.Get(Shipment."From Address No.");
+                MapElementBuffer.CreateCirclePoint(Format(PlanningOptions."Line No."), '');
             end;
 
             MapElementBuffer.UpdatePointCoordinates(Address.Latitude, Address.Longitude);
@@ -547,7 +549,7 @@ codeunit 50256 "Meta UI Map Routines"
                     Index := Index + 1;
                 end;
 
-                MapElementBuffer.CreateCirclePoint(Format(TransicsActivityReport.ActID), '');
+                MapElementBuffer.CreateCirclePoint(Format(TransicsActivityReport.ID), '');
                 MapElementBuffer.UpdatePointCoordinates(
                         TransicsActivityReport.Latitude, TransicsActivityReport.Longitude);
                 MapElementBuffer.UpdatePointMarkerSettings('radius', 7);
