@@ -39,6 +39,12 @@ codeunit 50256 "Meta UI Map Routines"
             Database::"Truck Entry":
                 MapElementBuffer.CreateGeoLayer('00.Base.Geo.TruckEntry', 'Truck Entries', true);
 
+            Database::"Shipment POI":
+                begin
+                    MapElementBuffer.CreateGeoLayer('00.Base.Geo.POI', 'POI', true);
+                    MapElementBuffer.CreateGeoLayer('01.Overlay.Geo.POI.ActivityReportDetails', 'ActivityReportDetails', false);
+                    MapElementBuffer.CreateGeoLayer('02.Overlay.Geo.POI.TruckEntries', 'TruckEntries', false);
+                end;
             Database::Shipment:
                 begin
                     MapElementBuffer.CreateClusterLayer('00.Base.Cluster.Shipments', 'Shipments', true);
@@ -78,6 +84,9 @@ codeunit 50256 "Meta UI Map Routines"
 
             Database::"Transport Planned Activity":
                 MapElementBuffer.CreateGeoLayer('00.Base.Geo.TransportActivities', 'Transport Activities', true);
+
+            Database::"Trip Stop":
+                MapElementBuffer.CreateGeoLayer('00.Base.Geo.Stops', 'Stops', true);
 
             Database::Trip:
                 begin
@@ -138,6 +147,12 @@ codeunit 50256 "Meta UI Map Routines"
                             ViaPointEntryToMapElements(Source, MapElementBuffer);
                         '00.Base.Geo.TruckEntry':
                             TruckEntryToMapElements(Source, MapElementBuffer);
+                        '00.Base.Geo.POI':
+                            POIToMapElements(Source, MapElementBuffer);
+                        '01.Overlay.Geo.POI.ActivityReportDetails':
+                            POIActReportToMapElements(Source, MapElementBuffer);
+                        '02.Overlay.Geo.POI.TruckEntries':
+                            POITruckEntriesToMapElements(Source, MapElementBuffer);
                         '00.Base.Geo.Consultations':
                             ConsultationsToMapElements(Source, MapElementBuffer);
                         '00.Base.Geo.Equipment':
@@ -168,6 +183,8 @@ codeunit 50256 "Meta UI Map Routines"
                             FindTripsForSelectedTrucks(MapElementBuffer);
                         '20.Overlay.Geo.Predictions':
                             PredictionsToMapElements(Source, MapElementBuffer);
+                        '00.Base.Geo.Stops':
+                            StopsToMapElements(Source, MapElementBuffer);
                     end;
 
                     // Dynamic Trip Layers Processing
@@ -294,6 +311,120 @@ codeunit 50256 "Meta UI Map Routines"
                 MapElementBuffer.UpdatePointPopupSettings(TruckEntry."Address Info", true, false);
                 MapElementBuffer.SwitchToParent();
             until TruckEntry.Next = 0;
+
+        end;
+    end;
+
+    local procedure POIToMapElements(var Source: RecordRef; var MapElementBuffer: Record "Meta UI Map Element")
+    var
+        POI: Record "Shipment POI";
+        Shipment: Record Shipment;
+        Address: Record Address;
+
+    begin
+        Source.SetTable(POI);
+
+        if poi.Latitude = 0 then begin
+            Shipment.get(poi."Transport Order No.", poi."Transport Order Line No.", poi."Irr. No.", poi."Leg No.");
+            if poi.Load then
+                Address.get(Shipment."From Address No.")
+            else
+                Address.get(Shipment."To Address No.");
+            poi.Latitude := Address.Latitude;
+            poi.Longitude := Address.Longitude;
+        end;
+
+        MapElementBuffer.CreateCirclePoint(Format(POI."Entry No."), Format(POI."Calculated In Datetime"));
+        MapElementBuffer.UpdatePointCoordinates(POI.Latitude, POI.Longitude);
+        MapElementBuffer.UpdatePointMarkerSettings('radius', 7);
+        MapElementBuffer.UpdatePointMarkerSettings('fillColor', 'red');
+        MapElementBuffer.UpdatePointPopupSettings(poi."Combined Key", true, false);
+        MapElementBuffer.SwitchToParent();
+
+        if POI."In Latitude" <> 0 then begin
+            MapElementBuffer.CreateCirclePoint('in' + Format(POI."Entry No."), Format(POI."Calculated In Datetime"));
+            MapElementBuffer.UpdatePointCoordinates(POI."In Latitude", POI."In Longitude");
+            MapElementBuffer.UpdatePointMarkerSettings('radius', 4);
+            MapElementBuffer.UpdatePointMarkerSettings('fillColor', 'green');
+            MapElementBuffer.UpdatePointPopupSettings('In', true, false);
+            MapElementBuffer.SwitchToParent();
+        end;
+        if POI."Out Latitude" <> 0 then begin
+            MapElementBuffer.CreateCirclePoint('out' + Format(POI."Entry No."), Format(POI."Calculated In Datetime"));
+            MapElementBuffer.UpdatePointCoordinates(POI."Out Latitude", POI."Out Longitude");
+            MapElementBuffer.UpdatePointMarkerSettings('radius', 4);
+            MapElementBuffer.UpdatePointMarkerSettings('fillColor', 'green');
+            MapElementBuffer.UpdatePointPopupSettings('Out', true, false);
+            MapElementBuffer.SwitchToParent();
+        end;
+
+    end;
+
+    local procedure POIActReportToMapElements(var Source: RecordRef; var MapElementBuffer: Record "Meta UI Map Element")
+    var
+        POI: Record "Shipment POI";
+        POITruck: Record "Transics Activity Report" temporary;
+        OutDate: DateTime;
+        InDate: DateTime;
+    begin
+        Source.SetTable(POI);
+
+        if poi."In Datetime" = 0DT then
+            exit;
+        IF poi."Out Datetime" = 0DT THEN
+            OutDate := poi."In Datetime"
+        ELSE
+            OutDate := poi."Out Datetime";
+        InDate := poi."In Datetime" - (1 * 60 * 60 * 1000);
+        OutDate := OutDate + (1 * 60 * 60 * 1000);
+        poi.GetTransicsData(InDate, OutDate, POITruck);
+        if POITruck.FindSet then begin
+            MapElementBuffer.CreateGeoRoute('actRep' + POI."Truck No.", '');
+            repeat
+                MapElementBuffer.CreateCirclePoint('ar' + Format(POITruck.id), Format(POITruck.ActivityID));
+                MapElementBuffer.UpdatePointCoordinates(POITruck.Latitude, POITruck.Longitude);
+                MapElementBuffer.UpdatePointMarkerSettings('radius', 4);
+                MapElementBuffer.UpdatePointMarkerSettings('fillColor', 'orange');
+                MapElementBuffer.UpdatePointRouteSegmentColor('orange');
+                MapElementBuffer.UpdatePointPopupSettings(POITruck.ActivityName, true, false);
+                MapElementBuffer.SwitchToParent();
+            until POITruck.Next = 0;
+
+        end;
+    end;
+
+    local procedure POITruckEntriesToMapElements(var Source: RecordRef; var MapElementBuffer: Record "Meta UI Map Element")
+    var
+        POI: Record "Shipment POI";
+        POITruck: Record "Truck Entry";
+        OutDate: DateTime;
+        InDate: DateTime;
+    begin
+        Source.SetTable(POI);
+
+
+        if poi."In Datetime" = 0DT then
+            exit;
+        IF poi."Out Datetime" = 0DT THEN
+            OutDate := poi."In Datetime"
+        ELSE
+            OutDate := poi."Out Datetime";
+        InDate := poi."In Datetime" - (1 * 60 * 60 * 1000);
+        OutDate := OutDate + (1 * 60 * 60 * 1000);
+        POITruck.SetCurrentKey("Truck No.", "Created Date Time");
+        POITruck.SetRange("Truck No.", POI."Truck No.");
+        POITruck.SetRange("Created Date Time", InDate, OutDate);
+        if POITruck.FindSet then begin
+            MapElementBuffer.CreateGeoRoute('trucks_' + POI."Truck No.", '');
+            repeat
+                MapElementBuffer.CreateCirclePoint('tr' + Format(POITruck."Entry No."), Format(POITruck."Entry No."));
+                MapElementBuffer.UpdatePointCoordinates(POITruck.Latitude, POITruck.Longitude);
+                MapElementBuffer.UpdatePointMarkerSettings('radius', 4);
+                MapElementBuffer.UpdatePointMarkerSettings('fillColor', 'lime');
+                MapElementBuffer.UpdatePointRouteSegmentColor('lime');
+                MapElementBuffer.UpdatePointPopupSettings(POITruck.Description, true, false);
+                MapElementBuffer.SwitchToParent();
+            until POITruck.Next = 0;
 
         end;
     end;
@@ -528,14 +659,18 @@ codeunit 50256 "Meta UI Map Routines"
 
     local procedure TransicsActivitiesToMapElements(var Source: RecordRef; var MapElementBuffer: Record "Meta UI Map Element")
     var
-        TransicsActivityReport: Record "Transics Activity Report";
+        TransicsActivityReport: Record "Transics Activity Report" temporary;
         xVehicleID: Code[20];
         Index: Integer;
     begin
-        Source.SetTable(TransicsActivityReport);
+        if Source.FindSet() then
+            repeat
+                Source.SetTable(TransicsActivityReport);
+                TransicsActivityReport.Insert();
+            until Source.Next() = 0;
 
-        TransicsActivityReport.SetCurrentKey("Trip No.", BeginDate);
-        TransicsActivityReport.SetRange("Trip No.", TransicsActivityReport."Trip No.");
+        TransicsActivityReport.SetCurrentKey("Trip", BeginDate);
+        TransicsActivityReport.SetRange("Trip", TransicsActivityReport."Trip");
         TransicsActivityReport.SetFilter(Latitude, '<>0');
         TransicsActivityReport.SetFilter(Longitude, '<>0');
         if TransicsActivityReport.FindSet() then
@@ -668,6 +803,37 @@ codeunit 50256 "Meta UI Map Routines"
                     MapElementBuffer.SwitchToParent();
                 end;
             until (Trip.Next() = 0);
+        end;
+    end;
+
+    local procedure StopsToMapElements(var Source: RecordRef; var MapElementBuffer: Record "Meta UI Map Element")
+    var
+        Stop: Record "Trip Stop" temporary;
+        Addr: Record Address;
+        Shpmnt: Record Shipment;
+        TrPlanAct: Record "Transport Planned Activity";
+    begin
+        if Source.FindSet() then
+            repeat
+                Source.SetTable(Stop);
+                Stop.Insert();
+            until Source.Next() = 0;
+
+        if Stop.FindSet() then begin
+            MapElementBuffer.CreateGeoRoute('Route1', 'Route1');
+            repeat
+                Addr.Get(Stop."Address No.");
+
+                MapElementBuffer.CreateCirclePoint(Format(stop."Stop No."), Format(stop."Stop No."));
+
+                MapElementBuffer.UpdatePointCoordinates(Addr.Latitude, Addr.Longitude);
+                MapElementBuffer.UpdatePointPopupSettings(Stop."Address Description", true, false);
+
+                MapElementBuffer.UpdatePointMarkerSettings('radius', 7);
+
+                MapElementBuffer.SwitchToParent();
+            until (Stop.Next() = 0);
+            MapElementBuffer.SwitchToParent();
         end;
     end;
 
