@@ -16,8 +16,6 @@ codeunit 50256 "Meta UI Map Routines"
         Trip: Record Trip;
         TransportOrderLine: Record "Transport Order Line";
         PlanningOptions: Record "Planning Options";
-        TempTrip: Record "Temp. Trip" temporary;
-        ShpmntCreateTempTrip: Codeunit "Shipment - Create Temp. Trip";
     begin
         if Source.Number <> 0 then
             LogExecutionActivity('Meta UI Map Routines', '      MetaUIMapElement_OnMapStructureInitiate', 'Table: ' + Source.Name)
@@ -61,13 +59,6 @@ codeunit 50256 "Meta UI Map Routines"
 
                     MapElementBuffer.CreateGeoLayer('10.Overlay.Geo.NearbyTrucks', 'Nearby Trucks', false);
                     MapElementBuffer.CreateGeoLayer('11.Overlay.Geo.FindTrips', 'Find Trips', false);
-
-                    // Dynamics Routes Layers Planning
-                    ShpmntCreateTempTrip.GetTempTrips(TempTrip);
-                    if TempTrip.FindSet() then
-                        repeat
-                            MapElementBuffer.CreateGeoLayer('00.Overlay.Geo.Route.' + TempTrip.Description, 'Route ' + TempTrip.Description, false);
-                        until (TempTrip.Next = 0);
                 end;
 
             Database::"Transics Activity Report":
@@ -110,9 +101,6 @@ codeunit 50256 "Meta UI Map Routines"
                     MapElementBuffer.CreateGeoLayer('03.Overlay.Geo.DeventerTrucks', 'Deventer Trucks', false);
                     MapElementBuffer.CreateGeoLayer('04.Overlay.Geo.ITTLTrucks', 'ITTL Trucks', false);
                     MapElementBuffer.CreateGeoLayer('05.Overlay.Geo.AlblasserdamTrucks', 'Alblasserdam Trucks', false);
-
-                    if Trip.Count = 1 then
-                        MapElementBuffer.CreateGeoLayer('20.Overlay.Geo.Predictions', 'Predictions', false);
                 end;
 
             Database::"TX Tango Consultation":
@@ -186,8 +174,6 @@ codeunit 50256 "Meta UI Map Routines"
                             NearTrucksToMapElements(MapElementBuffer);
                         '11.Overlay.Geo.FindTrips':
                             FindTripsForSelectedTrucks(MapElementBuffer);
-                        '20.Overlay.Geo.Predictions':
-                            PredictionsToMapElements(Source, MapElementBuffer);
                         '00.Base.Geo.Stops':
                             StopsToMapElements(Source, MapElementBuffer);
                     end;
@@ -201,9 +187,6 @@ codeunit 50256 "Meta UI Map Routines"
                         TripsToMapElements(Source, MapElementBuffer);
                     end;
 
-                    // Dynamics Routes Layers Processing
-                    if StrPos(MapElementBuffer.ID, '00.Overlay.Geo.Route.') > 0 then
-                        TempTripToMapElements(Source, MapElementBuffer);
                 end;
 
             MapElementBuffer.Type::Route:
@@ -423,8 +406,8 @@ codeunit 50256 "Meta UI Map Routines"
             OutDate := InDate
         ELSE
             OutDate := poi."Out Datetime";
-        InDate := InDate - (1 * 60 * 60 * 1000);
-        OutDate := OutDate + (1 * 60 * 60 * 1000);
+        InDate := InDate - (3 * 60 * 60 * 1000);
+        OutDate := OutDate + (3 * 60 * 60 * 1000);
         poi.GetTransicsData(InDate, OutDate, POITruck);
         if POITruck.FindSet then begin
             MapElementBuffer.CreateGeoRoute('actRep' + POI."Truck No.", '');
@@ -457,8 +440,8 @@ codeunit 50256 "Meta UI Map Routines"
             OutDate := InDate
         ELSE
             OutDate := poi."Out Datetime";
-        InDate := InDate - (1 * 60 * 60 * 1000);
-        OutDate := OutDate + (1 * 60 * 60 * 1000);
+        InDate := InDate - (3 * 60 * 60 * 1000);
+        OutDate := OutDate + (3 * 60 * 60 * 1000);
         POITruck.SetCurrentKey("Truck No.", "Created Date Time");
         POITruck.SetRange("Truck No.", POI."Truck No.");
         POITruck.SetRange("Created Date Time", InDate, OutDate);
@@ -673,36 +656,6 @@ codeunit 50256 "Meta UI Map Routines"
                     MapElementBuffer.SwitchToParent();
                 end;
             until (Shipment.Next() = 0);
-    end;
-
-    local procedure TempTripToMapElements(var Source: RecordRef; var MapElementBuffer: Record "Meta UI Map Element")
-    var
-        Address: Record Address;
-        Shpmnt: Record Shipment;
-    begin
-        Shpmnt.SetCurrentKey("Temp. Trip No.", "Selection Sequence");
-        Shpmnt.SetRange("Temp. Trip No.", UserId + CopyStr(MapElementBuffer.ID, StrLen(MapElementBuffer.ID) - 1, 2));
-        if Shpmnt.FindSet() then begin
-            MapElementBuffer.CreateGeoRoute(Shpmnt."Temp. Trip No.", Shpmnt."Temp. Trip No.");
-
-            repeat
-                case Shpmnt."Lane Type" of
-                    Shpmnt."Lane Type"::Collection:
-                        Address.Get(Shpmnt."From Address No.");
-                    Shpmnt."Lane Type"::Delivery, Shpmnt."Lane Type"::Direct:
-                        Address.Get(Shpmnt."To Address No.");
-                end;
-
-                MapElementBuffer.CreateCirclePoint(Shpmnt."Temp. Trip No." + Format(Shpmnt."Selection Sequence"), Format(Shpmnt."Lane Type"));
-                MapElementBuffer.UpdatePointCoordinates(Address.Latitude, Address.Longitude);
-                MapElementBuffer.UpdatePointPopupSettings("Address".Description, true, false);
-
-                MapElementBuffer.UpdatePointMarkerSettings('fillColor', Shpmnt.GetColor);
-                MapElementBuffer.UpdatePointMarkerSettings('radius', 5);
-
-                MapElementBuffer.SwitchToParent();
-            until Shpmnt.Next = 0;
-        end;
     end;
 
     local procedure TransicsActivitiesToMapElements(var Source: RecordRef; var MapElementBuffer: Record "Meta UI Map Element")
@@ -1056,70 +1009,6 @@ codeunit 50256 "Meta UI Map Routines"
             Message(NoSelectionException);
     end;
 
-    local procedure PredictionsToMapElements(var Source: RecordRef; var MapElementBuffer: Record "Meta UI Map Element")
-    var
-        Trip: Record Trip;
-        Address: Record Address;
-        TripPrediction: Record "Trip Prediction";
-        TripShipmentPrediction: Record "Trip Shipment Prediction";
-
-        TempShipment: Record Shipment temporary;
-        TempTransportPlannedActivity: Record "Transport Planned Activity" temporary;
-
-        PredictionBuffer: Record "Prediction Buffer" temporary;
-        PredictionBufferMgmt: Codeunit "Prediction Buffer Mgt.";
-    begin
-        Source.SetTable(Trip);
-        Trip.FindImportShipments();
-
-        // Predictions As Route (not tested) ...
-        TripPrediction.SetRange("Trip No.", 'DUMMY');
-        if TripPrediction.FindFirst() then begin
-            TripPrediction.CalculateWithActivities(TripShipmentPrediction, TempTransportPlannedActivity, TempShipment);
-
-            TempTransportPlannedActivity.Reset;
-            TempTransportPlannedActivity.SetFilter("Address No.", '<>%1', '');
-            if TempTransportPlannedActivity.FindSet() then begin
-                MapElementBuffer.CreateGeoRoute(TripPrediction."Trip No.", '');
-
-                repeat
-                    Address.Get(TempTransportPlannedActivity."Address No.");
-
-                    MapElementBuffer.CreateCirclePoint(
-                            Format(TempTransportPlannedActivity."Entry No."), Format(TempTransportPlannedActivity.Timetype));
-
-                    MapElementBuffer.UpdatePointCoordinates(Address.Latitude, Address.Longitude);
-                    MapElementBuffer.UpdatePointPopupSettings(TempTransportPlannedActivity."Address Description", true, false);
-
-                    case true of
-                        TempTransportPlannedActivity.IsLoad():
-                            MapElementBuffer.UpdatePointMarkerSettings('fillColor', 'orange');
-                        TempTransportPlannedActivity.IsUnload():
-                            MapElementBuffer.UpdatePointMarkerSettings('fillColor', 'lime');
-                    end;
-
-                    MapElementBuffer.UpdatePointMarkerSettings('radius', 7);
-                    MapElementBuffer.SwitchToParent();
-                until (TempTransportPlannedActivity.Next() = 0);
-            end;
-        end;
-
-        // Predictions As Markers (not tested) ...
-        PredictionBufferMgmt.GetBuffer(PredictionBuffer);
-        if PredictionBuffer.FindSet() then
-            repeat
-
-                MapElementBuffer.CreateCirclePoint(PredictionBuffer."Shipment Id", '');
-                MapElementBuffer.UpdatePointCoordinates(PredictionBuffer.Latitude, PredictionBuffer.Longitude);
-                MapElementBuffer.UpdatePointPopupSettings(StrSubstNo(LoadingMetersPopupPattern,
-                         PredictionBuffer."Loading Meters") + '<br>' + PredictionBuffer.Description, true, false);
-
-                MapElementBuffer.UpdatePointMarkerSettings('fillColor', 'red');
-                MapElementBuffer.UpdatePointMarkerSettings('radius', 10 + Round(PredictionBuffer."Loading Meters", 1, '>'));
-
-                MapElementBuffer.SwitchToParent();
-            until (PredictionBuffer.Next() = 0);
-    end;
 
     // This event is triggered when the circle marker is being selected on the Map Factbox on the Planview Shipment page.
     local procedure OnShipmentMarkerSelection(Shipment: Record Shipment);

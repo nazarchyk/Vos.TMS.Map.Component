@@ -1,4 +1,4 @@
-pageextension 50156 "POI (Map)" extends POI
+pageextension 50156 "POI (Map)" extends "Point of Interest Worksheet"
 {
     layout
     {
