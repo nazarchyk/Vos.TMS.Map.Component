@@ -1,4 +1,4 @@
-pageextension 50154 "Via Points (Map)" extends "Address List - Via Points"
+pageextension 50154 "Via Points (Map)" extends "PTE Address List - Via Points"
 {
     layout
     {

@@ -1,18 +1,18 @@
-pageextension 50147 "Transport Activity List (Map)" extends "PTE Transport Activity List"
+pageextension 50158 "Int. Charter Invoice (Map)" extends "PTE Internal Charter Invoice"
 {
     layout
     {
-        addfirst(FactBoxes)
+        addlast(FactBoxes)
         {
             part(MapControl; "Meta UI Map")
             {
+                Provider = Lines;
                 ApplicationArea = All;
-                Visible = false;
+
             }
         }
     }
 
-    // Warning: This trigger is not being executed in AL, because it doesn't has any code on C/Side
     trigger OnAfterGetCurrRecord()
     var
         RecReference: RecordRef;

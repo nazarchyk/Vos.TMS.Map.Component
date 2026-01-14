@@ -1,4 +1,4 @@
-pageextension 50144 "Planview Shipment (Map)" extends "Planview Shipments"
+pageextension 50144 "Planview Shipment (Map)" extends "PTE Planview Shipments"
 {
     PromotedActionCategories = 'New,Process,Report,Meta UI Grid: Shipments,Meta UI Map';
 
@@ -55,11 +55,14 @@ pageextension 50144 "Planview Shipment (Map)" extends "Planview Shipments"
     var
         RecReference: RecordRef;
     begin
-        if xFilters <> GetFilters() then begin
-            xFilters := GetFilters();
+        if CurrPage.MapControl.Page.GetSelected() then begin
+            GetNewTotals();
+        end;
+        if xFilters <> Rec.GetFilters() then begin
+            xFilters := Rec.GetFilters();
 
             If IsMapControlVisible then
-                if GetFilter("Route No.") <> '' then begin
+                if Rec.GetFilter("Route No.") <> '' then begin
                     RecReference.GetTable(Rec);
                     CurrPage.MapControl.Page.UpdateMapContent(RecReference);
                 end;

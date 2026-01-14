@@ -1,4 +1,4 @@
-pageextension 50143 "Planning Options (Map)" extends "Planning Options"
+pageextension 50143 "Planning Options (Map)" extends "PTE Planning Options"
 {
     layout
     {

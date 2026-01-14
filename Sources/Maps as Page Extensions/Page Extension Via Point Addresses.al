@@ -1,4 +1,5 @@
-pageextension 50153 "Via Point Addresses (Map)" extends "Via Point Addresses"
+#pragma implicitwith disable
+pageextension 50153 "Via Point Addresses (Map)" extends "PTE Via Point Addresses"
 {
     layout
     {
@@ -13,12 +14,13 @@ pageextension 50153 "Via Point Addresses (Map)" extends "Via Point Addresses"
 
     trigger OnAfterGetCurrRecord()
     var
-        ViaPointAddress: Record "Via Point Address";
+        ViaPointAddress: Record "PTE Via Point Address";
         RecReference: RecordRef;
     begin
-        ViaPointAddress.SetRange("Via Point Code", "Via Point Code");
+        ViaPointAddress.SetRange("Via Point Code", Rec."Via Point Code");
 
         RecReference.GetTable(ViaPointAddress);
         CurrPage.MapControl.Page.UpdateMapContent(RecReference);
     end;
 }
+#pragma implicitwith restore

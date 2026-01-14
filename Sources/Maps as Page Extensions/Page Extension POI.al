@@ -1,4 +1,4 @@
-pageextension 50156 "POI (Map)" extends "Point of Interest Worksheet"
+pageextension 50156 "POI (Map)" extends "PTE POI Worksheet"
 {
     layout
     {
@@ -7,7 +7,7 @@ pageextension 50156 "POI (Map)" extends "Point of Interest Worksheet"
             part(MapControl; "Meta UI Map")
             {
                 ApplicationArea = All;
-                Visible = false;
+                Visible = true;
             }
         }
     }

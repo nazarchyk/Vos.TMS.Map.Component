@@ -1,18 +1,16 @@
-pageextension 50147 "Transport Activity List (Map)" extends "PTE Transport Activity List"
+pageextension 50157 "Trailer List (Map)" extends "PTE Trailer List"
 {
     layout
     {
-        addfirst(FactBoxes)
+        addlast(FactBoxes)
         {
             part(MapControl; "Meta UI Map")
             {
                 ApplicationArea = All;
-                Visible = false;
             }
         }
     }
 
-    // Warning: This trigger is not being executed in AL, because it doesn't has any code on C/Side
     trigger OnAfterGetCurrRecord()
     var
         RecReference: RecordRef;

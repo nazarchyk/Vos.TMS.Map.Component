@@ -13,9 +13,9 @@ codeunit 50256 "Meta UI Map Routines"
     [EventSubscriber(ObjectType::Table, Database::"Meta UI Map Element", 'OnMapStructureInitiate', '', false, false)]
     local procedure MetaUIMapElement_OnMapStructureInitiate(var Source: RecordRef; var MapElementBuffer: Record "Meta UI Map Element")
     var
-        Trip: Record Trip;
-        TransportOrderLine: Record "Transport Order Line";
-        PlanningOptions: Record "Planning Options";
+        Trip: Record "PTE Trip";
+        TransportOrderLine: Record "PTE Transport Order Line";
+        PlanningOptions: Record "PTE Planning Options";
     begin
         if Source.Number <> 0 then
             LogExecutionActivity('Meta UI Map Routines', '      MetaUIMapElement_OnMapStructureInitiate', 'Table: ' + Source.Name)
@@ -23,30 +23,33 @@ codeunit 50256 "Meta UI Map Routines"
             LogExecutionActivity('Meta UI Map Routines', '      MetaUIMapElement_OnMapStructureInitiate', 'No Table Selected');
 
         case Source.Number of
-            Database::Address:
+            Database::"PTE Address":
                 begin
                     MapElementBuffer.CreateGeoLayer('00.Base.Geo.Address', 'Address Location', true);
                     MapElementBuffer.CreateGeoLayer('01.Overlay.Geo.Address.POI', 'Last POI Coordinates', false);
                 end;
-            Database::Truck:
+            Database::"PTE Truck":
                 MapElementBuffer.CreateGeoLayer('00.Base.Geo.Equipment', 'Equipment Location', true);
 
-            Database::"Find Or Create Address Args.":
+            Database::"PTE Trailer":
+                MapElementBuffer.CreateGeoLayer('00.Base.Geo.Equipment', 'Equipment Location', true);
+
+            Database::"PTE Find Or Create Addr. Args.":
                 MapElementBuffer.CreateGeoLayer('00.Base.Geo.AddressArgument', 'Address Location', true);
 
-            Database::"Via Point Address":
+            Database::"PTE Via Point Address":
                 MapElementBuffer.CreateGeoLayer('00.Base.Geo.ViaPointAddress', 'Via Point Address', true);
 
-            Database::"Truck Entry":
+            Database::"PTE Truck Entry":
                 MapElementBuffer.CreateGeoLayer('00.Base.Geo.TruckEntry', 'Truck Entries', true);
 
-            Database::"Point of Interest Entry":
+            Database::"PTE Point of Interest Entry":
                 begin
                     MapElementBuffer.CreateGeoLayer('00.Base.Geo.POI', 'POI', true);
                     MapElementBuffer.CreateGeoLayer('01.Overlay.Geo.POI.ActivityReportDetails', 'ActivityReportDetails', false);
                     MapElementBuffer.CreateGeoLayer('02.Overlay.Geo.POI.TruckEntries', 'TruckEntries', false);
                 end;
-            Database::Shipment:
+            Database::"PTE Shipment":
                 begin
                     MapElementBuffer.CreateClusterLayer('00.Base.Cluster.Shipments', 'Shipments', true);
                     MapElementBuffer.UpdateLayerSettings('disableClusteringAtZoom', GetZoomLevel());
@@ -61,28 +64,28 @@ codeunit 50256 "Meta UI Map Routines"
                     MapElementBuffer.CreateGeoLayer('11.Overlay.Geo.FindTrips', 'Find Trips', false);
                 end;
 
-            Database::"Transics Activity Report":
+            Database::"PTE Transics Activity Report":
                 MapElementBuffer.CreateGeoLayer('00.Base.Geo.TransicsActivities', 'Transics Activities', true);
 
-            Database::"Planning Options":
+            Database::"PTE Planning Options":
                 begin
                     Source.SetTable(PlanningOptions);
                     MapElementBuffer.CreateGeoLayer('00.Base.Geo.PlanningOptions', 'Planning Options', true);
                 end;
-            Database::"Transport Order Line":
+            Database::"PTE Transport Order Line":
                 begin
                     Source.SetTable(TransportOrderLine);
                     MapElementBuffer.CreateGeoLayer('00.Base.Geo.PlanTrOrderLine', 'Planning Transport Order', true);
                     MapElementBuffer.CreateGeoLayer('01.Base.Geo.TrackingTrOrderLine', 'Transport Order Tracking', true);
                 end;
 
-            Database::"Transport Planned Activity":
+            Database::"PTE Transport Planned Activity":
                 MapElementBuffer.CreateGeoLayer('00.Base.Geo.TransportActivities', 'Transport Activities', true);
 
-            Database::"Trip Stop":
+            Database::"PTE Trip Stop":
                 MapElementBuffer.CreateGeoLayer('00.Base.Geo.Stops', 'Stops', true);
 
-            Database::Trip:
+            Database::"PTE Trip":
                 begin
                     Source.SetTable(Trip);
                     if Trip.Count > 1 then begin // Dynamic Trip Layers Planning
@@ -103,8 +106,10 @@ codeunit 50256 "Meta UI Map Routines"
                     MapElementBuffer.CreateGeoLayer('05.Overlay.Geo.AlblasserdamTrucks', 'Alblasserdam Trucks', false);
                 end;
 
-            Database::"TX Tango Consultation":
+            Database::"PTE TX Tango Consultation":
                 MapElementBuffer.CreateGeoLayer('00.Base.Geo.Consultations', 'Consultations Trip', true);
+            Database::"PTE Internal Charter Invoice":
+                MapElementBuffer.CreateGeoLayer('00.Base.Geo.IntCharter', 'Internal Charter', true);
 
             else
                 SuperUserMessage(Source);
@@ -114,8 +119,8 @@ codeunit 50256 "Meta UI Map Routines"
     [EventSubscriber(ObjectType::Table, Database::"Meta UI Map Element", 'OnElementSelectionChanged', '', false, false)]
     local procedure MetaUIMapElement_OnElementSelectionChanged(var Source: RecordRef; var MapElementBuffer: Record "Meta UI Map Element")
     var
-        Trip: Record Trip;
-        Shipment: Record Shipment;
+        Trip: Record "PTE Trip";
+        Shipment: Record "PTE Shipment";
         DynamicTripID: Code[20];
     begin
         LogExecutionActivity('Meta UI Map Routines', '      MetaUIMapElement_OnElementSelectionChanged',
@@ -176,6 +181,8 @@ codeunit 50256 "Meta UI Map Routines"
                             FindTripsForSelectedTrucks(MapElementBuffer);
                         '00.Base.Geo.Stops':
                             StopsToMapElements(Source, MapElementBuffer);
+                        '00.Base.Geo.IntCharter':
+                            IntCharterToMapElements(Source, MapElementBuffer);
                     end;
 
                     // Dynamic Trip Layers Processing
@@ -201,7 +208,7 @@ codeunit 50256 "Meta UI Map Routines"
                             LogExecutionActivity('Meta UI Map Routines',
                                 '      MetaUIMapElement_OnElementSelectionChanged', 'Before Shipment.FindFirst...');
 
-                            if Source.Number = Database::Shipment then begin
+                            if Source.Number = Database::"PTE Shipment" then begin
                                 Shipment.SetCurrentKey(Id);
                                 Shipment.SetRange(Id, MapElementBuffer.ID);
                                 if Shipment.FindFirst() then
@@ -212,7 +219,7 @@ codeunit 50256 "Meta UI Map Routines"
                                 '      MetaUIMapElement_OnElementSelectionChanged', 'After Shipment.FindFirst...');
                         end else begin
                             MapElementBuffer.UpdatePointMarkerSettings('strokeColor', '#4f90ca');
-                            if Source.Number = Database::Shipment then begin
+                            if Source.Number = Database::"PTE Shipment" then begin
                                 Shipment.SetCurrentKey(Id);
                                 Shipment.SetRange(Id, MapElementBuffer.ID);
                                 if Shipment.FindFirst() then
@@ -242,8 +249,8 @@ codeunit 50256 "Meta UI Map Routines"
 
     local procedure AddressToMapElements(var Source: RecordRef; var MapElementBuffer: Record "Meta UI Map Element")
     var
-        Address: Record Address;
-        POI: Record "Point of Interest Entry";
+        Address: Record "PTE Address";
+        POI: Record "PTE Point of Interest Entry";
     begin
         Source.SetTable(Address);
 
@@ -264,8 +271,8 @@ codeunit 50256 "Meta UI Map Routines"
 
     local procedure AddressPOIToMapElements(var Source: RecordRef; var MapElementBuffer: Record "Meta UI Map Element")
     var
-        Address: Record Address;
-        POI: Record "Point of Interest Entry";
+        Address: Record "PTE Address";
+        POI: Record "PTE Point of Interest Entry";
     begin
         Source.SetTable(Address);
 
@@ -295,7 +302,7 @@ codeunit 50256 "Meta UI Map Routines"
 
     local procedure AddressArgumentToMapElements(var Source: RecordRef; var MapElementBuffer: Record "Meta UI Map Element")
     var
-        AddressArgument: Record "Find Or Create Address Args.";
+        AddressArgument: Record "PTE Find Or Create Addr. Args.";
     begin
         Source.SetTable(AddressArgument);
 
@@ -306,8 +313,8 @@ codeunit 50256 "Meta UI Map Routines"
 
     local procedure ViaPointEntryToMapElements(var Source: RecordRef; var MapElementBuffer: Record "Meta UI Map Element")
     var
-        ViaPointAddr: Record "Via Point Address";
-        Addr: Record Address;
+        ViaPointAddr: Record "PTE Via Point Address";
+        Addr: Record "PTE Address";
     begin
         Source.SetTable(ViaPointAddr);
         if ViaPointAddr.FindSet then begin
@@ -327,10 +334,9 @@ codeunit 50256 "Meta UI Map Routines"
 
     local procedure TruckEntryToMapElements(var Source: RecordRef; var MapElementBuffer: Record "Meta UI Map Element")
     var
-        TruckEntry: Record "Truck Entry";
+        TruckEntry: Record "PTE Truck Entry";
     begin
         Source.SetTable(TruckEntry);
-        TruckEntry.SetCurrentKey("Truck No.");
         if TruckEntry.FindSet then begin
             MapElementBuffer.CreateGeoRoute(TruckEntry."Truck No.", '');
             repeat
@@ -346,15 +352,15 @@ codeunit 50256 "Meta UI Map Routines"
 
     local procedure POIToMapElements(var Source: RecordRef; var MapElementBuffer: Record "Meta UI Map Element")
     var
-        POI: Record "Point of Interest Entry";
-        Shipment: Record Shipment;
-        Address: Record Address;
+        POI: Record "PTE Point of Interest Entry";
+        Shipment: Record "PTE Shipment";
+        Address: Record "PTE Address";
 
     begin
         Source.SetTable(POI);
 
+        Shipment.get(poi."Transport Order No.", poi."Transport Order Line No.", poi."Irr. No.", poi."Leg No.");
         if poi.Latitude = 0 then begin
-            Shipment.get(poi."Transport Order No.", poi."Transport Order Line No.", poi."Irr. No.", poi."Leg No.");
             if poi.Load then
                 Address.get(Shipment."From Address No.")
             else
@@ -362,7 +368,26 @@ codeunit 50256 "Meta UI Map Routines"
             poi.Latitude := Address.Latitude;
             poi.Longitude := Address.Longitude;
         end;
+        if poi.Load then begin
+            if Shipment."Realised Latitude (Loading)" <> 0 then begin
+                MapElementBuffer.CreateCirclePoint('ready' + Format(POI."Entry No."), Format(POI."Calculated In Datetime"));
+                MapElementBuffer.UpdatePointCoordinates(Shipment."Realised Latitude (Loading)", Shipment."Realised Longitude (Loading)");
+                MapElementBuffer.UpdatePointMarkerSettings('radius', 4);
+                MapElementBuffer.UpdatePointMarkerSettings('fillColor', 'red');
+                MapElementBuffer.UpdatePointPopupSettings('Ready in ' + format(Shipment."Realised Loading Time From"), true, false);
+                MapElementBuffer.SwitchToParent();
+            end;
+        end else begin
+            if Shipment."Realised Latitude (Unloading)" <> 0 then begin
+                MapElementBuffer.CreateCirclePoint('ready' + Format(POI."Entry No."), Format(POI."Calculated In Datetime"));
+                MapElementBuffer.UpdatePointCoordinates(Shipment."Realised Latitude (Unloading)", Shipment."Realised Longitude (Unloading)");
+                MapElementBuffer.UpdatePointMarkerSettings('radius', 4);
+                MapElementBuffer.UpdatePointMarkerSettings('fillColor', 'red');
+                MapElementBuffer.UpdatePointPopupSettings('Ready in ' + format(Shipment."Realised Unloading Time From"), true, false);
+                MapElementBuffer.SwitchToParent();
 
+            end;
+        end;
         MapElementBuffer.CreateCirclePoint(Format(POI."Entry No."), Format(POI."Calculated In Datetime"));
         MapElementBuffer.UpdatePointCoordinates(POI.Latitude, POI.Longitude);
         MapElementBuffer.UpdatePointMarkerSettings('radius', 7);
@@ -391,8 +416,8 @@ codeunit 50256 "Meta UI Map Routines"
 
     local procedure POIActReportToMapElements(var Source: RecordRef; var MapElementBuffer: Record "Meta UI Map Element")
     var
-        POI: Record "Point of Interest Entry";
-        POITruck: Record "Transics Activity Report" temporary;
+        POI: Record "PTE Point of Interest Entry";
+        POITruck: Record "PTE Transics Activity Report" temporary;
         OutDate: DateTime;
         InDate: DateTime;
     begin
@@ -406,9 +431,9 @@ codeunit 50256 "Meta UI Map Routines"
             OutDate := InDate
         ELSE
             OutDate := poi."Out Datetime";
-        InDate := InDate - (3 * 60 * 60 * 1000);
-        OutDate := OutDate + (3 * 60 * 60 * 1000);
-        poi.GetTransicsData(InDate, OutDate, POITruck);
+        InDate := InDate - (4 * 60 * 60 * 1000);
+        OutDate := OutDate + (4 * 60 * 60 * 1000);
+        // poi.GetTransicsData(InDate, OutDate, POITruck);
         if POITruck.FindSet then begin
             MapElementBuffer.CreateGeoRoute('actRep' + POI."Truck No.", '');
             repeat
@@ -426,8 +451,8 @@ codeunit 50256 "Meta UI Map Routines"
 
     local procedure POITruckEntriesToMapElements(var Source: RecordRef; var MapElementBuffer: Record "Meta UI Map Element")
     var
-        POI: Record "Point of Interest Entry";
-        POITruck: Record "Truck Entry";
+        POI: Record "PTE Point of Interest Entry";
+        POITruck: Record "PTE Truck Entry";
         OutDate: DateTime;
         InDate: DateTime;
     begin
@@ -440,11 +465,15 @@ codeunit 50256 "Meta UI Map Routines"
             OutDate := InDate
         ELSE
             OutDate := poi."Out Datetime";
-        InDate := InDate - (3 * 60 * 60 * 1000);
-        OutDate := OutDate + (3 * 60 * 60 * 1000);
+        InDate := InDate - (4 * 60 * 60 * 1000);
+        OutDate := OutDate + (4 * 60 * 60 * 1000);
         POITruck.SetCurrentKey("Truck No.", "Created Date Time");
         POITruck.SetRange("Truck No.", POI."Truck No.");
         POITruck.SetRange("Created Date Time", InDate, OutDate);
+        if POITruck.IsEmpty then begin
+            POITruck.SetRange("Truck No.");
+            POITruck.SetRange("Last Trailer No.", POI."Truck No.");
+        end;
         if POITruck.FindSet then begin
             MapElementBuffer.CreateGeoRoute('trucks_' + POI."Truck No.", '');
             repeat
@@ -462,11 +491,11 @@ codeunit 50256 "Meta UI Map Routines"
 
     local procedure TrOrderTruckEntryToMapElements(var Source: RecordRef; var MapElementBuffer: Record "Meta UI Map Element")
     var
-        TruckEntry: Record "Truck Entry" temporary;
-        TransportOrderLine: Record "Transport Order Line";
-        Shipment: Record Shipment;
-        Address: Record Address;
-        GetEntries: Codeunit "Truck Entries Management";
+        TruckEntry: Record "PTE Truck Entry" temporary;
+        TransportOrderLine: Record "PTE Transport Order Line";
+        Shipment: Record "PTE Shipment";
+        Address: Record "PTE Address";
+        GetEntries: Codeunit "PTE Truck Entries Management";
         Index: Integer;
     begin
         Source.SetTable(TransportOrderLine);
@@ -479,6 +508,7 @@ codeunit 50256 "Meta UI Map Routines"
                 MapElementBuffer.CreateCirclePoint(format(CreateGuid), '');
                 MapElementBuffer.UpdatePointCoordinates(Address.Latitude, Address.Longitude);
                 MapElementBuffer.UpdatePointMarkerSettings('radius', 1);
+                MapElementBuffer.UpdatePointMarkerSettings('fillColor', 'green');
                 MapElementBuffer.SwitchToParent();
             end;
 
@@ -486,6 +516,7 @@ codeunit 50256 "Meta UI Map Routines"
                 MapElementBuffer.CreateCirclePoint(Format(TruckEntry."Entry No."), Format(TruckEntry."Created Date Time"));
                 MapElementBuffer.UpdatePointCoordinates(TruckEntry.Latitude, TruckEntry.Longitude);
                 MapElementBuffer.UpdatePointMarkerSettings('radius', 1);
+                MapElementBuffer.UpdatePointMarkerSettings('fillColor', 'green');
                 MapElementBuffer.UpdatePointPopupSettings(Format(TruckEntry."Created Date Time"), true, false);
                 MapElementBuffer.SwitchToParent();
             until TruckEntry.Next = 0;
@@ -521,7 +552,7 @@ codeunit 50256 "Meta UI Map Routines"
 
     local procedure ConsultationsToMapElements(var Source: RecordRef; var MapElementBuffer: Record "Meta UI Map Element")
     var
-        TXTangoConsultation: Record "TX Tango Consultation";
+        TXTangoConsultation: Record "PTE TX Tango Consultation";
     begin
         Source.SetTable(TXTangoConsultation);
 
@@ -543,21 +574,39 @@ codeunit 50256 "Meta UI Map Routines"
 
     local procedure EquipmentToMapElements(var Source: RecordRef; var MapElementBuffer: Record "Meta UI Map Element")
     var
-        Equipment: Record Truck;
+        Truck: Record "PTE Truck";
+        Trailer: Record "PTE Trailer";
+        TruckEntry: Record "PTE Truck Entry";
+        i: Integer;
     begin
-        Source.SetTable(Equipment);
+        if Source.Number = Database::"PTE Truck" then begin
+            Source.SetTable(Truck);
 
-        MapElementBuffer.CreateCirclePoint(Equipment."No.", Equipment.Description);
-        MapElementBuffer.UpdatePointCoordinates(Equipment.GetLatitude, Equipment.GetLongitude);
-        MapElementBuffer.UpdatePointPopupSettings(Equipment.GetLastCity, true, false);
+            MapElementBuffer.CreateCirclePoint(Truck."No.", Truck.Description);
+            MapElementBuffer.UpdatePointCoordinates(Truck.GetLatitude, Truck.GetLongitude);
+            MapElementBuffer.UpdatePointPopupSettings(Truck.GetLastCity, true, false);
+        end else begin
+            Source.SetTable(Trailer);
+            if TruckEntry.FindLast then begin
+                MapElementBuffer.CreateGeoRoute(Trailer."No.", '');
+                repeat
+                    i := i + 1;
+                    MapElementBuffer.CreateCirclePoint(Format(TruckEntry."Entry No."), Format(TruckEntry."Created Date Time"));
+                    MapElementBuffer.UpdatePointCoordinates(TruckEntry.Latitude, TruckEntry.Longitude);
+                    MapElementBuffer.UpdatePointMarkerSettings('radius', 1);
+                    MapElementBuffer.UpdatePointPopupSettings(TruckEntry."Address Info", true, false);
+                    MapElementBuffer.SwitchToParent();
+                until (TruckEntry.Next(-1) = 0) or (i > 10);
+            end;
+        end;
     end;
 
     local procedure PlanningOptionsToMapElements(var Source: RecordRef; var MapElementBuffer: Record "Meta UI Map Element")
     var
-        Address: Record Address;
-        Shipment: Record Shipment;
-        //TransportOrderLine: Record "Transport Order Line";
-        PlanningOptions: record "Planning Options";
+        Address: Record "PTE Address";
+        Shipment: Record "PTE Shipment";
+        //TransportOrderLine: Record "PTE Transport Order Line";
+        PlanningOptions: Record "PTE Planning Options";
         Index: Integer;
     begin
         Source.SetTable(PlanningOptions);
@@ -621,8 +670,8 @@ codeunit 50256 "Meta UI Map Routines"
 
     local procedure ShipmentsToMapElements(var Source: RecordRef; var MapElementBuffer: Record "Meta UI Map Element")
     var
-        Address: Record Address;
-        Shipment: Record Shipment;
+        Address: Record "PTE Address";
+        Shipment: Record "PTE Shipment";
     begin
         Source.SetTable(Shipment);
 
@@ -633,8 +682,13 @@ codeunit 50256 "Meta UI Map Routines"
                     case Shipment."Lane Type" of
                         Shipment."Lane Type"::Collection:
                             Address.Get(Shipment."From Address No.");
-                        Shipment."Lane Type"::Delivery, Shipment."Lane Type"::Direct:
+                        Shipment."Lane Type"::Delivery:
                             Address.Get(Shipment."To Address No.");
+                        Shipment."Lane Type"::Direct:
+                            if Shipment."From Address Depot" then
+                                Address.Get(Shipment."To Address No.")
+                            else
+                                Address.Get(Shipment."From Address No.");
                     end;
 
                     if Address.CoordinatesNotInCountry() then
@@ -660,7 +714,7 @@ codeunit 50256 "Meta UI Map Routines"
 
     local procedure TransicsActivitiesToMapElements(var Source: RecordRef; var MapElementBuffer: Record "Meta UI Map Element")
     var
-        TransicsActivityReport: Record "Transics Activity Report" temporary;
+        TransicsActivityReport: Record "PTE Transics Activity Report" temporary;
         xVehicleID: Code[20];
         Index: Integer;
     begin
@@ -707,8 +761,8 @@ codeunit 50256 "Meta UI Map Routines"
 
     local procedure TransportActivitiesToMapElements(var Source: RecordRef; var MapElementBuffer: Record "Meta UI Map Element")
     var
-        Trip: Record Trip;
-        TrPlanAct: Record "Transport Planned Activity";
+        Trip: Record "PTE Trip";
+        TrPlanAct: Record "PTE Transport Planned Activity";
         RecReference: RecordRef;
     begin
         Source.SetTable(TrPlanAct);
@@ -721,9 +775,9 @@ codeunit 50256 "Meta UI Map Routines"
 
     local procedure TransportOrderLineToMapElements(var Source: RecordRef; var MapElementBuffer: Record "Meta UI Map Element")
     var
-        Address: Record Address;
-        Shipment: Record Shipment;
-        TransportOrderLine: Record "Transport Order Line";
+        Address: Record "PTE Address";
+        Shipment: Record "PTE Shipment";
+        TransportOrderLine: Record "PTE Transport Order Line";
     begin
         Source.SetTable(TransportOrderLine);
 
@@ -758,10 +812,12 @@ codeunit 50256 "Meta UI Map Routines"
 
     local procedure TripsToMapElements(var Source: RecordRef; var MapElementBuffer: Record "Meta UI Map Element")
     var
-        Trip: Record Trip;
-        Addr: Record Address;
-        Shpmnt: Record Shipment;
-        TrPlanAct: Record "Transport Planned Activity";
+        Trip: Record "PTE Trip";
+        Addr: Record "PTE Address";
+        Shpmnt: Record "PTE Shipment";
+        TrPlanAct: Record "PTE Transport Planned Activity";
+        TruckEntry: Record "PTE Truck Entry";
+        CurrentTruckNo: Code[20];
     begin
         Source.SetTable(Trip);
         if Trip.FindSet() then begin
@@ -770,6 +826,7 @@ codeunit 50256 "Meta UI Map Routines"
             TrPlanAct.SetFilter(Timetype, '<>%1', TrPlanAct.Timetype::Rest);
 
             repeat
+                CurrentTruckNo := Trip."First Truck No.";
                 TrPlanAct.SetRange("Trip No.", Trip."No.");
                 if TrPlanAct.FindSet() then begin
                     MapElementBuffer.CreateGeoRoute(Trip."No.", CopyStr(Trip.Name, 1, MaxStrLen(MapElementBuffer.Name)));
@@ -798,10 +855,28 @@ codeunit 50256 "Meta UI Map Routines"
                         if TrPlanAct."Realised Ending Date-Time" <> 0DT then
                             MapElementBuffer.UpdatePointRouteSegmentColor('grey');
 
+                        if TrPlanAct."Equipment Change No." > 0 then begin
+                            if (TrPlanAct."Planned Starting Date-Time" < CurrentDateTime) and (TrPlanAct."Truck No." <> CurrentTruckNo) and (TrPlanAct."Truck No." <> '') then
+                                CurrentTruckNo := TrPlanAct."Truck No.";
+                        end;
+
                         MapElementBuffer.SwitchToParent();
                     until (TrPlanAct.Next() = 0);
 
                     MapElementBuffer.SwitchToParent();
+                end;
+                if trip.Status = Trip.Status::"Loaded/In Transit" then begin
+                    TruckEntry.SetCurrentKey("Truck No.");
+                    TruckEntry.SetRange("Truck No.", CurrentTruckNo);
+                    IF TruckEntry.FindLast() then begin
+
+                        MapElementBuffer.CreateIconPoint(Format(TruckEntry."Entry No."), Format(TruckEntry."Truck Description"));
+
+                        MapElementBuffer.UpdatePointCoordinates(TruckEntry.Latitude, TruckEntry.Longitude);
+                        MapElementBuffer.UpdatePointPopupSettings(StrSubstNo('%1 - %2', TruckEntry."Truck No.", TruckEntry."Created Date Time"), true, false);
+                        MapElementBuffer.UpdatePointMarkerSettings('iconUrl', RedIconPath);
+                        MapElementBuffer.UpdateDataMarkProperty(RedIconPath);
+                    end;
                 end;
             until (Trip.Next() = 0);
         end;
@@ -809,10 +884,10 @@ codeunit 50256 "Meta UI Map Routines"
 
     local procedure StopsToMapElements(var Source: RecordRef; var MapElementBuffer: Record "Meta UI Map Element")
     var
-        Stop: Record "Trip Stop" temporary;
-        Addr: Record Address;
-        Shpmnt: Record Shipment;
-        TrPlanAct: Record "Transport Planned Activity";
+        Stop: Record "PTE Trip Stop" temporary;
+        Addr: Record "PTE Address";
+        Shpmnt: Record "PTE Shipment";
+        TrPlanAct: Record "PTE Transport Planned Activity";
     begin
         if Source.FindSet() then
             repeat
@@ -846,15 +921,15 @@ codeunit 50256 "Meta UI Map Routines"
 
     local procedure MyTrucksToMapElements(var MapElementBuffer: Record "Meta UI Map Element")
     var
-        Equipment: Record Truck;
+        Equipment: Record "PTE Truck";
         UserSetup: Record "User Setup";
-        PeriodicalAllocation: Record "Periodical Allocation";
+        PeriodicalAllocation: Record "PTE Periodical Allocation";
     begin
         UserSetup.Get(UserId());
-        UserSetup.TestField("Planner No.");
+        UserSetup.TestField("PTE Planner No.");
 
         PeriodicalAllocation.SetRange(PeriodicalAllocation.Type, PeriodicalAllocation.Type::Truck);
-        PeriodicalAllocation.SetRange("Default Planner No.", UserSetup."Planner No.");
+        PeriodicalAllocation.SetRange("Default Planner No.", UserSetup."PTE Planner No.");
         if PeriodicalAllocation.FindSet() then
             repeat
                 Equipment.Get(PeriodicalAllocation."No.");
@@ -873,8 +948,8 @@ codeunit 50256 "Meta UI Map Routines"
 
     local procedure TrucksToMapElements(PlanningFilter: Code[10]; var MapElementBuffer: Record "Meta UI Map Element")
     var
-        Trip: Record Trip;
-        Equipment: Record Truck;
+        Trip: Record "PTE Trip";
+        Equipment: Record "PTE Truck";
         IconURLPath: Text;
     begin
         Trip.SetRange("Planning Code", PlanningFilter);
@@ -915,7 +990,7 @@ codeunit 50256 "Meta UI Map Routines"
 
     local procedure ITTLTrucksToMapElements(var MapElementBuffer: Record "Meta UI Map Element")
     var
-        Equipment: Record Truck;
+        Equipment: Record "PTE Truck";
     begin
         Equipment.SetRange("Default Company", 'UAB ITTL');
         Equipment.SetFilter("Out Of Service Date", '%1|%2..', 0D, Today());
@@ -936,9 +1011,9 @@ codeunit 50256 "Meta UI Map Routines"
 
     local procedure NearTrucksToMapElements(var MapElementBuffer: Record "Meta UI Map Element")
     var
-        Address: Record Address;
-        Shipment: Record Shipment;
-        EquipmentBuffer: Record Truck temporary;
+        Address: Record "PTE Address";
+        Shipment: Record "PTE Shipment";
+        EquipmentBuffer: Record "PTE Truck" temporary;
         MapElementShadow: Record "Meta UI Map Element" temporary;
         NoSelectionException: Label 'This function requires selected shipment(s) as a calculation base.';
     begin
@@ -978,10 +1053,45 @@ codeunit 50256 "Meta UI Map Routines"
             Message(NoSelectionException);
     end;
 
+    local procedure IntCharterToMapElements(var Source: RecordRef; var MapElementBuffer: Record "Meta UI Map Element")
+    var
+        IntCharter: Record "PTE Internal Charter Worksheet";
+        IntCharterInvoice: Record "PTE Internal Charter Invoice";
+        Address: Record "PTE Address";
+    begin
+        Source.SetTable(IntCharterInvoice);
+
+        IntCharter.SetRange("Invoice No.", IntCharterInvoice."No.");
+        IntCharter.SetRange("Trip No.", IntCharterInvoice."Current Trip No.");
+        if IntCharter.FindSet then begin
+            MapElementBuffer.CreateGeoRoute('invoice' + format(IntCharter."Invoice No.") + ' ' + IntCharter."Truck No.", '');
+            repeat
+                MapElementBuffer.CreateCirclePoint(IntCharter."Trip No." + Format(IntCharter."Stop No."), IntCharter."Trip No." + Format(IntCharter."Stop No."));
+                Address.Get(IntCharter."From Address No.");
+                MapElementBuffer.UpdatePointCoordinates(Address.Latitude, Address.Longitude);
+                MapElementBuffer.UpdatePointMarkerSettings('radius', 5);
+                MapElementBuffer.UpdatePointMarkerSettings('fillColor', 'blue');
+                MapElementBuffer.UpdatePointRouteSegmentColor('blue');
+
+                MapElementBuffer.UpdatePointPopupSettings(StrSubstNo('%1#%2#%3', IntCharter."Trip No.", IntCharter."Stop No.", IntCharter."From Address City"), true, false);
+                MapElementBuffer.SwitchToParent();
+            until IntCharter.Next = 0;
+            MapElementBuffer.CreateCirclePoint(IntCharter."Trip No." + Format(IntCharter."Stop No." + 1), IntCharter."Trip No." + Format(IntCharter."Stop No."));
+            Address.Get(IntCharter."To Address No.");
+            MapElementBuffer.UpdatePointCoordinates(Address.Latitude, Address.Longitude);
+            MapElementBuffer.UpdatePointMarkerSettings('radius', 7);
+            MapElementBuffer.UpdatePointMarkerSettings('fillColor', 'blue');
+            MapElementBuffer.UpdatePointRouteSegmentColor('blue');
+            MapElementBuffer.UpdatePointPopupSettings(StrSubstNo('%1#%2#%3', IntCharter."Trip No.", IntCharter."Stop No.", IntCharter."From Address City"), true, false);
+            MapElementBuffer.SwitchToParent();
+
+        end;
+    end;
+
     local procedure FindTripsForSelectedTrucks(var MapElementBuffer: Record "Meta UI Map Element")
     var
-        Trip: Record Trip;
-        Equipment: Record Truck;
+        Trip: Record "PTE Trip";
+        Equipment: Record "PTE Truck";
         MapElementShadow: Record "Meta UI Map Element" temporary;
         NoSelectionException: Label 'This function requires selected truck(s) as a calculation base.';
         RecReference: RecordRef;
@@ -1011,14 +1121,14 @@ codeunit 50256 "Meta UI Map Routines"
 
 
     // This event is triggered when the circle marker is being selected on the Map Factbox on the Planview Shipment page.
-    local procedure OnShipmentMarkerSelection(Shipment: Record Shipment);
+    local procedure OnShipmentMarkerSelection(Shipment: Record "PTE Shipment");
     begin
         Shipment.SelectIt();
     end;
 
     local procedure SettingsToJSON() Settings: JsonObject
     var
-        TransportOrderSetup: Record "Transport Order Setup";
+        TransportOrderSetup: Record "PTE Transport Order Setup";
     begin
         /*** EXAMPLE OF PROVIDER SETTINGS FOR OPENSTREETMAPS ***/
         // Settings.Add('type', 1);
@@ -1051,7 +1161,7 @@ codeunit 50256 "Meta UI Map Routines"
         UserSetup: Record "User Setup";
     begin
         UserSetup.Get(UserId);
-        exit(UserSetup."Zoom Level (Map)");
+        exit(UserSetup."PTE Zoom Level (Map)");
     end;
 
     local procedure SuperUserMessage(Source: RecordRef)
@@ -1060,7 +1170,7 @@ codeunit 50256 "Meta UI Map Routines"
         UnknownSourceException: Label 'The source reference ''%1'' is not supported.';
     begin
         UserSetup.Get(UserId());
-        if not UserSetup."Super User" then
+        if not UserSetup."PTE Super User" then
             exit;
 
         Message(UnknownSourceException, Source);

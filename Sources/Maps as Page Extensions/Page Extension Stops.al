@@ -1,4 +1,4 @@
-pageextension 50155 "Stops (Map)" extends "xServer Stops"
+pageextension 50155 "Stops (Map)" extends "PTE xServer Stops"
 {
     layout
     {

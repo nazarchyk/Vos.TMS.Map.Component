@@ -1,4 +1,4 @@
-pageextension 50152 "Truck Entries (Map)" extends "Truck Entries"
+pageextension 50152 "Truck Entries (Map)" extends "PTE Truck Entries"
 {
     layout
     {
@@ -13,7 +13,7 @@ pageextension 50152 "Truck Entries (Map)" extends "Truck Entries"
 
     trigger OnAfterGetCurrRecord()
     var
-        TruckEntry: Record "Truck Entry";
+        TruckEntry: Record "PTE Truck Entry";
         RecReference: RecordRef;
     begin
         CurrPage.SetSelectionFilter(TruckEntry);

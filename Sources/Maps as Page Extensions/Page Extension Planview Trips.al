@@ -1,4 +1,4 @@
-pageextension 50145 "Planview Trips (Map)" extends "Planview Trips"
+pageextension 50145 "Planview Trips (Map)" extends "PTE Planview Trips"
 {
     PromotedActionCategories = 'New,Process,Report,Meta UI Grid: Trips,Meta UI Map';
 
@@ -86,7 +86,7 @@ pageextension 50145 "Planview Trips (Map)" extends "Planview Trips"
     // Variant 2 - Visualization on record or selection change
     trigger OnAfterGetCurrRecord()
     var
-        Trip: Record Trip;
+        Trip: Record "PTE Trip";
         RecReference: RecordRef;
     begin
         if not IsMapControlVisible then

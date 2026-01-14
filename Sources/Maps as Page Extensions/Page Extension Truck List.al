@@ -1,4 +1,4 @@
-pageextension 50150 "Truck List (Map)" extends "Truck List"
+pageextension 50150 "Truck List (Map)" extends "PTE Truck List"
 {
     layout
     {
